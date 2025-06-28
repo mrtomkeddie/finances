@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { getUserProfile, updateUserProfile, clearAllUserData } from '@/lib/firebaseService';
+import { getUserProfile, updateUserProfile, clearAllUserData } from '@/lib/firebase';
 import { Loader2 } from 'lucide-react';
 import {
   AlertDialog,

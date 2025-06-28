@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, 'react';
+import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +12,7 @@ import { AddGoalDialog } from '@/components/AddGoalDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { getGoals, addGoal, updateGoal, deleteGoal } from '@/lib/firebaseService';
+import { getGoals, addGoal, updateGoal, deleteGoal } from '@/lib/firebase';
 import { formatCurrency } from '@/lib/financial';
 
 export default function GoalsPage() {

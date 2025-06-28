@@ -13,7 +13,7 @@ import { TransactionDetailModal } from '@/components/TransactionDetailModal';
 import { TransferEditModal } from '@/components/TransferEditModal';
 import { Transaction, Bank, TransactionType, TransactionFrequency } from '@/lib/types';
 import { calculateSummary, formatCurrency, calculateMonthlyAmount, calculateNetMonthlyDebtPayment, calculateWeeksUntilPaidOff } from '@/lib/financial';
-import { getBanks, getTransactions, addBank, updateBank, deleteBank, addTransaction, updateTransaction, deleteTransaction } from '@/lib/firebaseService';
+import { getBanks, getTransactions, addBank, updateBank, deleteBank, addTransaction, updateTransaction, deleteTransaction } from '@/lib/firebase';
 import { formatDate, getNextDueDate, formatNextDueDate, getNextDueDateColor } from '@/lib/dateUtils';
 import { useRouter } from 'next/navigation';
 
