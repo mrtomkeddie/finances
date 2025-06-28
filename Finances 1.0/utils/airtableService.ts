@@ -1,19 +1,13 @@
-import { Transaction, Bank } from './types';
+import { Transaction, Bank } from '../types/financial';
 
-const BASE_ID = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
-const API_TOKEN = process.env.NEXT_PUBLIC_AIRTABLE_API_TOKEN;
+const BASE_ID = 'appGr7teCGX1HtXQ7';
+const API_TOKEN = 'patyWbrKiNVQumdCP.bda7401339e52ce3baeed0a3c8014a585e8e90b73280c48e303c9bb5c8a163df';
 
 const AIRTABLE_API_BASE = 'https://api.airtable.com/v0';
 
 class AirtableService {
   private async makeRequest(endpoint: string, options: RequestInit = {}) {
     const url = `${AIRTABLE_API_BASE}/${BASE_ID}/${endpoint}`;
-    
-    if (!BASE_ID || !API_TOKEN) {
-      const errorMsg = 'Airtable configuration missing. Please check your environment variables.';
-      console.error(`🚨 ${errorMsg}`);
-      throw new Error(errorMsg);
-    }
     
     const response = await fetch(url, {
       ...options,
@@ -328,7 +322,7 @@ class AirtableService {
         Frequency: transaction.frequency,
         Category: transaction.category,
         Date: transaction.date,
-        BankID: [transaction.bankId],
+        BankID: transaction.bankId,
       };
 
       console.log('🔄 Creating transaction with fields:', JSON.stringify(fields, null, 2));
@@ -447,7 +441,7 @@ class AirtableService {
         Frequency: updates.frequency,
         Category: updates.category,
         Date: updates.date,
-        BankID: [updates.bankId],
+        BankID: updates.bankId,
       };
 
       console.log('🔄 Update fields being sent:', JSON.stringify(fields, null, 2));

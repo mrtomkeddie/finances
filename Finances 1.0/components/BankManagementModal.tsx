@@ -5,7 +5,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Pencil, Trash2 } from 'lucide-react';
-import { Bank, BankType } from '@/lib/types';
+import { Bank, BankType } from '../types/financial';
 
 interface BankManagementModalProps {
   isOpen: boolean;
