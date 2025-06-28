@@ -1,10 +1,10 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, AlertCircle } from 'lucide-react';
-const logoIcon = 'https://placehold.co/48x48.png';
+import { User, AlertCircle, Landmark, Lock } from 'lucide-react';
 
 interface LoginFormProps {
   onLogin: () => void;
@@ -37,12 +37,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
         <Card className="bg-card border-border shadow-2xl">
           <CardHeader className="text-center pb-6">
             <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10 border border-primary/20 w-fit flex items-center justify-center">
-              <img 
-                src={logoIcon} 
-                alt="Financial Tracker" 
-                className="h-8 w-8 opacity-80"
-                data-ai-hint="logo"
-              />
+              <Landmark className="h-8 w-8 text-primary" />
             </div>
             <CardTitle className="text-2xl font-bold text-foreground">
               Financial Tracker
@@ -77,12 +72,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                   Password
                 </Label>
                 <div className="relative">
-                  <img 
-                    src={logoIcon} 
-                    alt="Password" 
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 opacity-60"
-                    data-ai-hint="logo"
-                  />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
@@ -129,3 +119,5 @@ export function LoginForm({ onLogin }: LoginFormProps) {
     </div>
   );
 }
+
+    

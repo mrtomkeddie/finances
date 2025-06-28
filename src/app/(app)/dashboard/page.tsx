@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, Plus, TrendingUp, TrendingDown, CreditCard, Clock, LogOut, ChevronUp, ChevronDown, Loader2, Edit3 } from 'lucide-react';
+import { Settings, Plus, TrendingUp, TrendingDown, CreditCard, Clock, LogOut, ChevronUp, ChevronDown, Loader2, Edit3, Landmark } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { BankManagementModal } from '@/components/BankManagementModal';
 import { TransactionModal } from '@/components/TransactionModal';
@@ -15,8 +15,6 @@ import { Transaction, Bank, TransactionType, TransactionFrequency } from '@/lib/
 import { calculateSummary, formatCurrency, calculateMonthlyAmount, calculateNetMonthlyDebtPayment, calculateWeeksUntilPaidOff } from '@/lib/financial';
 import { airtableService } from '@/lib/airtableService';
 import { formatDate, getDaysUntil, isOverdue, getNextDueDate, formatNextDueDate, getNextDueDateColor } from '@/lib/dateUtils';
-
-const logoIcon = 'https://placehold.co/48x48.png';
 
 type SortColumn = 'name' | 'amount' | 'frequency' | 'monthlyAmount' | 'remainingDebt' | 'weeksUntilPaidOff' | 'dueDate' | 'bank' | 'interest';
 type SortDirection = 'asc' | 'desc';
@@ -538,12 +536,9 @@ export default function DashboardPage() {
         <div className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-3">
-              <img 
-                src={logoIcon} 
-                alt="Financial Tracker" 
-                className="h-5 w-5 sm:h-6 sm:w-6 opacity-80"
-                data-ai-hint="logo"
-              />
+              <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
+                <Landmark className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              </div>
               <h1 className="text-lg sm:text-xl font-semibold text-foreground truncate">
                 <span className="hidden sm:inline">Finances Dashboard</span>
                 <span className="sm:hidden">Finances</span>
@@ -1039,12 +1034,7 @@ export default function DashboardPage() {
         <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-4">
           <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4 sm:gap-2">
             <div className="flex items-center gap-3 opacity-60">
-              <img 
-                src={logoIcon} 
-                alt="Financial Tracker" 
-                className="h-5 w-5 sm:h-4 sm:w-4"
-                data-ai-hint="logo"
-              />
+              <Landmark className="h-5 w-5 sm:h-4 sm:w-4 text-muted-foreground" />
               <span className="text-sm sm:text-xs text-muted-foreground">
                 Financial Tracker
               </span>
