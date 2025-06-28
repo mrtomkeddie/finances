@@ -10,12 +10,13 @@ import { AlertCircle, Landmark, Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export function LoginForm() {
-  const { signInWithEmail, signUpWithEmail, error: authError } = useAuth();
+  const { signInWithEmail, signUpWithEmail, sendPasswordReset, error: authError } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   React.useEffect(() => {
@@ -28,23 +29,41 @@ export function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    if (isSignUp && password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
+    setMessage('');
     setIsLoading(true);
+
     if (isSignUp) {
+      if (password !== confirmPassword) {
+        setError("Passwords do not match.");
+        setIsLoading(false);
+        return;
+      }
       await signUpWithEmail(email, password);
     } else {
       await signInWithEmail(email, password);
+    }
+    // isLoading is reset by the useEffect hook on authError
+  };
+
+  const handlePasswordReset = async () => {
+    setError('');
+    setMessage('');
+    if (!email) {
+      setError('Please enter your email address to reset your password.');
+      return;
+    }
+    try {
+      await sendPasswordReset(email);
+      setMessage('Password reset email sent. Please check your inbox.');
+    } catch (err: any) {
+      setError(err.message);
     }
   };
 
   const toggleFormMode = () => {
     setIsSignUp(!isSignUp);
     setError('');
+    setMessage('');
     setEmail('');
     setPassword('');
     setConfirmPassword('');
@@ -126,11 +145,24 @@ export function LoginForm() {
                 )}
               </div>
 
+               {!isSignUp && (
+                <div className="text-right">
+                    <button type="button" onClick={handlePasswordReset} className="text-sm text-muted-foreground hover:text-foreground underline">
+                        Forgot Password?
+                    </button>
+                </div>
+              )}
 
               {error && (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
                   <AlertCircle className="h-4 w-4 text-red-500" />
                   <p className="text-sm text-red-500">{error}</p>
+                </div>
+              )}
+
+              {message && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                  <p className="text-sm text-green-500">{message}</p>
                 </div>
               )}
 

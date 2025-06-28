@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, ReactNode } from 'react';
-import { onAuthStateChanged, User, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
+import { onAuthStateChanged, User, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/hooks/useAuth';
@@ -40,11 +40,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             case 'auth/popup-closed-by-user':
                 message = 'Sign-in process was cancelled.';
                 break;
+            case 'auth/invalid-email':
+                message = 'Please enter a valid email address.';
+                break;
             default:
                 message = err.message;
         }
     }
     setError(message);
+    throw new Error(message);
   }
 
   const signUpWithEmail = async (email: string, pass: string) => {
@@ -82,7 +86,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const value = { user, loading, error, signInWithEmail, signUpWithEmail, signOutUser };
+  const sendPasswordReset = async (email: string) => {
+    setError(null);
+    try {
+      await sendPasswordResetEmail(auth, email);
+    } catch (err) {
+      handleAuthError(err);
+    }
+  };
+
+  const value = { user, loading, error, signInWithEmail, signUpWithEmail, signOutUser, sendPasswordReset };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
