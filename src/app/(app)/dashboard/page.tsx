@@ -10,6 +10,7 @@ import { useAppContext } from '@/context/AppContext';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { FinancialItem } from '@/lib/types';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(amount);
@@ -138,11 +139,22 @@ export default function DashboardPage() {
       </div>
 
        <div className="space-y-4">
-        <div className="flex gap-2">
-            <Button onClick={() => setActiveTab('income')} variant={activeTab === 'income' ? 'secondary' : 'ghost'} className="rounded-lg"><TrendingUp className="mr-2 h-4 w-4"/>Income</Button>
-            <Button onClick={() => setActiveTab('expense')} variant={activeTab === 'expense' ? 'secondary' : 'ghost'} className="rounded-lg"><TrendingDown className="mr-2 h-4 w-4"/>Expenses</Button>
-            <Button onClick={() => setActiveTab('debt')} variant={activeTab === 'debt' ? 'secondary' : 'ghost'} className="rounded-lg"><CreditCard className="mr-2 h-4 w-4"/>Debt</Button>
-        </div>
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'income' | 'expense' | 'debt')}>
+          <TabsList className="grid h-auto w-full grid-cols-3 rounded-lg bg-card p-1">
+            <TabsTrigger value="income" className="rounded-lg">
+              <TrendingUp className="mr-2 h-4 w-4" />
+              Income
+            </TabsTrigger>
+            <TabsTrigger value="expense" className="rounded-lg">
+              <TrendingDown className="mr-2 h-4 w-4" />
+              Expenses
+            </TabsTrigger>
+            <TabsTrigger value="debt" className="rounded-lg">
+              <CreditCard className="mr-2 h-4 w-4" />
+              Debt
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
         <div className="flex flex-wrap gap-2">
           {banks.map(bank => (
             <Button key={bank} onClick={() => toggleFilter(bank)} variant="outline" size="sm" className={cn("rounded-full border-white/20", activeFilters.includes(bank) ? "bg-white/20 text-white" : "text-muted-foreground")}>
