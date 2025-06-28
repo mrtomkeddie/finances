@@ -1,0 +1,15 @@
+export const DEFAULT_CATEGORIES = [
+  'Housing',
+  'Transportation',
+  'Food',
+  'Utilities',
+  'Healthcare',
+  'Personal',
+  'Entertainment',
+  'Debt',
+  'Savings',
+  'Salary',
+  'Freelance',
+  'Investment',
+  'Other',
+];
