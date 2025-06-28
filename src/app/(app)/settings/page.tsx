@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -9,8 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useAppContext } from '@/context/AppContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { getUserProfile, updateUserProfile, clearAllUserData } from '@/lib/firebaseService';
+import { Loader2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,24 +32,79 @@ const profileFormSchema = z.object({
 });
 
 export default function SettingsPage() {
-  const { userProfile, updateUserProfile, clearAllData } = useAppContext();
+  const { user } = useAuth();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = React.useState(true);
 
   const form = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues: userProfile,
+    defaultValues: { name: '', description: '' },
   });
 
-  const onSubmit = (values: z.infer<typeof profileFormSchema>) => {
-    updateUserProfile(values);
-    toast({
-      title: 'Profile Updated',
-      description: 'Your profile has been saved successfully.',
+  React.useEffect(() => {
+    if (!user) return;
+    setIsLoading(true);
+    getUserProfile(user.uid).then(profile => {
+      if (profile) {
+        form.reset({ name: profile.name || user.displayName || '', description: profile.description || '' });
+      } else {
+        form.reset({ name: user.displayName || '', description: '' });
+      }
+      setIsLoading(false);
     });
+  }, [user, form]);
+
+  const onSubmit = async (values: z.infer<typeof profileFormSchema>) => {
+    if (!user) return;
+    try {
+      await updateUserProfile(user.uid, values);
+      toast({
+        title: 'Profile Updated',
+        description: 'Your profile has been saved successfully.',
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to update profile.',
+      });
+    }
   };
+  
+  const handleClearData = async () => {
+    if (!user) return;
+    try {
+        await clearAllUserData(user.uid);
+        toast({
+            title: 'Data Cleared',
+            description: 'All your financial data has been successfully deleted.',
+        });
+        // Optionally, you can redirect the user or refresh the page
+        window.location.reload();
+    } catch (error) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Failed to clear data.',
+        });
+    }
+  }
+
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
+       <div>
+        <h1 className="text-2xl font-bold">Settings</h1>
+        <p className="text-muted-foreground">Manage your account and data settings.</p>
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>User Profile</CardTitle>
@@ -96,7 +154,7 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle>Data Management</CardTitle>
           <CardDescription>
-            Import, export, or clear your financial data.
+            Import or export your financial data.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-x-2">
@@ -121,12 +179,12 @@ export default function SettingsPage() {
                     <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This will permanently delete all your transactions, goals, and profile data from this device. This action cannot be undone.
+                        This will permanently delete all your transactions, banks, and goals. This action cannot be undone.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={clearAllData} className="bg-destructive hover:bg-destructive/90">Yes, delete everything</AlertDialogAction>
+                    <AlertDialogAction onClick={handleClearData} className="bg-destructive hover:bg-destructive/90">Yes, delete everything</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

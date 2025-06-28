@@ -1,23 +1,22 @@
 
 'use client';
-
-import React from 'react';
+import { LoginForm } from '@/components/LoginForm';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import { AppShell } from '@/components/AppShell';
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function LoginPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  React.useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/dashboard');
     }
   }, [user, loading, router]);
-
-  if (loading) {
+  
+  if (loading || user) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -25,9 +24,5 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) {
-    return null; // or a redirect component
-  }
-
-  return <AppShell>{children}</AppShell>;
+  return <LoginForm />;
 }

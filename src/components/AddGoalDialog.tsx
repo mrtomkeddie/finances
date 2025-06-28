@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,9 +24,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { useAppContext } from '@/context/AppContext';
 import type { Goal } from '@/lib/types';
-import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Goal name must be at least 2 characters.' }),
@@ -37,39 +36,31 @@ interface AddGoalDialogProps {
   goal?: Goal;
   onOpenChange: (open: boolean) => void;
   open: boolean;
+  onSave: (data: Omit<Goal, 'id'>, id?: string) => void;
 }
 
-export function AddGoalDialog({ goal, open, onOpenChange }: AddGoalDialogProps) {
-  const { addGoal, updateGoal } = useAppContext();
-  const { toast } = useToast();
-
+export function AddGoalDialog({ goal, open, onOpenChange, onSave }: AddGoalDialogProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: goal?.name || '',
-      targetAmount: goal?.targetAmount || 1000,
-      currentAmount: goal?.currentAmount || 0,
+      name: '',
+      targetAmount: 1000,
+      currentAmount: 0,
     },
   });
 
   React.useEffect(() => {
-    form.reset({
-      name: goal?.name || '',
-      targetAmount: goal?.targetAmount || 1000,
-      currentAmount: goal?.currentAmount || 0,
-    });
-  }, [goal, form]);
+    if (open) {
+        form.reset({
+            name: goal?.name || '',
+            targetAmount: goal?.targetAmount || 1000,
+            currentAmount: goal?.currentAmount || 0,
+        });
+    }
+  }, [goal, open, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    if (goal) {
-        updateGoal({ ...values, id: goal.id });
-        toast({ title: 'Success', description: 'Goal updated successfully.' });
-    } else {
-        addGoal(values);
-        toast({ title: 'Success', description: 'Goal added successfully.' });
-    }
-    onOpenChange(false);
-    form.reset();
+    onSave(values, goal?.id);
   }
 
   return (

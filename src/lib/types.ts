@@ -1,4 +1,5 @@
-export type TransactionType = 'income' | 'expense' | 'debt';
+
+export type TransactionType = 'income' | 'expense' | 'debt' | 'transfer';
 export type TransactionFrequency = 'weekly' | 'bi-weekly' | '4-weekly' | 'monthly' | 'yearly';
 export type BankType = 'bank' | 'credit-card' | 'loan';
 export type InterestType = 'monetary' | 'percentage';
@@ -11,7 +12,7 @@ export interface Transaction {
   type: TransactionType;
   frequency: TransactionFrequency;
   category: string;
-  date: string;
+  date: string; // ISO string
   bankId: string;
   remainingBalance?: number;
   monthlyInterest?: number; // Calculated or direct monetary amount
@@ -28,16 +29,22 @@ export interface Bank {
   color: string;
 }
 
+export interface Goal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+}
+
+export interface UserProfile {
+  name: string;
+  description?: string;
+}
+
 export interface FinancialSummary {
-  totalIncome: number;
-  totalExpenses: number;
-  totalDebt: number;
-  weeklyIncome: number;
-  weeklyExpenses: number;
-  weeklyDebt: number;
   monthlyIncome: number;
   monthlyExpenses: number;
   monthlyDebt: number;
-  netMonthly: number;
-  netWeekly: number;
+  totalDebt: number;
+  weeklyIncome: number;
 }
