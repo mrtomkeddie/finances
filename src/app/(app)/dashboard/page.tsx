@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -21,6 +22,9 @@ type SortColumn = 'name' | 'amount' | 'frequency' | 'monthlyAmount' | 'remaining
 type SortDirection = 'asc' | 'desc';
 
 export default function DashboardPage() {
+  // State to prevent hydration mismatch
+  const [authChecked, setAuthChecked] = useState(false);
+
   // Authentication state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
@@ -36,7 +40,7 @@ export default function DashboardPage() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // UI state - REMOVED 'transfer' completely
+  // UI state
   const [activeFilter, setActiveFilter] = useState<'income' | 'expense' | 'debt'>('income');
   const [activeBankFilter, setActiveBankFilter] = useState('all-income');
   const [isBankManagementOpen, setIsBankManagementOpen] = useState(false);
@@ -72,12 +76,10 @@ export default function DashboardPage() {
     }
   };
 
-  // UPDATED: Use next due date calculation instead of showing past dates
   const formatDueDate = (dateString: string, frequency: string) => {
     return formatNextDueDate(dateString, frequency);
   };
 
-  // UPDATED: Use next due date color calculation
   const getDueDateColor = (dateString: string, frequency: string) => {
     return getNextDueDateColor(dateString, frequency);
   };
@@ -91,7 +93,6 @@ export default function DashboardPage() {
     }
   };
 
-  // UPDATED: Calculate weeks until paid off using new utility function
   const calculateWeeksUntilPaidOffDisplay = (transaction: Transaction) => {
     if (!transaction.remainingBalance || transaction.remainingBalance <= 0) {
       return 'Never';
@@ -114,16 +115,13 @@ export default function DashboardPage() {
     return `${weeks} weeks`;
   };
 
-  // NEW: Simplified bank calculations with automatic transfer
   const calculateBankTotals = (bankName: string) => {
     const normalizedBankName = bankName.toLowerCase();
     
-    // Get transactions for this bank
     let bankTransactions = transactions.filter(t => 
       getBankName(t.bankId).toLowerCase().includes(normalizedBankName)
     );
     
-    // SPECIAL: HSBC includes both HSBC and Barclays transactions
     if (normalizedBankName.includes('hsbc')) {
       bankTransactions = transactions.filter(t => {
         const transactionBankName = getBankName(t.bankId).toLowerCase();
@@ -133,11 +131,10 @@ export default function DashboardPage() {
     
     const summary = calculateSummary(bankTransactions);
     
-    // UPDATED: Only include debt payments that have amount > 0 (actually being paid)
     const expenseAndDebt = bankTransactions
       .filter(t => {
         if (t.type === 'expense') return true;
-        if (t.type === 'debt') return t.amount > 0; // Only count debts being paid
+        if (t.type === 'debt') return t.amount > 0;
         return false;
       })
       .reduce((sum, t) => sum + calculateMonthlyAmount(t.amount, t.frequency), 0);
@@ -145,13 +142,10 @@ export default function DashboardPage() {
     let adjustedWeeklyNet = summary.weeklyIncome - (expenseAndDebt / 4.33);
     let adjustedMonthlyNet = summary.monthlyIncome - expenseAndDebt;
     
-    // Apply automatic transfer
     if (normalizedBankName.includes('hsbc')) {
-      // HSBC loses the transfer amount
       adjustedWeeklyNet -= weeklyTransferAmount;
       adjustedMonthlyNet -= (weeklyTransferAmount * 4.33);
     } else if (normalizedBankName.includes('santander')) {
-      // Santander gains the transfer amount
       adjustedWeeklyNet += weeklyTransferAmount;
       adjustedMonthlyNet += (weeklyTransferAmount * 4.33);
     }
@@ -166,7 +160,6 @@ export default function DashboardPage() {
     };
   };
 
-  // Transfer amount management
   const handleSaveTransferAmount = (amount: number) => {
     setWeeklyTransferAmount(amount);
     localStorage.setItem('weekly-transfer-amount', amount.toString());
@@ -180,22 +173,20 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // Apply dark mode and check authentication on mount
+  // Check authentication on mount
   useEffect(() => {
     document.documentElement.classList.add('dark');
     
-    // Check if user is already authenticated
     const authStatus = localStorage.getItem('financial-tracker-auth');
     if (authStatus === 'true') {
       setIsAuthenticated(true);
-    } else {
-      setIsInitialLoading(false);
     }
+    setAuthChecked(true); // Signal that auth check is complete
   }, []);
 
   // Load data from Airtable when authenticated
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !authChecked) return;
     
     const loadData = async () => {
       try {
@@ -204,7 +195,6 @@ export default function DashboardPage() {
         
         console.log('🔄 Loading data from Airtable...');
         
-        // Load existing data from Airtable
         const [airtableBanks, airtableTransactions] = await Promise.all([
           airtableService.getBanks(),
           airtableService.getTransactions(),
@@ -213,14 +203,11 @@ export default function DashboardPage() {
         console.log(`📊 Loaded ${airtableBanks.length} banks and ${airtableTransactions.length} transactions from Airtable`);
         
         setBanks(airtableBanks);
-        // Filter out any transfer transactions that might exist
         setTransactions(airtableTransactions.filter(t => t.type !== 'transfer'));
         
       } catch (err: any) {
         console.error('Error loading data from Airtable:', err);
         setError(`Failed to load data from Airtable: ${err.message}`);
-        
-        // Start with empty data on error
         setBanks([]);
         setTransactions([]);
       } finally {
@@ -229,7 +216,7 @@ export default function DashboardPage() {
     };
     
     loadData();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, authChecked]);
 
   // Reset sorting when changing transaction type filters
   useEffect(() => {
@@ -248,12 +235,21 @@ export default function DashboardPage() {
     localStorage.removeItem('financial-tracker-auth');
   };
 
+  // Render a loading state until auth is checked on the client
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   // Show login form if not authenticated
   if (!isAuthenticated) {
     return <LoginForm onLogin={handleLogin} />;
   }
 
-  // Show initial loading screen
+  // Show initial loading screen for data
   if (isInitialLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -274,11 +270,7 @@ export default function DashboardPage() {
       
       console.log('🔄 Adding bank:', newBank.name);
       
-      // Create bank in Airtable (ID will be auto-generated)
-      const createdBank = await airtableService.createBank({
-        id: '', // Will be ignored by Airtable
-        ...newBank,
-      });
+      const createdBank = await airtableService.createBank(newBank);
       
       setBanks(prev => [...prev, createdBank]);
       console.log('✅ Bank added successfully:', createdBank.name);
@@ -311,7 +303,6 @@ export default function DashboardPage() {
   };
 
   const handleDeleteBank = async (bankId: string) => {
-    // Check if bank has transactions
     const hasTransactions = transactions.some(t => t.bankId === bankId);
     if (hasTransactions) {
       alert('Cannot delete bank with existing transactions. Please move or delete transactions first.');
@@ -340,11 +331,7 @@ export default function DashboardPage() {
       
       console.log('🔄 Adding transaction:', newTransaction.title);
       
-      // Create transaction in Airtable (ID will be auto-generated)
-      const createdTransaction = await airtableService.createTransaction({
-        id: '', // Will be ignored by Airtable
-        ...newTransaction,
-      });
+      const createdTransaction = await airtableService.createTransaction(newTransaction);
       
       setTransactions(prev => [...prev, createdTransaction]);
       console.log('✅ Transaction added successfully:', createdTransaction.title);
@@ -367,7 +354,7 @@ export default function DashboardPage() {
       const updated = await airtableService.updateTransaction(editingTransaction.id, updatedTransaction);
       setTransactions(prev => 
         prev.map(t => 
-          t.id === editingTransaction.id ? updated : t
+          t.id === editingTransaction.id ? { ...updated, id: editingTransaction.id } : t
         )
       );
       setEditingTransaction(null);
@@ -428,7 +415,7 @@ export default function DashboardPage() {
       <ChevronDown className="h-4 w-4 ml-1" />;
   };
 
-  // Filter transactions - SIMPLIFIED: No transfers
+  // Filter transactions
   const filteredTransactions = transactions.filter(transaction => {
     let typeMatches = false;
     
@@ -440,7 +427,6 @@ export default function DashboardPage() {
       typeMatches = transaction.type === 'debt';
     }
     
-    // Bank filtering
     if (activeBankFilter.startsWith('all-')) {
       return typeMatches;
     }
@@ -463,9 +449,9 @@ export default function DashboardPage() {
         bValue = b.amount;
         break;
       case 'frequency':
-        const frequencyOrder = { 'weekly': 1, 'bi-weekly': 2, '4-weekly': 3, 'monthly': 4, 'yearly': 5 };
-        aValue = frequencyOrder[a.frequency as keyof typeof frequencyOrder] || 6;
-        bValue = frequencyOrder[b.frequency as keyof typeof frequencyOrder] || 6;
+        const frequencyOrder: { [key in TransactionFrequency]: number } = { 'weekly': 1, 'bi-weekly': 2, '4-weekly': 3, 'monthly': 4, 'yearly': 5 };
+        aValue = frequencyOrder[a.frequency] || 6;
+        bValue = frequencyOrder[b.frequency] || 6;
         break;
       case 'monthlyAmount':
         aValue = calculateMonthlyAmount(a.amount, a.frequency);
@@ -480,14 +466,13 @@ export default function DashboardPage() {
         bValue = b.monthlyInterest || 0;
         break;
       case 'weeksUntilPaidOff':
-        // UPDATED: Handle zero payments and interest in sorting
         const getWeeksForSorting = (t: Transaction) => {
           const weeks = calculateWeeksUntilPaidOff(t);
           if (weeks === null) {
             const netPayment = calculateNetMonthlyDebtPayment(t);
-            if (netPayment <= 0) return Number.MAX_SAFE_INTEGER - 2; // "Debt growing"
-            if (!t.amount || t.amount <= 0) return Number.MAX_SAFE_INTEGER - 1; // "Not paying"
-            return Number.MAX_SAFE_INTEGER; // "Never"
+            if (netPayment <= 0) return Number.MAX_SAFE_INTEGER - 2;
+            if (!t.amount || t.amount <= 0) return Number.MAX_SAFE_INTEGER - 1;
+            return Number.MAX_SAFE_INTEGER;
           }
           return weeks;
         };
@@ -495,7 +480,6 @@ export default function DashboardPage() {
         bValue = getWeeksForSorting(b);
         break;
       case 'dueDate':
-        // UPDATED: Sort by next due date instead of original date
         aValue = getNextDueDate(a.date, a.frequency).getTime();
         bValue = getNextDueDate(b.date, b.frequency).getTime();
         break;
@@ -517,30 +501,25 @@ export default function DashboardPage() {
     return 0;
   });
 
-  // Calculate summary statistics - NO TRANSFERS
+  // Calculate summary statistics
   const allSummary = calculateSummary(transactions);
-  
-  // UPDATED: Only include debt payments that have amount > 0 (actually being paid)
   const debtSummary = calculateSummary(transactions.filter(t => t.type === 'debt' && t.amount > 0));
   
-  // Calculate total expenses including debt payments (only ones being paid)
   const totalExpenseAndDebt = transactions
     .filter(t => {
       if (t.type === 'expense') return true;
-      if (t.type === 'debt') return t.amount > 0; // Only count debts being paid
+      if (t.type === 'debt') return t.amount > 0;
       return false;
     })
     .reduce((sum, t) => sum + calculateMonthlyAmount(t.amount, t.frequency), 0);
 
-  // Bank-specific calculations with automatic transfer
-  const hsbcTotals = calculateBankTotals('hsbc'); // Includes HSBC + Barclays
+  const hsbcTotals = calculateBankTotals('hsbc');
   const santanderTotals = calculateBankTotals('santander');
 
-  // Calculate totals for bottom summary (only paid transactions)
   const weeklyTotal = sortedTransactions
     .filter(t => {
       if (t.type === 'income' || t.type === 'expense') return true;
-      if (t.type === 'debt') return t.amount > 0; // Only count debts being paid
+      if (t.type === 'debt') return t.amount > 0;
       return false;
     })
     .reduce((sum, t) => sum + (calculateMonthlyAmount(t.amount, t.frequency) / 4.33), 0);
@@ -548,14 +527,13 @@ export default function DashboardPage() {
   const monthlyTotal = sortedTransactions
     .filter(t => {
       if (t.type === 'income' || t.type === 'expense') return true;
-      if (t.type === 'debt') return t.amount > 0; // Only count debts being paid
+      if (t.type === 'debt') return t.amount > 0;
       return false;
     })
     .reduce((sum, t) => sum + calculateMonthlyAmount(t.amount, t.frequency), 0);
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header - Mobile responsive with improved spacing */}
       <header className="border-b border-border bg-background">
         <div className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
@@ -575,7 +553,6 @@ export default function DashboardPage() {
               )}
             </div>
             
-            {/* Header buttons - increased spacing for better visual separation */}
             <div className="flex items-center gap-3 sm:gap-4">
               <Button 
                 variant="secondary" 
@@ -589,7 +566,6 @@ export default function DashboardPage() {
                 <span className="xs:hidden">Banks</span>
               </Button>
               
-              {/* Mobile: Clean circular plus button, Desktop: Normal button with text */}
               <Button 
                 size="sm" 
                 className="mobile-add-btn sm:gap-2 sm:text-sm sm:px-3"
@@ -614,7 +590,6 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* Error Display */}
       {error && (
         <div className="container mx-auto px-4 sm:px-6 py-3">
           <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400 text-sm whitespace-pre-line">
@@ -629,9 +604,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Main Content - Added bottom padding for mobile */}
       <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-20 sm:pb-8 space-y-4 sm:space-y-6">
-        {/* Empty State */}
         {banks.length === 0 && transactions.length === 0 && !isLoading && (
           <div className="text-center py-12">
             <div className="max-w-md mx-auto px-4">
@@ -652,10 +625,8 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Summary Cards - Mobile responsive */}
         {(banks.length > 0 || transactions.length > 0) && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-            {/* Total Monthly Income */}
             <Card className="p-4 sm:p-6 bg-card border-border">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="p-2 sm:p-3 rounded-lg bg-green-500/10 border border-green-500/20 flex-shrink-0">
@@ -668,7 +639,6 @@ export default function DashboardPage() {
               </div>
             </Card>
 
-            {/* Total Monthly Expenses */}
             <Card className="p-4 sm:p-6 bg-card border-border">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="p-2 sm:p-3 rounded-lg bg-red-500/10 border border-red-500/20 flex-shrink-0">
@@ -681,7 +651,6 @@ export default function DashboardPage() {
               </div>
             </Card>
 
-            {/* Total Debt Remaining */}
             <Card className="p-4 sm:p-6 bg-card border-border">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="p-2 sm:p-3 rounded-lg bg-orange-500/10 border border-orange-500/20 flex-shrink-0">
@@ -696,10 +665,8 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Bank Overview Cards - Mobile responsive */}
         {transactions.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {/* HSBC Overview */}
             <Card className="p-4 sm:p-6 bg-card border-border">
               <h3 className="font-semibold mb-2 text-foreground text-sm sm:text-base">HSBC Overview</h3>
               <div className="space-y-2 sm:space-y-3">
@@ -718,7 +685,6 @@ export default function DashboardPage() {
               </div>
             </Card>
 
-            {/* Santander Overview - Added Weekly Transfer Amount */}
             <Card className="p-4 sm:p-6 bg-card border-border">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold text-foreground text-sm sm:text-base">Santander Overview</h3>
@@ -744,7 +710,6 @@ export default function DashboardPage() {
                     {formatCurrency(santanderTotals.monthlyNet)}
                   </span>
                 </div>
-                {/* NEW: Show weekly transfer amount */}
                 <div className="flex justify-between items-center pt-1 border-t border-border/40">
                   <span className="text-xs sm:text-sm text-muted-foreground">Weekly Transfer In:</span>
                   <span className="font-medium text-sm sm:text-base text-blue-400">
@@ -756,7 +721,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Category Filter Buttons - Mobile responsive */}
         {transactions.length > 0 && (
           <div className="space-y-4 sm:space-y-6">
             <div className="flex gap-1 p-1 bg-muted/30 rounded-2xl border border-border/50">
@@ -806,16 +770,14 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            {/* Bank Filter Pills - Mobile horizontal scrolling */}
             {banks.length > 0 && (
               <div className="overflow-x-auto">
                 <div className="flex gap-2 pb-2 min-w-max">
-                  {/* "All Banks" option */}
-                  {(activeFilter === 'income' || activeFilter === 'expense') && (
+                  {(activeFilter === 'income' || activeFilter === 'expense' || activeFilter === 'debt') && (
                     <button
-                      onClick={() => setActiveBankFilter(activeFilter === 'income' ? 'all-income' : 'all-expenses')}
+                      onClick={() => setActiveBankFilter(`all-${activeFilter}`)}
                       className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border transition-all duration-200 text-sm whitespace-nowrap ${
-                        activeBankFilter === (activeFilter === 'income' ? 'all-income' : 'all-expenses')
+                        activeBankFilter.startsWith('all-')
                           ? 'bg-card border-border shadow-sm text-foreground'
                           : 'bg-muted/20 border-muted text-muted-foreground hover:bg-muted/40 hover:text-foreground hover:border-border/60'
                       }`}
@@ -825,7 +787,6 @@ export default function DashboardPage() {
                     </button>
                   )}
 
-                  {/* Individual bank filters */}
                   {banks.map((bank) => (
                     <button
                       key={bank.id}
@@ -849,7 +810,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Transactions Table - Mobile responsive with horizontal scroll */}
         {transactions.length > 0 && (
           <>
             <Card className="bg-card border-border overflow-hidden">
@@ -875,7 +835,6 @@ export default function DashboardPage() {
                           {getSortIcon('amount')}
                         </div>
                       </th>
-                      {/* Hide Frequency and Monthly Amount columns for debt */}
                       {activeFilter !== 'debt' && (
                         <>
                           <th 
@@ -969,7 +928,6 @@ export default function DashboardPage() {
                             )}
                           </span>
                         </td>
-                        {/* Hide Frequency and Monthly Amount columns for debt */}
                         {activeFilter !== 'debt' && (
                           <>
                             <td className="whitespace-nowrap">
@@ -1027,7 +985,6 @@ export default function DashboardPage() {
               </div>
             </Card>
 
-            {/* Bottom Summary - Mobile responsive */}
             {(activeFilter === 'income' || activeFilter === 'expense') && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <Card className="p-3 sm:p-4 bg-card border-border">
@@ -1050,7 +1007,6 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Debt Information - Mobile responsive */}
             {activeFilter === 'debt' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <Card className="p-4 sm:p-6 bg-card border-border">
@@ -1079,11 +1035,9 @@ export default function DashboardPage() {
         )}
       </main>
 
-      {/* Footer with Logo - Mobile focused */}
       <footer className="border-t border-border bg-background/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-4">
           <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4 sm:gap-2">
-            {/* Logo and App Name */}
             <div className="flex items-center gap-3 opacity-60">
               <img 
                 src={logoIcon} 
@@ -1096,18 +1050,15 @@ export default function DashboardPage() {
               </span>
             </div>
             
-            {/* Optional additional footer content */}
             <div className="hidden sm:flex items-center gap-4 text-xs text-muted-foreground">
               <span>Made with ❤️ for better financial planning</span>
             </div>
 
-            {/* Mobile: Just a simple divider */}
             <div className="sm:hidden w-full max-w-xs h-px bg-border opacity-30"></div>
           </div>
         </div>
       </footer>
 
-      {/* Modals */}
       <BankManagementModal
         isOpen={isBankManagementOpen}
         onClose={() => setIsBankManagementOpen(false)}
@@ -1143,3 +1094,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
