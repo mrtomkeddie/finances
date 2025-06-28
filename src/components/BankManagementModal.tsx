@@ -108,7 +108,7 @@ export function BankManagementModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid flex-grow grid-cols-1 gap-8 py-4 overflow-y-auto md:grid-cols-2">
+        <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-8 py-4 min-h-0">
           {/* Add New Account Section */}
           <div className="flex flex-col space-y-6 border-r-0 md:border-r md:pr-8 border-border">
             <h3 className="font-medium text-foreground">Add New Account</h3>
@@ -172,7 +172,7 @@ export function BankManagementModal({
           </div>
 
           {/* Your Accounts Section */}
-          <div className="flex flex-col mt-6 space-y-4 md:mt-0">
+          <div className="flex flex-col space-y-4 min-h-0">
             <h3 className="font-medium text-foreground">Your Accounts</h3>
              <ScrollArea className="flex-grow">
                 <div className="pr-4 space-y-3">
