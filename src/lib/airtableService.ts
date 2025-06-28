@@ -1,7 +1,9 @@
+
+'use client';
 import { Transaction, Bank } from './types';
 
-const BASE_ID = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
-const API_TOKEN = process.env.NEXT_PUBLIC_AIRTABLE_API_TOKEN;
+const BASE_ID = 'appGr7teCGX1HtXQ7';
+const API_TOKEN = 'patyWbrKiNVQumdCP.bda7401339e52ce3baeed0a3c8014a585e8e90b73280c48e303c9bb5c8a163df';
 
 const AIRTABLE_API_BASE = 'https://api.airtable.com/v0';
 
@@ -54,12 +56,10 @@ class AirtableService {
     
     for (const name of possibleNames) {
       if (name in fields) {
-        console.log(`✅ Found monthly interest field: "${name}"`);
         return name;
       }
     }
     
-    console.log('⚠️ No monthly interest field found in:', Object.keys(fields));
     return null;
   }
 
@@ -112,14 +112,8 @@ class AirtableService {
   async getBanks(): Promise<Bank[]> {
     try {
       const response = await this.makeRequest('Banks');
-      console.log('🏦 Raw Banks response:', JSON.stringify(response, null, 2));
       
       const banks = response.records.map((record: any) => {
-        console.log('🏦 Processing bank record:', {
-          id: record.id,
-          fields: record.fields
-        });
-        
         return {
           id: record.id,
           name: record.fields.Name || '',
@@ -128,7 +122,6 @@ class AirtableService {
         };
       });
       
-      console.log('🏦 Final processed banks:', banks);
       return banks;
     } catch (error) {
       console.error('Error fetching banks:', error);
@@ -136,7 +129,7 @@ class AirtableService {
     }
   }
 
-  async createBank(bank: Bank): Promise<Bank> {
+  async createBank(bank: Omit<Bank, 'id'>): Promise<Bank> {
     try {
       const response = await this.makeRequest('Banks', {
         method: 'POST',
@@ -206,25 +199,14 @@ class AirtableService {
   async getTransactions(): Promise<Transaction[]> {
     try {
       const response = await this.makeRequest('Transactions');
-      console.log('💰 Raw Transactions response:', JSON.stringify(response, null, 2));
       
       // Filter and process transactions
       const validTransactions: Transaction[] = [];
-      let transferCount = 0;
-      let invalidCount = 0;
       
       response.records.forEach((record: any) => {
-        console.log('💰 Processing transaction record:', {
-          id: record.id,
-          title: record.fields.Title,
-          fields: record.fields,
-          allFieldNames: Object.keys(record.fields)
-        });
         
         // Check if this is a transfer transaction
         if (this.isTransferTransaction(record)) {
-          console.log(`🔄 Skipping transfer transaction: "${record.fields.Title}"`);
-          transferCount++;
           return;
         }
         
@@ -232,12 +214,7 @@ class AirtableService {
         if (!this.hasValidBankID(record)) {
           console.warn(`❌ Skipping transaction with invalid/missing BankID: "${record.fields.Title}"`, {
             BankID: record.fields.BankID,
-            Bank: record.fields.Bank,
-            FromBankID: record.fields.FromBankID,
-            ToBankID: record.fields.ToBankID,
-            allFields: Object.keys(record.fields)
           });
-          invalidCount++;
           return;
         }
         
@@ -245,26 +222,17 @@ class AirtableService {
         let bankId = '';
         if (record.fields.BankID && Array.isArray(record.fields.BankID) && record.fields.BankID.length > 0) {
           bankId = record.fields.BankID[0];
-          console.log(`✅ Found BankID as array: ${bankId}`);
         } else if (record.fields.Bank && Array.isArray(record.fields.Bank) && record.fields.Bank.length > 0) {
           bankId = record.fields.Bank[0];
-          console.log(`✅ Found Bank as array: ${bankId}`);
         } else if (record.fields.BankID && typeof record.fields.BankID === 'string') {
           bankId = record.fields.BankID;
-          console.log(`✅ Found BankID as string: ${bankId}`);
-        } else if (record.fields.Bank && typeof record.fields.Bank === 'string') {
-          bankId = record.fields.Bank;
-          console.log(`✅ Found Bank as string: ${bankId}`);
         }
-        
-        console.log(`💰 Final bankId for "${record.fields.Title}": "${bankId}"`);
         
         // Get monthly interest using dynamic field name detection
         let monthlyInterest: number | undefined = undefined;
         const monthlyInterestField = this.getMonthlyInterestFieldName(record);
         if (monthlyInterestField && record.fields[monthlyInterestField]) {
           monthlyInterest = parseFloat(record.fields[monthlyInterestField]);
-          console.log(`✅ Found monthly interest in field "${monthlyInterestField}": ${monthlyInterest}`);
         }
         
         const transaction: Transaction = {
@@ -287,21 +255,6 @@ class AirtableService {
         validTransactions.push(transaction);
       });
       
-      console.log(`💰 Transaction processing summary:`, {
-        total: response.records.length,
-        valid: validTransactions.length,
-        transfers: transferCount,
-        invalid: invalidCount
-      });
-      
-      console.log('💰 Final processed transactions:', validTransactions);
-      
-      // Show detailed bank linking status
-      validTransactions.forEach((t, index) => {
-        const status = t.bankId ? '✅ LINKED' : '❌ NOT LINKED';
-        console.log(`💰 Transaction ${index + 1}: "${t.title}" -> Bank ID: "${t.bankId}" (${status})`);
-      });
-      
       return validTransactions;
     } catch (error) {
       console.error('Error fetching transactions:', error);
@@ -309,7 +262,7 @@ class AirtableService {
     }
   }
 
-  async createTransaction(transaction: Transaction): Promise<Transaction> {
+  async createTransaction(transaction: Omit<Transaction, 'id'>): Promise<Transaction> {
     try {
       // Validate bankId
       if (!transaction.bankId || transaction.bankId.trim() === '') {
@@ -329,34 +282,17 @@ class AirtableService {
         Category: transaction.category,
         Date: transaction.date,
         BankID: [transaction.bankId],
+        Description: transaction.description
       };
-
-      console.log('🔄 Creating transaction with fields:', JSON.stringify(fields, null, 2));
-
-      if (transaction.remainingBalance !== undefined) {
+      
+      if(transaction.type === 'debt') {
         fields.RemainingBalance = transaction.remainingBalance;
-      }
-      
-      // Add interest fields based on type
-      if (transaction.monthlyInterest !== undefined) {
         fields.MonthlyInterest = transaction.monthlyInterest;
-      }
-      
-      if (transaction.interestRate !== undefined) {
         fields.InterestRate = transaction.interestRate;
-      }
-      
-      if (transaction.interestType) {
         fields.InterestType = transaction.interestType;
-      }
-      
-      if (transaction.rateFrequency) {
         fields.RateFrequency = transaction.rateFrequency;
       }
-      
-      if (transaction.description) {
-        fields.Description = transaction.description;
-      }
+
 
       const response = await this.makeRequest('Transactions', {
         method: 'POST',
@@ -369,10 +305,6 @@ class AirtableService {
       let bankId = '';
       if (response.fields.BankID && Array.isArray(response.fields.BankID)) {
         bankId = response.fields.BankID[0] || '';
-      } else if (response.fields.Bank && Array.isArray(response.fields.Bank)) {
-        bankId = response.fields.Bank[0] || '';
-      } else if (response.fields.BankID && typeof response.fields.BankID === 'string') {
-        bankId = response.fields.BankID;
       }
 
       // Get monthly interest using dynamic field name detection
@@ -406,39 +338,16 @@ class AirtableService {
 
   async updateTransaction(transactionId: string, updates: Omit<Transaction, 'id'>): Promise<Transaction> {
     try {
-      console.log('🔄 Starting transaction update:', {
-        transactionId,
-        updates: {
-          title: updates.title,
-          bankId: updates.bankId,
-          amount: updates.amount,
-          remainingBalance: updates.remainingBalance,
-          monthlyInterest: updates.monthlyInterest,
-          interestRate: updates.interestRate,
-          interestType: updates.interestType
-        }
-      });
-
+      
       // Validate bankId
       if (!updates.bankId || updates.bankId.trim() === '') {
-        console.error('❌ Bank ID validation failed: empty or undefined', {
-          bankId: updates.bankId,
-          bankIdType: typeof updates.bankId
-        });
         throw new Error('Bank ID is required for updating a transaction. Please select a bank.');
       }
 
       // Validate that bankId looks like an Airtable record ID
       if (!updates.bankId.startsWith('rec') || updates.bankId.length < 14) {
-        console.error('❌ Bank ID format validation failed:', {
-          bankId: updates.bankId,
-          startsWithRec: updates.bankId.startsWith('rec'),
-          length: updates.bankId.length
-        });
         throw new Error(`Invalid Bank ID format: "${updates.bankId}". Expected Airtable record ID starting with "rec"`);
       }
-
-      console.log('✅ Bank ID validation passed:', updates.bankId);
 
       const fields: any = {
         Title: updates.title,
@@ -448,35 +357,17 @@ class AirtableService {
         Category: updates.category,
         Date: updates.date,
         BankID: [updates.bankId],
+        Description: updates.description
       };
-
-      console.log('🔄 Update fields being sent:', JSON.stringify(fields, null, 2));
-
-      if (updates.remainingBalance !== undefined) {
+      
+      if(updates.type === 'debt') {
         fields.RemainingBalance = updates.remainingBalance;
-      }
-      
-      // Add interest fields based on type
-      if (updates.monthlyInterest !== undefined) {
         fields.MonthlyInterest = updates.monthlyInterest;
-      }
-      
-      if (updates.interestRate !== undefined) {
         fields.InterestRate = updates.interestRate;
-      }
-      
-      if (updates.interestType) {
         fields.InterestType = updates.interestType;
-      }
-      
-      if (updates.rateFrequency) {
         fields.RateFrequency = updates.rateFrequency;
       }
       
-      if (updates.description) {
-        fields.Description = updates.description;
-      }
-
       const requestBody = {
         records: [{
           id: transactionId,
@@ -484,14 +375,10 @@ class AirtableService {
         }],
       };
 
-      console.log('🔄 Full request body:', JSON.stringify(requestBody, null, 2));
-
       const response = await this.makeRequest('Transactions', {
         method: 'PATCH',
         body: JSON.stringify(requestBody),
       });
-
-      console.log('✅ Update response received:', JSON.stringify(response, null, 2));
 
       const updatedRecord = response.records[0];
       
@@ -499,10 +386,6 @@ class AirtableService {
       let bankId = '';
       if (updatedRecord.fields.BankID && Array.isArray(updatedRecord.fields.BankID)) {
         bankId = updatedRecord.fields.BankID[0] || '';
-      } else if (updatedRecord.fields.Bank && Array.isArray(updatedRecord.fields.Bank)) {
-        bankId = updatedRecord.fields.Bank[0] || '';
-      } else if (updatedRecord.fields.BankID && typeof updatedRecord.fields.BankID === 'string') {
-        bankId = updatedRecord.fields.BankID;
       }
 
       // Get monthly interest using dynamic field name detection
@@ -529,7 +412,6 @@ class AirtableService {
         description: updatedRecord.fields.Description || undefined,
       };
 
-      console.log('✅ Final processed result:', result);
       return result;
     } catch (error) {
       console.error('❌ Error updating transaction:', error);
@@ -550,3 +432,5 @@ class AirtableService {
 }
 
 export const airtableService = new AirtableService();
+
+    
