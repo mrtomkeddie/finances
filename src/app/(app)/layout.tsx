@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2, LogOut, Menu, Plus, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { UIProvider, useUI } from '@/context/UIContext';
 import { Separator } from '@/components/ui/separator';
 
@@ -27,6 +27,12 @@ function AppHeader() {
             </Button>
           </SheetTrigger>
           <SheetContent>
+            <SheetHeader>
+              <SheetTitle className="sr-only">Menu</SheetTitle>
+              <SheetDescription className="sr-only">
+                Main menu for navigating the app, adding transactions, and managing banks.
+              </SheetDescription>
+            </SheetHeader>
             <div className="flex flex-col gap-4 py-8">
                <SheetClose asChild>
                   <Button onClick={() => openTransactionModal(null)} className="w-full justify-start text-base py-6">
