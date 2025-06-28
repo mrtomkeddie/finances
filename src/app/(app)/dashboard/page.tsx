@@ -3,9 +3,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, Plus, TrendingUp, TrendingDown, CreditCard, Clock, ChevronUp, ChevronDown, Loader2, Edit3, UploadCloud } from 'lucide-react';
+import { Settings, Plus, TrendingUp, TrendingDown, CreditCard, Clock, ChevronUp, ChevronDown, Loader2, Edit3, UploadCloud, Menu } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { BankManagementModal } from '@/components/BankManagementModal';
 import { TransactionModal } from '@/components/TransactionModal';
@@ -15,35 +15,39 @@ import { Transaction, Bank, TransactionType, TransactionFrequency } from '@/lib/
 import { calculateSummary, formatCurrency, calculateMonthlyAmount, calculateNetMonthlyDebtPayment, calculateWeeksUntilPaidOff } from '@/lib/financial';
 import { getBanks, getTransactions, addBank, updateBank, deleteBank, addTransaction, updateTransaction, deleteTransaction } from '@/lib/firebase';
 import { formatDate, getNextDueDate, formatNextDueDate, getNextDueDateColor } from '@/lib/dateUtils';
-import { useRouter } from 'next/navigation';
 import { airtableService } from '@/lib/airtableService';
 import { writeBatch, collection, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useUI } from '@/context/UIContext';
 
 type SortColumn = 'name' | 'amount' | 'frequency' | 'monthlyAmount' | 'remainingDebt' | 'weeksUntilPaidOff' | 'dueDate' | 'bank' | 'interest';
 type SortDirection = 'asc' | 'desc';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const router = useRouter();
+  const {
+    isBankManagementOpen,
+    closeBankManagement,
+    isTransactionModalOpen,
+    editingTransaction,
+    openTransactionModal,
+    closeTransactionModal,
+  } = useUI();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [banks, setBanks] = useState<Bank[]>([]);
   
   const [weeklyTransferAmount, setWeeklyTransferAmount] = useState(0);
   
-  const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   const [activeFilter, setActiveFilter] = useState<'income' | 'expense' | 'debt'>('income');
   const [activeBankFilter, setActiveBankFilter] = useState('all-income');
-  const [isBankManagementOpen, setIsBankManagementOpen] = useState(false);
-  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  
   const [isTransferEditOpen, setIsTransferEditOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   const [sortColumn, setSortColumn] = useState<SortColumn>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -74,9 +78,17 @@ export default function DashboardPage() {
       setBanks(firebaseBanks);
       setTransactions(firebaseTransactions.filter(t => t.type !== 'transfer'));
       
+      if (firebaseBanks.length > 0 || firebaseTransactions.length > 0) {
+        setHasImported(true);
+      }
+      
     } catch (err: any) {
       console.error('Error loading data from Firebase:', err);
-      setError(`Failed to load data from Firebase: ${err.message}`);
+      let detailedError = `Failed to load data: ${err.message}`;
+      if (err.code === 'permission-denied' || (err.message && err.message.includes('permission-denied'))) {
+          detailedError = 'Firestore Permissions Error\n\nPlease make sure you have deployed the firestore.rules file to your Firebase project and waited a minute for the rules to apply.';
+      }
+      setError(detailedError);
       setBanks([]);
       setTransactions([]);
     } finally {
@@ -112,10 +124,6 @@ export default function DashboardPage() {
         return;
     }
 
-    if (!window.confirm('This will import all banks and transactions from Airtable. This can only be done once. Are you sure?')) {
-        return;
-    }
-
     setIsImporting(true);
     setError(null);
 
@@ -128,14 +136,12 @@ export default function DashboardPage() {
         const batch = writeBatch(db);
         const bankIdMap = new Map<string, string>();
 
-        // Batch-write banks and create ID map
         airtableBanks.forEach(bank => {
             const firestoreBankRef = doc(collection(db, `users/${user.uid}/banks`));
             batch.set(firestoreBankRef, { name: bank.name, type: bank.type, color: bank.color });
             bankIdMap.set(bank.id, firestoreBankRef.id);
         });
         
-        // Batch-write transactions
         airtableTransactions.forEach(transaction => {
             const firestoreTransactionRef = doc(collection(db, `users/${user.uid}/transactions`));
             const firestoreBankId = bankIdMap.get(transaction.bankId);
@@ -166,7 +172,7 @@ export default function DashboardPage() {
 
         await batch.commit();
         
-        await loadData(); // Reload data from Firestore
+        await loadData();
         setHasImported(true);
 
     } catch (err: any) {
@@ -264,28 +270,22 @@ export default function DashboardPage() {
   const handleAddBank = async (newBank: Omit<Bank, 'id'>) => {
     if (!user) return;
     try {
-      setIsLoading(true);
       setError(null);
       const createdBank = await addBank(user.uid, newBank);
       setBanks(prev => [...prev, createdBank]);
     } catch (err: any) {
       setError(`Failed to add bank: ${err.message}`);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleUpdateBank = async (bankId: string, updates: Partial<Bank>) => {
     if (!user) return;
     try {
-      setIsLoading(true);
       setError(null);
       const updatedBank = await updateBank(user.uid, bankId, updates);
       setBanks(prev => prev.map(bank => (bank.id === bankId ? updatedBank : bank)));
     } catch (err: any) {
       setError(`Failed to update bank: ${err.message}`);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -296,57 +296,45 @@ export default function DashboardPage() {
       return;
     }
     try {
-      setIsLoading(true);
       setError(null);
       await deleteBank(user.uid, bankId);
       setBanks(prev => prev.filter(bank => bank.id !== bankId));
     } catch (err: any) {
       setError(`Failed to delete bank: ${err.message}`);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleAddTransaction = async (newTransaction: Omit<Transaction, 'id'>) => {
     if (!user) return;
     try {
-      setIsLoading(true);
       setError(null);
       const createdTransaction = await addTransaction(user.uid, newTransaction);
       setTransactions(prev => [...prev, createdTransaction]);
     } catch (err: any) {
       setError(`Failed to add transaction: ${err.message}`);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleUpdateTransaction = async (updatedTransaction: Omit<Transaction, 'id'>) => {
     if (!editingTransaction || !user) return;
     try {
-      setIsLoading(true);
       setError(null);
       const updated = await updateTransaction(user.uid, editingTransaction.id, updatedTransaction);
       setTransactions(prev => prev.map(t => (t.id === editingTransaction.id ? updated : t)));
-      setEditingTransaction(null);
+      closeTransactionModal();
     } catch (err: any) {
       setError(`Failed to update transaction: ${err.message}`);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleDeleteTransaction = async (transactionId: string) => {
     if (!user) return;
     try {
-      setIsLoading(true);
       setError(null);
       await deleteTransaction(user.uid, transactionId);
       setTransactions(prev => prev.filter(t => t.id !== transactionId));
     } catch (err: any) {
       setError(`Failed to delete transaction: ${err.message}`);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -356,13 +344,7 @@ export default function DashboardPage() {
   };
 
   const handleEditTransaction = (transaction: Transaction) => {
-    setEditingTransaction(transaction);
-    setIsTransactionModalOpen(true);
-  };
-
-  const handleCloseTransactionModal = () => {
-    setIsTransactionModalOpen(false);
-    setEditingTransaction(null);
+    openTransactionModal(transaction);
   };
 
   const handleSort = (column: SortColumn) => {
@@ -431,42 +413,30 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <div className="flex items-center gap-2">
-          <Button onClick={() => setIsTransactionModalOpen(true)} className="w-full sm:w-auto">
-            <Plus className="mr-2 h-4 w-4" /> Add Transaction
-          </Button>
-          <Button variant="outline" onClick={() => setIsBankManagementOpen(true)} className="w-full sm:w-auto">
-            <Settings className="mr-2 h-4 w-4" /> Manage Banks
-          </Button>
-        </div>
-      </div>
-      
        {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400 text-sm whitespace-pre-line">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400 text-sm whitespace-pre-line relative">
             <div className="font-bold mb-2">Error</div>
             {error}
             <button onClick={() => setError(null)} className="absolute top-2 right-2 text-red-300 hover:text-red-200">✕</button>
         </div>
       )}
 
-      {banks.length === 0 && transactions.length === 0 && !isLoading && !error && (
-        <div className="text-center py-12">
-            <div className="max-w-md mx-auto px-4">
+      {banks.length === 0 && transactions.length === 0 && (
+        <Card className="text-center py-12">
+          <CardContent>
               <CreditCard className="h-12 w-12 mx-auto text-muted-foreground mb-6" />
               <h2 className="text-xl font-semibold text-foreground mb-2">Welcome to Your Financial Tracker</h2>
-              <p className="text-muted-foreground mb-6">Get started by adding your first bank, or import your existing data from Airtable.</p>
-              <div className="flex justify-center flex-col sm:flex-row gap-4">
-                <Button onClick={() => setIsBankManagementOpen(true)} className="gap-2">
-                    <Settings className="h-4 w-4" /> Add Your First Bank
-                </Button>
+              <p className="text-muted-foreground mb-6">
+                {hasImported ? 'Your data has been imported.' : 'Get started by importing your existing data from Airtable.'}
+              </p>
+              <div className="flex justify-center">
                 <Button variant="secondary" onClick={handleImportData} disabled={isImporting || hasImported}>
-                  {isImporting ? <><Loader2 className="h-4 w-4 animate-spin mr-2"/> Importing...</> : (hasImported ? 'Data Imported' : <><UploadCloud className="h-4 w-4 mr-2"/>Import from Airtable</>)}
+                  {isImporting ? <><Loader2 className="h-4 w-4 animate-spin mr-2"/> Importing...</> : (hasImported ? 'Data Imported Successfully' : <><UploadCloud className="h-4 w-4 mr-2"/>Import from Airtable</>)}
                 </Button>
               </div>
-            </div>
-        </div>
+              {hasImported && <p className="text-sm text-muted-foreground mt-4">You can now manage your banks and add transactions using the menu.</p>}
+          </CardContent>
+        </Card>
       )}
 
         {(banks.length > 0 || transactions.length > 0) && (
@@ -681,8 +651,8 @@ export default function DashboardPage() {
         </>
       )}
 
-      <BankManagementModal isOpen={isBankManagementOpen} onClose={() => setIsBankManagementOpen(false)} banks={banks} onAddBank={handleAddBank} onUpdateBank={handleUpdateBank} onDeleteBank={handleDeleteBank} />
-      <TransactionModal isOpen={isTransactionModalOpen} onClose={handleCloseTransactionModal} onAddTransaction={editingTransaction ? handleUpdateTransaction : handleAddTransaction} banks={banks} editTransaction={editingTransaction} />
+      <BankManagementModal isOpen={isBankManagementOpen} onClose={closeBankManagement} banks={banks} onAddBank={handleAddBank} onUpdateBank={handleUpdateBank} onDeleteBank={handleDeleteBank} />
+      <TransactionModal isOpen={isTransactionModalOpen} onClose={closeTransactionModal} onAddTransaction={editingTransaction ? handleUpdateTransaction : handleAddTransaction} banks={banks} editTransaction={editingTransaction} />
       <TransactionDetailModal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} transaction={selectedTransaction} banks={banks} onEdit={handleEditTransaction} onDelete={handleDeleteTransaction} />
       <TransferEditModal isOpen={isTransferEditOpen} onClose={() => setIsTransferEditOpen(false)} currentAmount={weeklyTransferAmount} onSave={handleSaveTransferAmount} />
     </div>
