@@ -176,16 +176,16 @@ export default function DashboardPage() {
         setHasImported(true);
 
     } catch (err: any) {
-        console.error('Full error object during import:', err);
-        let detailedError = `Failed to import data: ${err.message}`;
-        if (err.code === 'permission-denied' || (err.message && err.message.includes('permission-denied'))) {
-            detailedError = 'Firestore Permissions Error\n\nYour security rules are preventing the data from being saved. Please make sure you have correctly deployed the firestore.rules file to your Firebase project and have waited a minute for them to apply.';
-        } else if (err.message && err.message.includes('Airtable')) {
-            detailedError = 'Airtable Connection Error\n\nThere was a problem connecting to Airtable. The API key used for the import may have expired or been revoked by Airtable.';
-        } else {
-            detailedError += '\n\nAn unknown error occurred during the import process. Check the browser console for more details.';
-        }
-        setError(detailedError);
+      console.error('Full error object during import:', err);
+      let detailedError = `Failed to import data: ${err.message}`;
+      if (err.code === 'permission-denied' || (err.message && err.message.includes('permission-denied'))) {
+          detailedError = 'Firestore Permissions Error\n\nYour security rules are preventing the data from being saved. Please make sure you have correctly deployed the firestore.rules file to your Firebase project and have waited a minute for them to apply.';
+      } else if (err.message && err.message.includes('Airtable')) {
+          detailedError = 'Airtable Connection Error\n\nThere was a problem connecting to Airtable. The API key used for the import may have expired or been revoked by Airtable.';
+      } else {
+          detailedError += '\n\nAn unknown error occurred during the import process. Check the browser console for more details.';
+      }
+      setError(detailedError);
     } finally {
         setIsImporting(false);
     }
@@ -410,6 +410,8 @@ export default function DashboardPage() {
     .filter(t => t.type === 'income' || t.type === 'expense' || (t.type === 'debt' && t.amount > 0))
     .reduce((sum, t) => sum + calculateMonthlyAmount(t.amount, t.frequency), 0);
   const weeklyTotal = monthlyTotal / 4.33;
+  
+  const showImportCard = !hasImported && (banks.length === 0 && transactions.length === 0);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -421,26 +423,25 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {banks.length === 0 && transactions.length === 0 && (
+      {showImportCard && (
         <Card className="text-center py-12">
           <CardContent>
               <CreditCard className="h-12 w-12 mx-auto text-muted-foreground mb-6" />
               <h2 className="text-xl font-semibold text-foreground mb-2">Welcome to Your Financial Tracker</h2>
               <p className="text-muted-foreground mb-6">
-                {hasImported ? 'Your data has been imported.' : 'Get started by importing your existing data from Airtable.'}
+                Get started by importing your existing data from Airtable.
               </p>
               <div className="flex justify-center">
-                <Button variant="secondary" onClick={handleImportData} disabled={isImporting || hasImported}>
-                  {isImporting ? <><Loader2 className="h-4 w-4 animate-spin mr-2"/> Importing...</> : (hasImported ? 'Data Imported Successfully' : <><UploadCloud className="h-4 w-4 mr-2"/>Import from Airtable</>)}
+                <Button variant="secondary" onClick={handleImportData} disabled={isImporting}>
+                  {isImporting ? <><Loader2 className="h-4 w-4 animate-spin mr-2"/> Importing...</> : <><UploadCloud className="h-4 w-4 mr-2"/>Import from Airtable</>}
                 </Button>
               </div>
-              {hasImported && <p className="text-sm text-muted-foreground mt-4">You can now manage your banks and add transactions using the menu.</p>}
           </CardContent>
         </Card>
       )}
 
-        {(banks.length > 0 || transactions.length > 0) && (
-          <>
+      {!showImportCard && (
+        <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             <Card className="p-4 sm:p-6 bg-card border-border">
               <div className="flex items-center gap-3 sm:gap-4">
