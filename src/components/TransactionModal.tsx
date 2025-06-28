@@ -8,6 +8,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Transaction, Bank, TransactionType, TransactionFrequency, InterestType, RateFrequency } from '@/lib/types';
 import { calculateMonthlyInterest, formatCurrency, getInterestInputLabel } from '@/lib/financial';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface TransactionModalProps {
   isOpen: boolean;
@@ -260,14 +265,33 @@ export function TransactionModal({
           
           {/* Date */}
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="date" className="text-foreground">Date of First (or Next) Payment</Label>
-            <Input
-              id="date"
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className="bg-input border-border text-foreground"
-            />
+            <Label className="text-foreground">Date of First (or Next) Payment</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={'outline'}
+                  className={cn(
+                    "w-full justify-start text-left font-normal bg-input border-border text-foreground placeholder:text-muted-foreground",
+                    !formData.date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.date ? format(new Date(formData.date), "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
+                <Calendar
+                  mode="single"
+                  selected={new Date(formData.date)}
+                  onSelect={(date) => {
+                    if (date) {
+                      setFormData({ ...formData, date: date.toISOString().split('T')[0] });
+                    }
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Debt-specific fields */}
