@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
@@ -18,20 +17,13 @@ import {
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
-  Wallet,
-  Settings,
   LogOut,
-  Sparkles,
-  Trophy,
 } from 'lucide-react';
 import { Logo } from './Logo';
 import { useAuth } from '@/hooks/useAuth';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/goals', label: 'Goals', icon: Trophy },
-  { href: '/suggestions', label: 'AI Suggestions', icon: Sparkles },
-  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
