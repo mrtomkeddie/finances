@@ -1,26 +1,23 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card } from './components/ui/card';
+import { Button } from './components/ui/button';
 import { Settings, Plus, TrendingUp, TrendingDown, CreditCard, Clock, LogOut, ChevronUp, ChevronDown, Loader2, Edit3 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { BankManagementModal } from '@/components/BankManagementModal';
-import { TransactionModal } from '@/components/TransactionModal';
-import { TransactionDetailModal } from '@/components/TransactionDetailModal';
-import { TransferEditModal } from '@/components/TransferEditModal';
-import { LoginForm } from '@/components/LoginForm';
-import { Transaction, Bank, TransactionType } from '@/lib/types';
-import { calculateSummary, formatCurrency, calculateMonthlyAmount, calculateNetMonthlyDebtPayment, calculateWeeksUntilPaidOff } from '@/lib/financial';
-import { airtableService } from '@/lib/airtableService';
-import { formatDate, getDaysUntil, isOverdue, getNextDueDate, formatNextDueDate, getNextDueDateColor } from '@/lib/dateUtils';
-
-const logoIcon = 'https://placehold.co/48x48.png';
+import { Badge } from './components/ui/badge';
+import { BankManagementModal } from './components/BankManagementModal';
+import { TransactionModal } from './components/TransactionModal';
+import { TransactionDetailModal } from './components/TransactionDetailModal';
+import { TransferEditModal } from './components/TransferEditModal';
+import { LoginForm } from './components/LoginForm';
+import { Transaction, Bank, TransactionType } from './types/financial';
+import { calculateSummary, formatCurrency, calculateMonthlyAmount, calculateNetMonthlyDebtPayment, calculateWeeksUntilPaidOff } from './utils/financial';
+import { airtableService } from './utils/airtableService';
+import { formatDate, getDaysUntil, isOverdue, getNextDueDate, formatNextDueDate, getNextDueDateColor } from './utils/dateUtils';
+import logoIcon from 'figma:asset/f37b117da20b0b73f1b52001c4536e9241827875.png';
 
 type SortColumn = 'name' | 'amount' | 'frequency' | 'monthlyAmount' | 'remainingDebt' | 'weeksUntilPaidOff' | 'dueDate' | 'bank' | 'interest';
 type SortDirection = 'asc' | 'desc';
 
-export default function DashboardPage() {
+export default function App() {
   // Authentication state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
@@ -184,6 +181,14 @@ export default function DashboardPage() {
   useEffect(() => {
     document.documentElement.classList.add('dark');
     
+    // Set favicon
+    const favicon = document.querySelector('link[rel="icon"]') || document.createElement('link');
+    favicon.setAttribute('rel', 'icon');
+    favicon.setAttribute('href', logoIcon);
+    if (!document.querySelector('link[rel="icon"]')) {
+      document.head.appendChild(favicon);
+    }
+    
     // Check if user is already authenticated
     const authStatus = localStorage.getItem('financial-tracker-auth');
     if (authStatus === 'true') {
@@ -216,7 +221,7 @@ export default function DashboardPage() {
         // Filter out any transfer transactions that might exist
         setTransactions(airtableTransactions.filter(t => t.type !== 'transfer'));
         
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error loading data from Airtable:', err);
         setError(`Failed to load data from Airtable: ${err.message}`);
         
@@ -283,7 +288,7 @@ export default function DashboardPage() {
       setBanks(prev => [...prev, createdBank]);
       console.log('✅ Bank added successfully:', createdBank.name);
       
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error adding bank:', err);
       setError(`Failed to add bank: ${err.message}`);
     } finally {
@@ -302,7 +307,7 @@ export default function DashboardPage() {
           bank.id === bankId ? updatedBank : bank
         )
       );
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error updating bank:', err);
       setError(`Failed to update bank: ${err.message}`);
     } finally {
@@ -324,7 +329,7 @@ export default function DashboardPage() {
       
       await airtableService.deleteBank(bankId);
       setBanks(prev => prev.filter(bank => bank.id !== bankId));
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error deleting bank:', err);
       setError(`Failed to delete bank: ${err.message}`);
     } finally {
@@ -349,7 +354,7 @@ export default function DashboardPage() {
       setTransactions(prev => [...prev, createdTransaction]);
       console.log('✅ Transaction added successfully:', createdTransaction.title);
       
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error adding transaction:', err);
       setError(`Failed to add transaction: ${err.message}`);
     } finally {
@@ -371,7 +376,7 @@ export default function DashboardPage() {
         )
       );
       setEditingTransaction(null);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error updating transaction:', err);
       setError(`Failed to update transaction: ${err.message}`);
     } finally {
@@ -386,7 +391,7 @@ export default function DashboardPage() {
       
       await airtableService.deleteTransaction(transactionId);
       setTransactions(prev => prev.filter(t => t.id !== transactionId));
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error deleting transaction:', err);
       setError(`Failed to delete transaction: ${err.message}`);
     } finally {
@@ -564,7 +569,6 @@ export default function DashboardPage() {
                 src={logoIcon} 
                 alt="Financial Tracker" 
                 className="h-5 w-5 sm:h-6 sm:w-6 opacity-80"
-                data-ai-hint="logo"
               />
               <h1 className="text-lg sm:text-xl font-semibold text-foreground truncate">
                 <span className="hidden sm:inline">Finances Dashboard</span>
@@ -1089,7 +1093,6 @@ export default function DashboardPage() {
                 src={logoIcon} 
                 alt="Financial Tracker" 
                 className="h-5 w-5 sm:h-4 sm:w-4"
-                data-ai-hint="logo"
               />
               <span className="text-sm sm:text-xs text-muted-foreground">
                 Financial Tracker
