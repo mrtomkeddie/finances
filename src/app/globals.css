@@ -4,48 +4,48 @@
 
 @layer base {
   :root {
-    --background: hsl(222.2 84% 4.9%);
-    --foreground: hsl(210 40% 98%);
-    --card: hsl(222.2 84% 4.9%);
-    --card-foreground: hsl(210 40% 98%);
-    --popover: hsl(222.2 84% 4.9%);
-    --popover-foreground: hsl(210 40% 98%);
-    --primary: hsl(210 40% 98%);
-    --primary-foreground: hsl(222.2 47.4% 11.2%);
-    --secondary: hsl(217.2 32.6% 17.5%);
-    --secondary-foreground: hsl(210 40% 98%);
-    --muted: hsl(217.2 32.6% 17.5%);
-    --muted-foreground: hsl(215 20.2% 65.1%);
-    --accent: hsl(217.2 32.6% 17.5%);
-    --accent-foreground: hsl(210 40% 98%);
-    --destructive: hsl(0 62.8% 30.6%);
-    --destructive-foreground: hsl(210 40% 98%);
-    --border: hsl(217.2 32.6% 17.5%);
-    --input: hsl(217.2 32.6% 17.5%);
-    --ring: hsl(212.7 26.8% 83.9%);
-    --radius: 0.5rem;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.75rem;
   }
 
   .dark {
-    --background: hsl(222.2 84% 4.9%);
-    --foreground: hsl(210 40% 98%);
-    --card: hsl(222.2 84% 4.9%);
-    --card-foreground: hsl(210 40% 98%);
-    --popover: hsl(222.2 84% 4.9%);
-    --popover-foreground: hsl(210 40% 98%);
-    --primary: hsl(210 40% 98%);
-    --primary-foreground: hsl(222.2 47.4% 11.2%);
-    --secondary: hsl(217.2 32.6% 17.5%);
-    --secondary-foreground: hsl(210 40% 98%);
-    --muted: hsl(217.2 32.6% 17.5%);
-    --muted-foreground: hsl(215 20.2% 65.1%);
-    --accent: hsl(217.2 32.6% 17.5%);
-    --accent-foreground: hsl(210 40% 98%);
-    --destructive: hsl(0 62.8% 30.6%);
-    --destructive-foreground: hsl(210 40% 98%);
-    --border: hsl(217.2 32.6% 17.5%);
-    --input: hsl(217.2 32.6% 17.5%);
-    --ring: hsl(212.7 26.8% 83.9%);
+    --background: 0 0% 10%;
+    --foreground: 0 0% 98.5%;
+    --card: 0 0% 14.1%;
+    --card-foreground: 0 0% 98.5%;
+    --popover: 0 0% 14.1%;
+    --popover-foreground: 0 0% 98.5%;
+    --primary: 0 0% 98.5%;
+    --primary-foreground: 0 0% 10%;
+    --secondary: 0 0% 16.5%;
+    --secondary-foreground: 0 0% 98.5%;
+    --muted: 0 0% 16.5%;
+    --muted-foreground: 0 0% 62.7%;
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 98.5%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 0 0% 43.9%;
   }
 }
 
@@ -58,7 +58,7 @@
   }
 }
 
-/* Custom scrollbar styles */
+/* Custom scrollbar styles for table and horizontal scrolling */
 @layer utilities {
   .custom-scrollbar {
     scrollbar-width: thin;
@@ -136,14 +136,13 @@
     position: sticky;
     top: 0;
     z-index: 11;
-    background-color: var(--card);
-    border-bottom: 1px solid var(--border);
+    background-color: hsl(var(--card));
+    border-bottom: 1px solid hsl(var(--border));
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    font-size: var(--text-sm);
-    font-weight: var(--font-weight-medium);
+    font-size: 0.875rem;
+    font-weight: 500;
   }
   
-  /* Ensure header cells maintain their styling */
   .sticky-table thead th::before {
     content: '';
     position: absolute;
@@ -151,58 +150,34 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: var(--card);
+    background: hsl(var(--card));
     z-index: -1;
   }
   
-  /* Table body rows */
   .sticky-table tbody tr {
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid hsl(var(--border));
   }
   
   .sticky-table tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: hsl(var(--accent) / 0.5);
   }
   
-  .dark .sticky-table tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.03);
-  }
-  
-  /* Table cells - Mobile responsive padding */
   .sticky-table td,
   .sticky-table th {
     padding: 0.5rem 0.75rem;
     text-align: left;
-    border-right: 1px solid transparent;
-    font-size: var(--text-sm);
+    font-size: 0.875rem;
     line-height: 1.4;
   }
   
-  /* Mobile: Smaller padding */
   @media (max-width: 640px) {
     .sticky-table td,
     .sticky-table th {
       padding: 0.375rem 0.5rem;
-      font-size: var(--text-xs);
+      font-size: 0.75rem;
     }
   }
   
-  /* Table body cells - even smaller and more compact */
-  .sticky-table tbody td {
-    font-size: var(--text-sm);
-    font-weight: var(--font-weight-normal);
-    padding: 0.5rem 0.75rem;
-  }
-  
-  /* Mobile: Smaller body cells */
-  @media (max-width: 640px) {
-    .sticky-table tbody td {
-      font-size: var(--text-xs);
-      padding: 0.375rem 0.5rem;
-    }
-  }
-  
-  /* Clickable header styling */
   .sticky-table thead th.sortable {
     cursor: pointer;
     user-select: none;
@@ -210,71 +185,27 @@
   }
   
   .sticky-table thead th.sortable:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: hsl(var(--accent) / 0.7);
   }
   
-  .dark .sticky-table thead th.sortable:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+  .mobile-add-btn {
+    @media (max-width: 640px) {
+      width: 40px !important;
+      height: 40px !important;
+      border-radius: 50% !important;
+      padding: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
   }
-}
 
-/* Mobile-specific improvements */
-@layer utilities {
-  /* Add xs breakpoint support */
-  @media (min-width: 480px) {
-    .xs\:inline { display: inline; }
-    .xs\:hidden { display: none; }
-    .xs\:block { display: block; }
-    .xs\:flex { display: flex; }
+  .category-filter-btn:hover:not(:disabled) {
+    transform: none !important;
+    box-shadow: none !important;
   }
-  
-  /* Mobile-friendly horizontal scrolling for bank pills */
-  .mobile-scroll-container {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .mobile-scroll-container::-webkit-scrollbar {
-    display: none;
-  }
-  
-  /* Better touch targets for mobile */
-  @media (max-width: 640px) {
-    button, 
-    [role="button"], 
-    .cursor-pointer {
-      min-height: 44px;
-      min-width: 44px;
-    }
-    
-    /* Exception for small icon buttons */
-    button.p-1,
-    button[class*="h-5"],
-    button[class*="h-6"] {
-      min-height: auto;
-      min-width: auto;
-    }
-  }
-}
-
-/* Mobile keyboard and input improvements */
-@layer base {
-  /* Prevent zoom on input focus on iOS */
-  @media (max-width: 640px) {
-    input, 
-    select, 
-    textarea {
-      font-size: 16px !important;
-    }
-  }
-  
-  /* Better modal behavior on mobile */
-  @media (max-width: 640px) {
-    [role="dialog"] {
-      margin: 0.5rem;
-      max-height: calc(100vh - 1rem);
-      width: calc(100vw - 1rem);
-    }
+  .category-filter-btn:active:not(:disabled) {
+    transform: none !important;
+    box-shadow: none !important;
   }
 }
