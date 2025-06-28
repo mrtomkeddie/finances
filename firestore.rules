@@ -1,31 +1,12 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Match any document in the 'users' collection
     match /users/{userId} {
-      
-      // Allow a user to read/write to their own user document (for profile, etc.)
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-
-      // Specifically allow access to the 'banks' subcollection
       match /banks/{bankId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if request.auth.uid == userId;
       }
-
-      // Specifically allow access to the 'transactions' subcollection
       match /transactions/{transactionId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
-      
-      // Specifically allow access to the 'goals' subcollection
-      match /goals/{goalId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
-      
-      // Specifically allow access to the 'profile' subcollection
-      match /profile/{profileId} {
-         allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if request.auth.uid == userId;
       }
     }
   }

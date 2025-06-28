@@ -169,8 +169,14 @@ export default function DashboardPage() {
         setHasImported(true);
 
     } catch (err: any) {
-        console.error('Error importing data:', err);
-        setError(`Failed to import data: ${err.message}`);
+        console.error('Full error object during import:', err);
+        let detailedError = `Failed to import data: ${err.message}`;
+        if (err.code === 'permission-denied') {
+            detailedError += '\n\nThis is a permissions issue. Please ensure you have deployed the latest Firestore security rules by running the command in your README file.';
+        } else if (err.message.includes('Airtable')) {
+            detailedError += '\n\nThere might be an issue connecting to Airtable. The API key may have expired.';
+        }
+        setError(detailedError);
     } finally {
         setIsImporting(false);
     }
