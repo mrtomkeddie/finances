@@ -159,12 +159,12 @@ export default function DashboardPage() {
               category: transaction.category,
               date: transaction.date,
               bankId: firestoreBankId,
-              remainingBalance: transaction.remainingBalance,
-              monthlyInterest: transaction.monthlyInterest,
-              interestRate: transaction.interestRate,
-              interestType: transaction.interestType,
-              rateFrequency: transaction.rateFrequency,
-              description: transaction.description,
+              remainingBalance: transaction.remainingBalance ?? null,
+              monthlyInterest: transaction.monthlyInterest ?? null,
+              interestRate: transaction.interestRate ?? null,
+              interestType: transaction.interestType ?? null,
+              rateFrequency: transaction.rateFrequency ?? null,
+              description: transaction.description ?? null,
             };
 
             batch.set(firestoreTransactionRef, transactionData);

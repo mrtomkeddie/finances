@@ -14,12 +14,12 @@ export interface Transaction {
   category: string;
   date: string; // ISO string
   bankId: string;
-  remainingBalance?: number;
-  monthlyInterest?: number; // Calculated or direct monetary amount
-  interestRate?: number; // Percentage rate (e.g., 2.5 for 2.5%)
-  interestType?: InterestType; // 'monetary' or 'percentage'
-  rateFrequency?: RateFrequency; // 'monthly' or 'annual' (for percentage rates)
-  description?: string;
+  remainingBalance?: number | null;
+  monthlyInterest?: number | null; // Calculated or direct monetary amount
+  interestRate?: number | null; // Percentage rate (e.g., 2.5 for 2.5%)
+  interestType?: InterestType | null; // 'monetary' or 'percentage'
+  rateFrequency?: RateFrequency | null; // 'monthly' or 'annual' (for percentage rates)
+  description?: string | null;
 }
 
 export interface Bank {
