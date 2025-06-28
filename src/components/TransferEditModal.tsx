@@ -31,18 +31,20 @@ export function TransferEditModal({ isOpen, onClose, currentAmount, onSave }: Tr
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md mx-auto bg-card border-border">
-        <DialogHeader>
-          <DialogTitle className="text-foreground">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="text-xl font-bold text-foreground">
             Edit Weekly Transfer
           </DialogTitle>
-          <DialogDescription className="text-sm text-muted-foreground">
-            Set the amount automatically transferred from HSBC to Santander each week
+          <DialogDescription className="text-sm text-muted-foreground pt-1">
+            Set the amount automatically transferred from HSBC to Santander each week.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6 py-4">
           <div className="space-y-2">
-            <Label htmlFor="amount" className="text-foreground">Weekly Transfer Amount (£)</Label>
+            <Label htmlFor="amount" className="text-sm font-medium text-foreground">
+              Weekly Transfer Amount (£)
+            </Label>
             <Input
               id="amount"
               type="number"
@@ -51,31 +53,33 @@ export function TransferEditModal({ isOpen, onClose, currentAmount, onSave }: Tr
               value={amount || ''}
               onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
               placeholder="0.00"
-              className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+              className="h-12 text-lg bg-input border-border text-foreground placeholder:text-muted-foreground"
             />
           </div>
 
-          <div className="space-y-2">
-            <div className="text-xs text-muted-foreground bg-muted/20 p-3 rounded-lg">
-              <p className="mb-1"><strong>How this works:</strong></p>
-              <p>• This amount is automatically deducted from HSBC weekly net income</p>
-              <p>• The same amount is added to Santander weekly net income</p>
-              <p>• Set to £0 to disable the automatic transfer</p>
+          <div className="space-y-3">
+            <div className="text-sm text-muted-foreground bg-muted/20 p-4 rounded-lg border border-border/50">
+              <h4 className="font-semibold text-foreground mb-2">How this works:</h4>
+              <ul className="space-y-2 list-disc list-inside">
+                <li>This amount is automatically deducted from HSBC weekly net income.</li>
+                <li>The same amount is added to Santander weekly net income.</li>
+                <li>Set to £0 to disable the automatic transfer.</li>
+              </ul>
             </div>
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-4 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 border-border text-foreground hover:bg-accent"
+              className="flex-1 text-base py-6 border-border text-foreground hover:bg-accent"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+              className="flex-1 text-base py-6 bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Save Transfer Amount
             </Button>
