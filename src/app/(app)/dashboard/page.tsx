@@ -171,12 +171,15 @@ export default function DashboardPage() {
     } catch (err: any) {
         console.error('Full error object during import:', err);
         let detailedError = `Failed to import data: ${err.message}`;
-        if (err.code === 'permission-denied') {
-            detailedError += '\n\nThis is a permissions issue. Please ensure you have deployed the latest Firestore security rules by running the command in your README file.';
+        if (err.code === 'permission-denied' || err.message.includes('permission-denied')) {
+            detailedError = 'Firestore Permissions Error\n\nYour security rules are preventing the data from being saved. Please make sure you have correctly deployed the firestore.rules file to your Firebase project.';
         } else if (err.message.includes('Airtable')) {
-            detailedError += '\n\nThere might be an issue connecting to Airtable. The API key may have expired.';
+            detailedError = 'Airtable Connection Error\n\nThere was a problem connecting to Airtable. The API key used for the import may have expired or been revoked by Airtable.';
+        } else {
+            detailedError += '\n\nAn unknown error occurred during the import process.';
         }
         setError(detailedError);
+        alert('An error occurred during import. Please see the message on screen for details.');
     } finally {
         setIsImporting(false);
     }
