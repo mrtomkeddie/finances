@@ -1,25 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from './components/ui/card';
 import { Button } from './components/ui/button';
-import { Settings, Plus, TrendingUp, TrendingDown, CreditCard, Clock, LogOut, ChevronUp, ChevronDown, Loader2, Edit3 } from 'lucide-react';
+import { Settings, Plus, TrendingUp, TrendingDown, CreditCard, Clock, LogOut, ChevronUp, ChevronDown, Loader2, Edit3, Landmark } from 'lucide-react';
 import { Badge } from './components/ui/badge';
 import { BankManagementModal } from './components/BankManagementModal';
 import { TransactionModal } from './components/TransactionModal';
 import { TransactionDetailModal } from './components/TransactionDetailModal';
 import { TransferEditModal } from './components/TransferEditModal';
 import { LoginForm } from './components/LoginForm';
-import { Transaction, Bank, TransactionType } from './types/financial';
-import { calculateSummary, formatCurrency, calculateMonthlyAmount, calculateNetMonthlyDebtPayment, calculateWeeksUntilPaidOff } from './utils/financial';
-import { airtableService } from './utils/airtableService';
-import { formatDate, getDaysUntil, isOverdue, getNextDueDate, formatNextDueDate, getNextDueDateColor } from './utils/dateUtils';
+import { Transaction, Bank, TransactionType, TransactionFrequency } from './lib/types';
+import { calculateSummary, formatCurrency, calculateMonthlyAmount, calculateNetMonthlyDebtPayment, calculateWeeksUntilPaidOff } from './lib/financial';
+import { formatDate, getDaysUntil, isOverdue, getNextDueDate, formatNextDueDate, getNextDueDateColor } from './lib/dateUtils';
+import { auth } from './lib/firebase';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { firebaseService } from './lib/firebaseService';
 
 type SortColumn = 'name' | 'amount' | 'frequency' | 'monthlyAmount' | 'remainingDebt' | 'weeksUntilPaidOff' | 'dueDate' | 'bank' | 'interest';
 type SortDirection = 'asc' | 'desc';
 
 export default function App() {
-  // Authentication state
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
+  // State to prevent hydration mismatch
+  const [authChecked, setAuthChecked] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
   // Data state
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [banks, setBanks] = useState<Bank[]>([]);
@@ -32,7 +35,7 @@ export default function App() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // UI state - REMOVED 'transfer' completely
+  // UI state
   const [activeFilter, setActiveFilter] = useState<'income' | 'expense' | 'debt'>('income');
   const [activeBankFilter, setActiveBankFilter] = useState('all-income');
   const [isBankManagementOpen, setIsBankManagementOpen] = useState(false);
@@ -45,6 +48,49 @@ export default function App() {
   // Sorting state
   const [sortColumn, setSortColumn] = useState<SortColumn>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthChecked(true);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Load data from Firestore when user is authenticated
+  useEffect(() => {
+    if (user) {
+      const loadData = async () => {
+        try {
+          setIsInitialLoading(true);
+          setError(null);
+          
+          const [firestoreBanks, firestoreTransactions] = await Promise.all([
+            firebaseService.getBanks(user.uid),
+            firebaseService.getTransactions(user.uid),
+          ]);
+          
+          setBanks(firestoreBanks);
+          setTransactions(firestoreTransactions);
+        } catch (err: any) {
+          console.error('Error loading data from Firestore:', err);
+          setError(`Failed to load data from Firestore: ${err.message}`);
+          setBanks([]);
+          setTransactions([]);
+        } finally {
+          setIsInitialLoading(false);
+        }
+      };
+      
+      loadData();
+    } else {
+      // Clear data when logged out
+      setBanks([]);
+      setTransactions([]);
+      setIsInitialLoading(false);
+    }
+  }, [user]);
 
   // Utility functions
   const getBankColor = (bankId: string) => {
@@ -68,12 +114,10 @@ export default function App() {
     }
   };
 
-  // UPDATED: Use next due date calculation instead of showing past dates
   const formatDueDate = (dateString: string, frequency: string) => {
     return formatNextDueDate(dateString, frequency);
   };
 
-  // UPDATED: Use next due date color calculation
   const getDueDateColor = (dateString: string, frequency: string) => {
     return getNextDueDateColor(dateString, frequency);
   };
@@ -87,7 +131,6 @@ export default function App() {
     }
   };
 
-  // UPDATED: Calculate weeks until paid off using new utility function
   const calculateWeeksUntilPaidOffDisplay = (transaction: Transaction) => {
     if (!transaction.remainingBalance || transaction.remainingBalance <= 0) {
       return 'Never';
@@ -110,16 +153,13 @@ export default function App() {
     return `${weeks} weeks`;
   };
 
-  // NEW: Simplified bank calculations with automatic transfer
   const calculateBankTotals = (bankName: string) => {
     const normalizedBankName = bankName.toLowerCase();
     
-    // Get transactions for this bank
     let bankTransactions = transactions.filter(t => 
       getBankName(t.bankId).toLowerCase().includes(normalizedBankName)
     );
     
-    // SPECIAL: HSBC includes both HSBC and Barclays transactions
     if (normalizedBankName.includes('hsbc')) {
       bankTransactions = transactions.filter(t => {
         const transactionBankName = getBankName(t.bankId).toLowerCase();
@@ -129,11 +169,10 @@ export default function App() {
     
     const summary = calculateSummary(bankTransactions);
     
-    // UPDATED: Only include debt payments that have amount > 0 (actually being paid)
     const expenseAndDebt = bankTransactions
       .filter(t => {
         if (t.type === 'expense') return true;
-        if (t.type === 'debt') return t.amount > 0; // Only count debts being paid
+        if (t.type === 'debt') return t.amount > 0;
         return false;
       })
       .reduce((sum, t) => sum + calculateMonthlyAmount(t.amount, t.frequency), 0);
@@ -141,13 +180,10 @@ export default function App() {
     let adjustedWeeklyNet = summary.weeklyIncome - (expenseAndDebt / 4.33);
     let adjustedMonthlyNet = summary.monthlyIncome - expenseAndDebt;
     
-    // Apply automatic transfer
     if (normalizedBankName.includes('hsbc')) {
-      // HSBC loses the transfer amount
       adjustedWeeklyNet -= weeklyTransferAmount;
       adjustedMonthlyNet -= (weeklyTransferAmount * 4.33);
     } else if (normalizedBankName.includes('santander')) {
-      // Santander gains the transfer amount
       adjustedWeeklyNet += weeklyTransferAmount;
       adjustedMonthlyNet += (weeklyTransferAmount * 4.33);
     }
@@ -162,13 +198,11 @@ export default function App() {
     };
   };
 
-  // Transfer amount management
   const handleSaveTransferAmount = (amount: number) => {
     setWeeklyTransferAmount(amount);
     localStorage.setItem('weekly-transfer-amount', amount.toString());
   };
 
-  // Load transfer amount from localStorage
   useEffect(() => {
     const savedAmount = localStorage.getItem('weekly-transfer-amount');
     if (savedAmount) {
@@ -176,119 +210,46 @@ export default function App() {
     }
   }, []);
 
-  // Apply dark mode and check authentication on mount
-  useEffect(() => {
-    document.documentElement.classList.add('dark');
-    
-    // Set favicon
-    const favicon = document.querySelector('link[rel="icon"]') || document.createElement('link');
-    favicon.setAttribute('rel', 'icon');
-    favicon.setAttribute('href', '/logo.png');
-    if (!document.querySelector('link[rel="icon"]')) {
-      document.head.appendChild(favicon);
-    }
-    
-    // Check if user is already authenticated
-    const authStatus = localStorage.getItem('financial-tracker-auth');
-    if (authStatus === 'true') {
-      setIsAuthenticated(true);
-    } else {
-      setIsInitialLoading(false);
-    }
-  }, []);
-
-  // Load data from Airtable when authenticated
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    
-    const loadData = async () => {
-      try {
-        setIsInitialLoading(true);
-        setError(null);
-        
-        console.log('🔄 Loading data from Airtable...');
-        
-        // Load existing data from Airtable
-        const [airtableBanks, airtableTransactions] = await Promise.all([
-          airtableService.getBanks(),
-          airtableService.getTransactions(),
-        ]);
-        
-        console.log(`📊 Loaded ${airtableBanks.length} banks and ${airtableTransactions.length} transactions from Airtable`);
-        
-        setBanks(airtableBanks);
-        // Filter out any transfer transactions that might exist
-        setTransactions(airtableTransactions.filter(t => t.type !== 'transfer'));
-        
-      } catch (err) {
-        console.error('Error loading data from Airtable:', err);
-        setError(`Failed to load data from Airtable: ${err.message}`);
-        
-        // Start with empty data on error
-        setBanks([]);
-        setTransactions([]);
-      } finally {
-        setIsInitialLoading(false);
-      }
-    };
-    
-    loadData();
-  }, [isAuthenticated]);
-
-  // Reset sorting when changing transaction type filters
   useEffect(() => {
     setSortColumn('name');
     setSortDirection('asc');
   }, [activeFilter]);
 
-  // Authentication functions
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-    localStorage.setItem('financial-tracker-auth', 'true');
-  };
-
   const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('financial-tracker-auth');
+    auth.signOut();
   };
 
-  // Show login form if not authenticated
-  if (!isAuthenticated) {
-    return <LoginForm onLogin={handleLogin} />;
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
-  // Show initial loading screen
+  if (!user) {
+    return <LoginForm />;
+  }
+
   if (isInitialLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-muted-foreground">Loading your financial data...</p>
-          <p className="text-xs text-muted-foreground">Connecting to Airtable...</p>
         </div>
       </div>
     );
   }
 
-  // Bank management functions
-  const handleAddBank = async (newBank: Omit<Bank, 'id'>) => {
+  const handleAddBank = async (newBank: Omit<Bank, 'id' | 'userId'>) => {
+    if (!user) return;
     try {
       setIsLoading(true);
       setError(null);
-      
-      console.log('🔄 Adding bank:', newBank.name);
-      
-      // Create bank in Airtable (ID will be auto-generated)
-      const createdBank = await airtableService.createBank({
-        id: '', // Will be ignored by Airtable
-        ...newBank,
-      });
-      
+      const createdBank = await firebaseService.addBank(user.uid, newBank);
       setBanks(prev => [...prev, createdBank]);
-      console.log('✅ Bank added successfully:', createdBank.name);
-      
-    } catch (err) {
-      console.error('Error adding bank:', err);
+    } catch (err: any) {
       setError(`Failed to add bank: ${err.message}`);
     } finally {
       setIsLoading(false);
@@ -299,15 +260,13 @@ export default function App() {
     try {
       setIsLoading(true);
       setError(null);
-      
-      const updatedBank = await airtableService.updateBank(bankId, updates);
+      const updatedBank = await firebaseService.updateBank(bankId, updates);
       setBanks(prev => 
         prev.map(bank => 
           bank.id === bankId ? updatedBank : bank
         )
       );
-    } catch (err) {
-      console.error('Error updating bank:', err);
+    } catch (err: any) {
       setError(`Failed to update bank: ${err.message}`);
     } finally {
       setIsLoading(false);
@@ -315,7 +274,6 @@ export default function App() {
   };
 
   const handleDeleteBank = async (bankId: string) => {
-    // Check if bank has transactions
     const hasTransactions = transactions.some(t => t.bankId === bankId);
     if (hasTransactions) {
       alert('Cannot delete bank with existing transactions. Please move or delete transactions first.');
@@ -325,58 +283,43 @@ export default function App() {
     try {
       setIsLoading(true);
       setError(null);
-      
-      await airtableService.deleteBank(bankId);
+      await firebaseService.deleteBank(bankId);
       setBanks(prev => prev.filter(bank => bank.id !== bankId));
-    } catch (err) {
-      console.error('Error deleting bank:', err);
+    } catch (err: any) {
       setError(`Failed to delete bank: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Transaction management functions
-  const handleAddTransaction = async (newTransaction: Omit<Transaction, 'id'>) => {
+  const handleAddTransaction = async (newTransaction: Omit<Transaction, 'id' | 'userId'>) => {
+    if (!user) return;
     try {
       setIsLoading(true);
       setError(null);
-      
-      console.log('🔄 Adding transaction:', newTransaction.title);
-      
-      // Create transaction in Airtable (ID will be auto-generated)
-      const createdTransaction = await airtableService.createTransaction({
-        id: '', // Will be ignored by Airtable
-        ...newTransaction,
-      });
-      
+      const createdTransaction = await firebaseService.addTransaction(user.uid, newTransaction);
       setTransactions(prev => [...prev, createdTransaction]);
-      console.log('✅ Transaction added successfully:', createdTransaction.title);
-      
-    } catch (err) {
-      console.error('Error adding transaction:', err);
+    } catch (err: any) {
       setError(`Failed to add transaction: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleUpdateTransaction = async (updatedTransaction: Omit<Transaction, 'id'>) => {
+  const handleUpdateTransaction = async (updatedTransaction: Transaction) => {
     if (!editingTransaction) return;
     
     try {
       setIsLoading(true);
       setError(null);
-      
-      const updated = await airtableService.updateTransaction(editingTransaction.id, updatedTransaction);
+      const updated = await firebaseService.updateTransaction(editingTransaction.id, updatedTransaction);
       setTransactions(prev => 
         prev.map(t => 
           t.id === editingTransaction.id ? updated : t
         )
       );
       setEditingTransaction(null);
-    } catch (err) {
-      console.error('Error updating transaction:', err);
+    } catch (err: any) {
       setError(`Failed to update transaction: ${err.message}`);
     } finally {
       setIsLoading(false);
@@ -387,11 +330,9 @@ export default function App() {
     try {
       setIsLoading(true);
       setError(null);
-      
-      await airtableService.deleteTransaction(transactionId);
+      await firebaseService.deleteTransaction(transactionId);
       setTransactions(prev => prev.filter(t => t.id !== transactionId));
-    } catch (err) {
-      console.error('Error deleting transaction:', err);
+    } catch (err: any) {
       setError(`Failed to delete transaction: ${err.message}`);
     } finally {
       setIsLoading(false);
@@ -413,7 +354,6 @@ export default function App() {
     setEditingTransaction(null);
   };
 
-  // Sorting functions
   const handleSort = (column: SortColumn) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -432,7 +372,6 @@ export default function App() {
       <ChevronDown className="h-4 w-4 ml-1" />;
   };
 
-  // Filter transactions - SIMPLIFIED: No transfers
   const filteredTransactions = transactions.filter(transaction => {
     let typeMatches = false;
     
@@ -444,7 +383,6 @@ export default function App() {
       typeMatches = transaction.type === 'debt';
     }
     
-    // Bank filtering
     if (activeBankFilter.startsWith('all-')) {
       return typeMatches;
     }
@@ -452,7 +390,6 @@ export default function App() {
     return typeMatches && transaction.bankId === activeBankFilter;
   });
 
-  // Sort the filtered transactions
   const sortedTransactions = [...filteredTransactions].sort((a, b) => {
     let aValue: any;
     let bValue: any;
@@ -467,9 +404,9 @@ export default function App() {
         bValue = b.amount;
         break;
       case 'frequency':
-        const frequencyOrder = { 'weekly': 1, 'bi-weekly': 2, '4-weekly': 3, 'monthly': 4, 'yearly': 5 };
-        aValue = frequencyOrder[a.frequency as keyof typeof frequencyOrder] || 6;
-        bValue = frequencyOrder[b.frequency as keyof typeof frequencyOrder] || 6;
+        const frequencyOrder: { [key in TransactionFrequency]: number } = { 'weekly': 1, 'bi-weekly': 2, '4-weekly': 3, 'monthly': 4, 'yearly': 5 };
+        aValue = frequencyOrder[a.frequency] || 6;
+        bValue = frequencyOrder[b.frequency] || 6;
         break;
       case 'monthlyAmount':
         aValue = calculateMonthlyAmount(a.amount, a.frequency);
@@ -484,14 +421,13 @@ export default function App() {
         bValue = b.monthlyInterest || 0;
         break;
       case 'weeksUntilPaidOff':
-        // UPDATED: Handle zero payments and interest in sorting
         const getWeeksForSorting = (t: Transaction) => {
           const weeks = calculateWeeksUntilPaidOff(t);
           if (weeks === null) {
             const netPayment = calculateNetMonthlyDebtPayment(t);
-            if (netPayment <= 0) return Number.MAX_SAFE_INTEGER - 2; // "Debt growing"
-            if (!t.amount || t.amount <= 0) return Number.MAX_SAFE_INTEGER - 1; // "Not paying"
-            return Number.MAX_SAFE_INTEGER; // "Never"
+            if (netPayment <= 0) return Number.MAX_SAFE_INTEGER - 2;
+            if (!t.amount || t.amount <= 0) return Number.MAX_SAFE_INTEGER - 1;
+            return Number.MAX_SAFE_INTEGER;
           }
           return weeks;
         };
@@ -499,7 +435,6 @@ export default function App() {
         bValue = getWeeksForSorting(b);
         break;
       case 'dueDate':
-        // UPDATED: Sort by next due date instead of original date
         aValue = getNextDueDate(a.date, a.frequency).getTime();
         bValue = getNextDueDate(b.date, b.frequency).getTime();
         break;
@@ -521,30 +456,24 @@ export default function App() {
     return 0;
   });
 
-  // Calculate summary statistics - NO TRANSFERS
   const allSummary = calculateSummary(transactions);
-  
-  // UPDATED: Only include debt payments that have amount > 0 (actually being paid)
   const debtSummary = calculateSummary(transactions.filter(t => t.type === 'debt' && t.amount > 0));
   
-  // Calculate total expenses including debt payments (only ones being paid)
   const totalExpenseAndDebt = transactions
     .filter(t => {
       if (t.type === 'expense') return true;
-      if (t.type === 'debt') return t.amount > 0; // Only count debts being paid
+      if (t.type === 'debt') return t.amount > 0;
       return false;
     })
     .reduce((sum, t) => sum + calculateMonthlyAmount(t.amount, t.frequency), 0);
 
-  // Bank-specific calculations with automatic transfer
-  const hsbcTotals = calculateBankTotals('hsbc'); // Includes HSBC + Barclays
+  const hsbcTotals = calculateBankTotals('hsbc');
   const santanderTotals = calculateBankTotals('santander');
 
-  // Calculate totals for bottom summary (only paid transactions)
   const weeklyTotal = sortedTransactions
     .filter(t => {
       if (t.type === 'income' || t.type === 'expense') return true;
-      if (t.type === 'debt') return t.amount > 0; // Only count debts being paid
+      if (t.type === 'debt') return t.amount > 0;
       return false;
     })
     .reduce((sum, t) => sum + (calculateMonthlyAmount(t.amount, t.frequency) / 4.33), 0);
@@ -552,23 +481,20 @@ export default function App() {
   const monthlyTotal = sortedTransactions
     .filter(t => {
       if (t.type === 'income' || t.type === 'expense') return true;
-      if (t.type === 'debt') return t.amount > 0; // Only count debts being paid
+      if (t.type === 'debt') return t.amount > 0;
       return false;
     })
     .reduce((sum, t) => sum + calculateMonthlyAmount(t.amount, t.frequency), 0);
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header - Mobile responsive with improved spacing */}
       <header className="border-b border-border bg-background">
         <div className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-3">
-              <img 
-                src="/logo.png" 
-                alt="Financial Tracker" 
-                className="h-5 w-5 sm:h-6 sm:w-6 opacity-80"
-              />
+              <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
+                <Landmark className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              </div>
               <h1 className="text-lg sm:text-xl font-semibold text-foreground truncate">
                 <span className="hidden sm:inline">Finances Dashboard</span>
                 <span className="sm:hidden">Finances</span>
@@ -578,7 +504,6 @@ export default function App() {
               )}
             </div>
             
-            {/* Header buttons - increased spacing for better visual separation */}
             <div className="flex items-center gap-3 sm:gap-4">
               <Button 
                 variant="secondary" 
@@ -592,7 +517,6 @@ export default function App() {
                 <span className="xs:hidden">Banks</span>
               </Button>
               
-              {/* Mobile: Clean circular plus button, Desktop: Normal button with text */}
               <Button 
                 size="sm" 
                 className="mobile-add-btn sm:gap-2 sm:text-sm sm:px-3"
@@ -617,7 +541,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* Error Display */}
       {error && (
         <div className="container mx-auto px-4 sm:px-6 py-3">
           <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400 text-sm whitespace-pre-line">
@@ -632,9 +555,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Main Content - Added bottom padding for mobile */}
       <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 pb-20 sm:pb-8 space-y-4 sm:space-y-6">
-        {/* Empty State */}
         {banks.length === 0 && transactions.length === 0 && !isLoading && (
           <div className="text-center py-12">
             <div className="max-w-md mx-auto px-4">
@@ -655,10 +576,8 @@ export default function App() {
           </div>
         )}
 
-        {/* Summary Cards - Mobile responsive */}
         {(banks.length > 0 || transactions.length > 0) && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-            {/* Total Monthly Income */}
             <Card className="p-4 sm:p-6 bg-card border-border">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="p-2 sm:p-3 rounded-lg bg-green-500/10 border border-green-500/20 flex-shrink-0">
@@ -671,7 +590,6 @@ export default function App() {
               </div>
             </Card>
 
-            {/* Total Monthly Expenses */}
             <Card className="p-4 sm:p-6 bg-card border-border">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="p-2 sm:p-3 rounded-lg bg-red-500/10 border border-red-500/20 flex-shrink-0">
@@ -684,7 +602,6 @@ export default function App() {
               </div>
             </Card>
 
-            {/* Total Debt Remaining */}
             <Card className="p-4 sm:p-6 bg-card border-border">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="p-2 sm:p-3 rounded-lg bg-orange-500/10 border border-orange-500/20 flex-shrink-0">
@@ -699,10 +616,8 @@ export default function App() {
           </div>
         )}
 
-        {/* Bank Overview Cards - Mobile responsive */}
         {transactions.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {/* HSBC Overview */}
             <Card className="p-4 sm:p-6 bg-card border-border">
               <h3 className="font-semibold mb-2 text-foreground text-sm sm:text-base">HSBC Overview</h3>
               <div className="space-y-2 sm:space-y-3">
@@ -721,7 +636,6 @@ export default function App() {
               </div>
             </Card>
 
-            {/* Santander Overview - Added Weekly Transfer Amount */}
             <Card className="p-4 sm:p-6 bg-card border-border">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold text-foreground text-sm sm:text-base">Santander Overview</h3>
@@ -747,7 +661,6 @@ export default function App() {
                     {formatCurrency(santanderTotals.monthlyNet)}
                   </span>
                 </div>
-                {/* NEW: Show weekly transfer amount */}
                 <div className="flex justify-between items-center pt-1 border-t border-border/40">
                   <span className="text-xs sm:text-sm text-muted-foreground">Weekly Transfer In:</span>
                   <span className="font-medium text-sm sm:text-base text-blue-400">
@@ -759,7 +672,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Category Filter Buttons - Mobile responsive */}
         {transactions.length > 0 && (
           <div className="space-y-4 sm:space-y-6">
             <div className="flex gap-1 p-1 bg-muted/30 rounded-2xl border border-border/50">
@@ -809,16 +721,14 @@ export default function App() {
               </button>
             </div>
 
-            {/* Bank Filter Pills - Mobile horizontal scrolling */}
             {banks.length > 0 && (
               <div className="overflow-x-auto">
                 <div className="flex gap-2 pb-2 min-w-max">
-                  {/* "All Banks" option */}
-                  {(activeFilter === 'income' || activeFilter === 'expense') && (
+                  {(activeFilter === 'income' || activeFilter === 'expense' || activeFilter === 'debt') && (
                     <button
-                      onClick={() => setActiveBankFilter(activeFilter === 'income' ? 'all-income' : 'all-expenses')}
+                      onClick={() => setActiveBankFilter(`all-${activeFilter}`)}
                       className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border transition-all duration-200 text-sm whitespace-nowrap ${
-                        activeBankFilter === (activeFilter === 'income' ? 'all-income' : 'all-expenses')
+                        activeBankFilter.startsWith('all-')
                           ? 'bg-card border-border shadow-sm text-foreground'
                           : 'bg-muted/20 border-muted text-muted-foreground hover:bg-muted/40 hover:text-foreground hover:border-border/60'
                       }`}
@@ -828,7 +738,6 @@ export default function App() {
                     </button>
                   )}
 
-                  {/* Individual bank filters */}
                   {banks.map((bank) => (
                     <button
                       key={bank.id}
@@ -852,7 +761,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Transactions Table - Mobile responsive with horizontal scroll */}
         {transactions.length > 0 && (
           <>
             <Card className="bg-card border-border overflow-hidden">
@@ -878,7 +786,6 @@ export default function App() {
                           {getSortIcon('amount')}
                         </div>
                       </th>
-                      {/* Hide Frequency and Monthly Amount columns for debt */}
                       {activeFilter !== 'debt' && (
                         <>
                           <th 
@@ -972,7 +879,6 @@ export default function App() {
                             )}
                           </span>
                         </td>
-                        {/* Hide Frequency and Monthly Amount columns for debt */}
                         {activeFilter !== 'debt' && (
                           <>
                             <td className="whitespace-nowrap">
@@ -1030,7 +936,6 @@ export default function App() {
               </div>
             </Card>
 
-            {/* Bottom Summary - Mobile responsive */}
             {(activeFilter === 'income' || activeFilter === 'expense') && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <Card className="p-3 sm:p-4 bg-card border-border">
@@ -1053,7 +958,6 @@ export default function App() {
               </div>
             )}
 
-            {/* Debt Information - Mobile responsive */}
             {activeFilter === 'debt' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <Card className="p-4 sm:p-6 bg-card border-border">
@@ -1082,34 +986,25 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer with Logo - Mobile focused */}
       <footer className="border-t border-border bg-background/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-4">
           <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4 sm:gap-2">
-            {/* Logo and App Name */}
             <div className="flex items-center gap-3 opacity-60">
-              <img 
-                src="/logo.png" 
-                alt="Financial Tracker" 
-                className="h-5 w-5 sm:h-4 sm:w-4"
-              />
+              <Landmark className="h-5 w-5 sm:h-4 sm:w-4 text-muted-foreground" />
               <span className="text-sm sm:text-xs text-muted-foreground">
                 Financial Tracker
               </span>
             </div>
             
-            {/* Optional additional footer content */}
             <div className="hidden sm:flex items-center gap-4 text-xs text-muted-foreground">
               <span>Made with ❤️ for better financial planning</span>
             </div>
 
-            {/* Mobile: Just a simple divider */}
             <div className="sm:hidden w-full max-w-xs h-px bg-border opacity-30"></div>
           </div>
         </div>
       </footer>
 
-      {/* Modals */}
       <BankManagementModal
         isOpen={isBankManagementOpen}
         onClose={() => setIsBankManagementOpen(false)}
@@ -1122,7 +1017,8 @@ export default function App() {
       <TransactionModal
         isOpen={isTransactionModalOpen}
         onClose={handleCloseTransactionModal}
-        onAddTransaction={editingTransaction ? handleUpdateTransaction : handleAddTransaction}
+        onAddTransaction={handleAddTransaction}
+        onUpdateTransaction={handleUpdateTransaction}
         banks={banks}
         editTransaction={editingTransaction}
       />

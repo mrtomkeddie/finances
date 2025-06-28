@@ -3,32 +3,34 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { User, AlertCircle } from 'lucide-react';
-import logoIcon from 'figma:asset/f37b117da20b0b73f1b52001c4536e9241827875.png';
+import { User, AlertCircle, Landmark, Lock, LogIn } from 'lucide-react';
+import { auth } from '../lib/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
-interface LoginFormProps {
-  onLogin: () => void;
-}
-
-export function LoginForm({ onLogin }: LoginFormProps) {
-  const [username, setUsername] = useState('');
+export function LoginForm() {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleAuthAction = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    setTimeout(() => {
-      if (username === 'tomkeddie' && password === 'T02hsx39p7') {
-        onLogin();
+    try {
+      if (isSignUp) {
+        await createUserWithEmailAndPassword(auth, email, password);
       } else {
-        setError('Invalid username or password');
+        await signInWithEmailAndPassword(auth, email, password);
       }
+      // The onAuthStateChanged listener in App.tsx will handle the redirect.
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setIsLoading(false);
-    }, 500);
+    }
   };
 
   return (
@@ -37,34 +39,30 @@ export function LoginForm({ onLogin }: LoginFormProps) {
         <Card className="bg-card border-border shadow-2xl">
           <CardHeader className="text-center pb-6">
             <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10 border border-primary/20 w-fit flex items-center justify-center">
-              <img 
-                src={logoIcon} 
-                alt="Financial Tracker" 
-                className="h-8 w-8 opacity-80"
-              />
+              <Landmark className="h-8 w-8 text-primary" />
             </div>
             <CardTitle className="text-2xl font-bold text-foreground">
-              Financial Tracker
+              {isSignUp ? 'Create Account' : 'Financial Tracker'}
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-2">
-              Please sign in to access your financial dashboard
+              {isSignUp ? 'Sign up to manage your finances' : 'Sign in to access your dashboard'}
             </p>
           </CardHeader>
           
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleAuthAction} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium text-foreground">
-                  Username
+                <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                  Email
                 </Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="username"
-                    type="text"
-                    placeholder="Enter your username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="pl-10 bg-input border-border text-foreground"
                     required
                   />
@@ -76,11 +74,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                   Password
                 </Label>
                 <div className="relative">
-                  <img 
-                    src={logoIcon} 
-                    alt="Password" 
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 opacity-60"
-                  />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
@@ -103,23 +97,23 @@ export function LoginForm({ onLogin }: LoginFormProps) {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isLoading || !username || !password}
+                disabled={isLoading || !email || !password}
               >
                 {isLoading ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    <span>Signing in...</span>
+                    <span>{isSignUp ? 'Signing Up...' : 'Signing In...'}</span>
                   </div>
                 ) : (
-                  'Sign In'
+                  isSignUp ? 'Sign Up' : 'Sign In'
                 )}
               </Button>
             </form>
 
-            <div className="mt-6 pt-6 border-t border-border">
-              <p className="text-xs text-muted-foreground text-center">
-                Secure access to your personal financial data
-              </p>
+            <div className="mt-6 pt-6 border-t border-border text-center">
+              <Button variant="link" onClick={() => setIsSignUp(!isSignUp)}>
+                {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+              </Button>
             </div>
           </CardContent>
         </Card>

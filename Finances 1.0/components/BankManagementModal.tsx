@@ -11,7 +11,7 @@ interface BankManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
   banks: Bank[];
-  onAddBank: (bank: Omit<Bank, 'id'>) => void;
+  onAddBank: (bank: Omit<Bank, 'id' | 'userId'>) => void;
   onUpdateBank: (bankId: string, updates: Partial<Bank>) => void;
   onDeleteBank: (bankId: string) => void;
 }
@@ -46,9 +46,6 @@ export function BankManagementModal({
   const [editType, setEditType] = useState<BankType>('bank');
   const [editColor, setEditColor] = useState(colorOptions[0]);
 
-  // Filter out the "All" category banks from the display
-  const userBanks = banks.filter(bank => !bank.id.startsWith('all-'));
-
   const handleAddBank = () => {
     if (newBankName.trim()) {
       onAddBank({
@@ -82,8 +79,8 @@ export function BankManagementModal({
 
   const handleCancelEdit = () => {
     setEditingBank(null);
-    setEditName('');
-    setEditType('bank');
+    setNewBankName('');
+    setNewBankType('bank');
     setEditColor(colorOptions[0]);
   };
 
@@ -179,7 +176,7 @@ export function BankManagementModal({
           <div>
             <h3 className="font-medium text-foreground mb-4">Your Accounts</h3>
             <div className="space-y-3 max-h-64 overflow-y-auto">
-              {userBanks.map((bank) => (
+              {banks.map((bank) => (
                 <div
                   key={bank.id}
                   className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border"
@@ -260,7 +257,7 @@ export function BankManagementModal({
                 </div>
               ))}
               
-              {userBanks.length === 0 && (
+              {banks.length === 0 && (
                 <div className="text-center py-6 text-muted-foreground">
                   No accounts added yet
                 </div>
