@@ -113,12 +113,12 @@ class AirtableService {
         category: record.fields.Category || '',
         date: record.fields.Date || new Date().toISOString().split('T')[0],
         bankId: bankId,
-        remainingBalance: record.fields.RemainingBalance ? parseFloat(record.fields.RemainingBalance) : undefined,
-        monthlyInterest: monthlyInterest,
-        interestRate: record.fields.InterestRate ? parseFloat(record.fields.InterestRate) : undefined,
-        interestType: record.fields.InterestType || (monthlyInterest ? 'monetary' : undefined),
+        remainingBalance: record.fields.RemainingBalance ? parseFloat(record.fields.RemainingBalance) : null,
+        monthlyInterest: monthlyInterest ?? null,
+        interestRate: record.fields.InterestRate ? parseFloat(record.fields.InterestRate) : null,
+        interestType: record.fields.InterestType || (monthlyInterest ? 'monetary' : null),
         rateFrequency: record.fields.RateFrequency || 'monthly',
-        description: record.fields.Description || undefined,
+        description: record.fields.Description || null,
       };
       
       validTransactions.push(transaction);
