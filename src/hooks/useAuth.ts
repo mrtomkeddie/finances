@@ -9,6 +9,7 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   signInWithEmail: (email: string, pass: string) => Promise<void>;
+  signUpWithEmail: (email: string, pass: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signOutUser: () => Promise<void>;
 }
