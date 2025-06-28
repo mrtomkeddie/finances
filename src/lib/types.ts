@@ -39,6 +39,7 @@ export interface Goal {
 export interface UserProfile {
   name: string;
   description?: string;
+  weeklyTransferAmount?: number;
 }
 
 export interface FinancialSummary {

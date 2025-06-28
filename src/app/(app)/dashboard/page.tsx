@@ -13,7 +13,7 @@ import { TransactionDetailModal } from '@/components/TransactionDetailModal';
 import { TransferEditModal } from '@/components/TransferEditModal';
 import { Transaction, Bank, TransactionType, TransactionFrequency } from '@/lib/types';
 import { calculateSummary, formatCurrency, calculateMonthlyAmount, calculateNetMonthlyDebtPayment, calculateWeeksUntilPaidOff } from '@/lib/financial';
-import { getBanks, getTransactions, addBank, updateBank, deleteBank, addTransaction, updateTransaction, deleteTransaction } from '@/lib/firebase';
+import { getBanks, getTransactions, addBank, updateBank, deleteBank, addTransaction, updateTransaction, deleteTransaction, getUserProfile, updateUserProfile } from '@/lib/firebase';
 import { formatDate, getNextDueDate, formatNextDueDate, getNextDueDateColor } from '@/lib/dateUtils';
 import { airtableService } from '@/lib/airtableService';
 import { writeBatch, collection, doc } from 'firebase/firestore';
@@ -55,29 +55,27 @@ export default function DashboardPage() {
   const [isImporting, setIsImporting] = useState(false);
   const [hasImported, setHasImported] = useState(false);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedAmount = localStorage.getItem('weekly-transfer-amount');
-      if (savedAmount) {
-        setWeeklyTransferAmount(parseFloat(savedAmount) || 0);
-      }
-    }
-  }, []);
-
   const loadData = async () => {
     if (!user) return;
     try {
       setIsInitialLoading(true);
       setError(null);
       
-      const [firebaseBanks, firebaseTransactions] = await Promise.all([
+      const [firebaseBanks, firebaseTransactions, userProfile] = await Promise.all([
         getBanks(user.uid),
         getTransactions(user.uid),
+        getUserProfile(user.uid),
       ]);
       
       setBanks(firebaseBanks);
       setTransactions(firebaseTransactions.filter(t => t.type !== 'transfer'));
       
+      if (userProfile?.weeklyTransferAmount) {
+        setWeeklyTransferAmount(userProfile.weeklyTransferAmount);
+      } else {
+        setWeeklyTransferAmount(0);
+      }
+
       if (firebaseBanks.length > 0 || firebaseTransactions.length > 0) {
         setHasImported(true);
       }
@@ -262,9 +260,14 @@ export default function DashboardPage() {
     };
   };
 
-  const handleSaveTransferAmount = (amount: number) => {
+  const handleSaveTransferAmount = async (amount: number) => {
+    if (!user) return;
     setWeeklyTransferAmount(amount);
-    localStorage.setItem('weekly-transfer-amount', amount.toString());
+    try {
+      await updateUserProfile(user.uid, { weeklyTransferAmount: amount });
+    } catch (err: any) {
+      setError(`Failed to save transfer amount: ${err.message}`);
+    }
   };
 
   const handleAddBank = async (newBank: Omit<Bank, 'id'>) => {

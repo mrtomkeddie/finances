@@ -16,6 +16,7 @@ import {
   query,
   onSnapshot,
   Unsubscribe,
+  setDoc,
 } from 'firebase/firestore';
 import type { Transaction, Bank, Goal, UserProfile } from './types';
 
@@ -114,9 +115,9 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
     return docSnap.exists() ? docSnap.data() as UserProfile : null;
 };
 
-export const updateUserProfile = async (userId: string, profile: UserProfile): Promise<void> => {
+export const updateUserProfile = async (userId: string, profile: Partial<UserProfile>): Promise<void> => {
     const docRef = doc(db, `users/${userId}/profile`, 'main');
-    return updateDoc(docRef, profile, { merge: true });
+    return setDoc(docRef, profile, { merge: true });
 };
 
 
