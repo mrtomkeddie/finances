@@ -10,7 +10,7 @@ import { AlertCircle, Landmark, Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export function LoginForm() {
-  const { signInWithEmail, signUpWithEmail, signInWithGoogle, error: authError } = useAuth();
+  const { signInWithEmail, signUpWithEmail, error: authError } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,12 +40,6 @@ export function LoginForm() {
     } else {
       await signInWithEmail(email, password);
     }
-  };
-  
-  const handleGoogleSubmit = async () => {
-    setError('');
-    setIsLoading(true);
-    await signInWithGoogle();
   };
 
   const toggleFormMode = () => {
@@ -140,33 +134,13 @@ export function LoginForm() {
                 </div>
               )}
 
-              <div className="space-y-4">
+              <div className="space-y-4 pt-2">
                 <Button
                   type="submit"
                   className="w-full"
                   disabled={isLoading}
                 >
                   {isLoading ? 'Processing...' : (isSignUp ? 'Create Account' : 'Sign In')}
-                </Button>
-                
-                <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-border" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-card px-2 text-muted-foreground">Or</span>
-                    </div>
-                </div>
-
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleGoogleSubmit}
-                  disabled={isLoading}
-                  type="button"
-                >
-                  <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.5 173.5 58.1l-65.2 65.2C337 95.6 295.1 84.5 248 84.5c-81.6 0-148.2 66.6-148.2 148.2s66.6 148.2 148.2 148.2c87.9 0 129.2-60.1 133.7-91.2h-133.7v-73.2h255.4c1.5 12.6 2.4 25.4 2.4 41.5z"></path></svg>
-                  Continue with Google
                 </Button>
               </div>
             </form>

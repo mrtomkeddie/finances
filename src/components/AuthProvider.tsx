@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, ReactNode } from 'react';
-import { onAuthStateChanged, User, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
+import { onAuthStateChanged, User, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/hooks/useAuth';
@@ -73,20 +73,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signInWithGoogle = async () => {
-    setError(null);
-    setLoading(true);
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      router.push('/dashboard');
-    } catch (err) {
-      handleAuthError(err);
-    } finally {
-        setLoading(false);
-    }
-  };
-
   const signOutUser = async () => {
     try {
       await signOut(auth);
@@ -96,7 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const value = { user, loading, error, signInWithEmail, signUpWithEmail, signInWithGoogle, signOutUser };
+  const value = { user, loading, error, signInWithEmail, signUpWithEmail, signOutUser };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
