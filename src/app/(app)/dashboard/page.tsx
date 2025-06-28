@@ -111,7 +111,8 @@ export default function DashboardPage() {
         setError('You must be logged in to import data.');
         return;
     }
-    if (!window.confirm('Are you sure you want to import data from Airtable? This will add all banks and transactions to your account.')) {
+
+    if (!window.confirm('This will import all banks and transactions from Airtable. This can only be done once. Are you sure?')) {
         return;
     }
 
@@ -171,15 +172,14 @@ export default function DashboardPage() {
     } catch (err: any) {
         console.error('Full error object during import:', err);
         let detailedError = `Failed to import data: ${err.message}`;
-        if (err.code === 'permission-denied' || err.message.includes('permission-denied')) {
-            detailedError = 'Firestore Permissions Error\n\nYour security rules are preventing the data from being saved. Please make sure you have correctly deployed the firestore.rules file to your Firebase project.';
-        } else if (err.message.includes('Airtable')) {
+        if (err.code === 'permission-denied' || (err.message && err.message.includes('permission-denied'))) {
+            detailedError = 'Firestore Permissions Error\n\nYour security rules are preventing the data from being saved. Please make sure you have correctly deployed the firestore.rules file to your Firebase project and have waited a minute for them to apply.';
+        } else if (err.message && err.message.includes('Airtable')) {
             detailedError = 'Airtable Connection Error\n\nThere was a problem connecting to Airtable. The API key used for the import may have expired or been revoked by Airtable.';
         } else {
-            detailedError += '\n\nAn unknown error occurred during the import process.';
+            detailedError += '\n\nAn unknown error occurred during the import process. Check the browser console for more details.';
         }
         setError(detailedError);
-        alert('An error occurred during import. Please see the message on screen for details.');
     } finally {
         setIsImporting(false);
     }
@@ -445,12 +445,13 @@ export default function DashboardPage() {
       
        {error && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400 text-sm whitespace-pre-line">
+            <div className="font-bold mb-2">Error</div>
             {error}
-            <button onClick={() => setError(null)} className="ml-2 text-red-300 hover:text-red-200">✕</button>
+            <button onClick={() => setError(null)} className="absolute top-2 right-2 text-red-300 hover:text-red-200">✕</button>
         </div>
       )}
 
-      {banks.length === 0 && transactions.length === 0 && !isLoading && (
+      {banks.length === 0 && transactions.length === 0 && !isLoading && !error && (
         <div className="text-center py-12">
             <div className="max-w-md mx-auto px-4">
               <CreditCard className="h-12 w-12 mx-auto text-muted-foreground mb-6" />

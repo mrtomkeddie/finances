@@ -1,12 +1,29 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userId} {
+      // This rule allows a user to read and write to a potential root user document.
+      allow read, write: if request.auth.uid == userId;
+
+      // Allow read/write access on the 'banks' subcollection
       match /banks/{bankId} {
         allow read, write: if request.auth.uid == userId;
       }
+
+      // Allow read/write access on the 'transactions' subcollection
       match /transactions/{transactionId} {
         allow read, write: if request.auth.uid == userId;
+      }
+      
+      // Rule for the user's profile
+      match /profile/{profileId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+      
+      // Rule for user's goals
+      match /goals/{goalId} {
+         allow read, write: if request.auth.uid == userId;
       }
     }
   }
