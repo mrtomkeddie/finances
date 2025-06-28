@@ -98,26 +98,27 @@ class AirtableService {
         bankId = Array.isArray(bankField) ? bankField[0] : bankField;
       }
       
-      let monthlyInterest: number | undefined = undefined;
-      const monthlyInterestField = this.getMonthlyInterestFieldName(record);
-      if (monthlyInterestField && record.fields[monthlyInterestField]) {
-        monthlyInterest = parseFloat(record.fields[monthlyInterestField]);
-      }
+      // Helper to safely parse numbers, returning null if invalid
+      const safeParseFloat = (value: any): number | null => {
+        if (value === undefined || value === null || value === '') return null;
+        const parsed = parseFloat(value);
+        return isNaN(parsed) ? null : parsed;
+      };
       
       const transaction: Transaction = {
         id: record.id,
         title: record.fields.Title || '',
-        amount: parseFloat(record.fields.Amount) || 0,
+        amount: safeParseFloat(record.fields.Amount) || 0, // Amount should not be null
         type: (record.fields.Type || 'income').toLowerCase(),
         frequency: record.fields.Frequency || 'monthly',
         category: record.fields.Category || '',
         date: record.fields.Date || new Date().toISOString().split('T')[0],
         bankId: bankId,
-        remainingBalance: record.fields.RemainingBalance ? parseFloat(record.fields.RemainingBalance) : null,
-        monthlyInterest: monthlyInterest ?? null,
-        interestRate: record.fields.InterestRate ? parseFloat(record.fields.InterestRate) : null,
-        interestType: record.fields.InterestType || (monthlyInterest ? 'monetary' : null),
-        rateFrequency: record.fields.RateFrequency || 'monthly',
+        remainingBalance: safeParseFloat(record.fields.RemainingBalance),
+        monthlyInterest: safeParseFloat(record.fields[this.getMonthlyInterestFieldName(record) || '']),
+        interestRate: safeParseFloat(record.fields.InterestRate),
+        interestType: record.fields.InterestType || null,
+        rateFrequency: record.fields.RateFrequency || null,
         description: record.fields.Description || null,
       };
       
