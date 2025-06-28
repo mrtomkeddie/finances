@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, Plus, TrendingUp, TrendingDown, CreditCard, Clock, ChevronUp, ChevronDown, Loader2, Edit3 } from 'lucide-react';
+import { Settings, Plus, TrendingUp, TrendingDown, CreditCard, Clock, ChevronUp, ChevronDown, Loader2, Edit3, UploadCloud } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { BankManagementModal } from '@/components/BankManagementModal';
 import { TransactionModal } from '@/components/TransactionModal';
@@ -16,6 +16,9 @@ import { calculateSummary, formatCurrency, calculateMonthlyAmount, calculateNetM
 import { getBanks, getTransactions, addBank, updateBank, deleteBank, addTransaction, updateTransaction, deleteTransaction } from '@/lib/firebase';
 import { formatDate, getNextDueDate, formatNextDueDate, getNextDueDateColor } from '@/lib/dateUtils';
 import { useRouter } from 'next/navigation';
+import { airtableService } from '@/lib/airtableService';
+import { writeBatch, collection, doc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 type SortColumn = 'name' | 'amount' | 'frequency' | 'monthlyAmount' | 'remainingDebt' | 'weeksUntilPaidOff' | 'dueDate' | 'bank' | 'interest';
 type SortDirection = 'asc' | 'desc';
@@ -45,6 +48,9 @@ export default function DashboardPage() {
   const [sortColumn, setSortColumn] = useState<SortColumn>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
+  const [isImporting, setIsImporting] = useState(false);
+  const [hasImported, setHasImported] = useState(false);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedAmount = localStorage.getItem('weekly-transfer-amount');
@@ -54,33 +60,34 @@ export default function DashboardPage() {
     }
   }, []);
 
-  useEffect(() => {
+  const loadData = async () => {
     if (!user) return;
-    
-    const loadData = async () => {
-      try {
-        setIsInitialLoading(true);
-        setError(null);
-        
-        const [firebaseBanks, firebaseTransactions] = await Promise.all([
-          getBanks(user.uid),
-          getTransactions(user.uid),
-        ]);
-        
-        setBanks(firebaseBanks);
-        setTransactions(firebaseTransactions.filter(t => t.type !== 'transfer'));
-        
-      } catch (err: any) {
-        console.error('Error loading data from Firebase:', err);
-        setError(`Failed to load data from Firebase: ${err.message}`);
-        setBanks([]);
-        setTransactions([]);
-      } finally {
-        setIsInitialLoading(false);
-      }
-    };
-    
-    loadData();
+    try {
+      setIsInitialLoading(true);
+      setError(null);
+      
+      const [firebaseBanks, firebaseTransactions] = await Promise.all([
+        getBanks(user.uid),
+        getTransactions(user.uid),
+      ]);
+      
+      setBanks(firebaseBanks);
+      setTransactions(firebaseTransactions.filter(t => t.type !== 'transfer'));
+      
+    } catch (err: any) {
+      console.error('Error loading data from Firebase:', err);
+      setError(`Failed to load data from Firebase: ${err.message}`);
+      setBanks([]);
+      setTransactions([]);
+    } finally {
+      setIsInitialLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      loadData();
+    }
   }, [user]);
 
   useEffect(() => {
@@ -98,6 +105,76 @@ export default function DashboardPage() {
       </div>
     );
   }
+
+  const handleImportData = async () => {
+    if (!user) {
+        setError('You must be logged in to import data.');
+        return;
+    }
+    if (!window.confirm('Are you sure you want to import data from Airtable? This will add all banks and transactions to your account.')) {
+        return;
+    }
+
+    setIsImporting(true);
+    setError(null);
+
+    try {
+        const [airtableBanks, airtableTransactions] = await Promise.all([
+            airtableService.getBanks(),
+            airtableService.getTransactions(),
+        ]);
+
+        const batch = writeBatch(db);
+        const bankIdMap = new Map<string, string>();
+
+        // Batch-write banks and create ID map
+        airtableBanks.forEach(bank => {
+            const firestoreBankRef = doc(collection(db, `users/${user.uid}/banks`));
+            batch.set(firestoreBankRef, { name: bank.name, type: bank.type, color: bank.color });
+            bankIdMap.set(bank.id, firestoreBankRef.id);
+        });
+        
+        // Batch-write transactions
+        airtableTransactions.forEach(transaction => {
+            const firestoreTransactionRef = doc(collection(db, `users/${user.uid}/transactions`));
+            const firestoreBankId = bankIdMap.get(transaction.bankId);
+
+            if (!firestoreBankId) {
+                console.warn(`Skipping transaction "${transaction.title}" because its bank was not found in the import.`);
+                return;
+            }
+            
+            const transactionData: Omit<Transaction, 'id'> = {
+              title: transaction.title,
+              amount: transaction.amount,
+              type: transaction.type,
+              frequency: transaction.frequency,
+              category: transaction.category,
+              date: transaction.date,
+              bankId: firestoreBankId,
+              remainingBalance: transaction.remainingBalance,
+              monthlyInterest: transaction.monthlyInterest,
+              interestRate: transaction.interestRate,
+              interestType: transaction.interestType,
+              rateFrequency: transaction.rateFrequency,
+              description: transaction.description,
+            };
+
+            batch.set(firestoreTransactionRef, transactionData);
+        });
+
+        await batch.commit();
+        
+        await loadData(); // Reload data from Firestore
+        setHasImported(true);
+
+    } catch (err: any) {
+        console.error('Error importing data:', err);
+        setError(`Failed to import data: ${err.message}`);
+    } finally {
+        setIsImporting(false);
+    }
+  };
 
   const getBankColor = (bankId: string) => banks.find(b => b.id === bankId)?.color || '#6366f1';
   const getBankName = (bankId: string) => banks.find(b => b.id === bankId)?.name || 'Unknown Bank';
@@ -345,6 +422,18 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setIsTransactionModalOpen(true)} className="w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" /> Add Transaction
+          </Button>
+          <Button variant="outline" onClick={() => setIsBankManagementOpen(true)} className="w-full sm:w-auto">
+            <Settings className="mr-2 h-4 w-4" /> Manage Banks
+          </Button>
+        </div>
+      </div>
+      
        {error && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400 text-sm whitespace-pre-line">
             {error}
@@ -357,10 +446,15 @@ export default function DashboardPage() {
             <div className="max-w-md mx-auto px-4">
               <CreditCard className="h-12 w-12 mx-auto text-muted-foreground mb-6" />
               <h2 className="text-xl font-semibold text-foreground mb-2">Welcome to Your Financial Tracker</h2>
-              <p className="text-muted-foreground mb-6">Get started by adding your first bank and then start tracking your transactions.</p>
-              <Button onClick={() => setIsBankManagementOpen(true)} className="gap-2">
-                <Settings className="h-4 w-4" /> Add Your First Bank
-              </Button>
+              <p className="text-muted-foreground mb-6">Get started by adding your first bank, or import your existing data from Airtable.</p>
+              <div className="flex justify-center flex-col sm:flex-row gap-4">
+                <Button onClick={() => setIsBankManagementOpen(true)} className="gap-2">
+                    <Settings className="h-4 w-4" /> Add Your First Bank
+                </Button>
+                <Button variant="secondary" onClick={handleImportData} disabled={isImporting || hasImported}>
+                  {isImporting ? <><Loader2 className="h-4 w-4 animate-spin mr-2"/> Importing...</> : (hasImported ? 'Data Imported' : <><UploadCloud className="h-4 w-4 mr-2"/>Import from Airtable</>)}
+                </Button>
+              </div>
             </div>
         </div>
       )}
