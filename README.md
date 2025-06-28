@@ -1,4 +1,4 @@
-# Finances - Financial Tracker
+# Finances 2.0 - Financial Tracker
 
 This is a Next.js application built with Firebase Studio for tracking your personal finances. It uses Firebase Authentication for secure login and Firestore to store your financial data in real-time.
 

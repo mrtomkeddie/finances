@@ -78,7 +78,7 @@ export function LoginForm() {
               <Landmark className="h-8 w-8 text-primary" />
             </div>
             <CardTitle className="text-2xl font-bold text-foreground">
-              {isSignUp ? 'Create Your Account' : 'Welcome to Finances'}
+              {isSignUp ? 'Create Your Account' : 'Welcome to Finances 2.0'}
             </CardTitle>
             <CardDescription>
               {isSignUp ? 'Fill in the details to get started.' : 'Sign in to access your financial dashboard.'}
