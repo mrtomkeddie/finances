@@ -17,7 +17,6 @@ interface TransactionModalProps {
   editTransaction?: Transaction | null;
 }
 
-// SIMPLIFIED: Only income, expense, and debt - NO TRANSFERS
 const transactionTypes: { value: TransactionType; label: string }[] = [
   { value: 'income', label: 'Income' },
   { value: 'expense', label: 'Expense' },
@@ -50,29 +49,18 @@ export function TransactionModal({
       category: '',
       date: new Date().toISOString().split('T')[0],
       bankId: '',
-      remainingBalance: undefined,
-      monthlyInterest: undefined,
-      interestRate: undefined,
+      remainingBalance: null,
+      monthlyInterest: null,
+      interestRate: null,
       interestType: 'monetary' as InterestType,
       rateFrequency: 'monthly' as RateFrequency,
       description: '',
     };
   }
 
-  // Reset form when modal opens/closes or editTransaction changes
   useEffect(() => {
     if (isOpen) {
       if (editTransaction) {
-        console.log('🔄 Loading transaction for editing:', {
-          id: editTransaction.id,
-          title: editTransaction.title,
-          bankId: editTransaction.bankId,
-          bankIdValid: editTransaction.bankId && editTransaction.bankId.startsWith('rec'),
-          interestType: editTransaction.interestType,
-          interestRate: editTransaction.interestRate,
-          monthlyInterest: editTransaction.monthlyInterest
-        });
-        
         setFormData({
           title: editTransaction.title,
           amount: editTransaction.amount,
@@ -88,14 +76,6 @@ export function TransactionModal({
           rateFrequency: editTransaction.rateFrequency || 'monthly',
           description: editTransaction.description || '',
         });
-        
-        // Warn about missing bank
-        if (!editTransaction.bankId || !editTransaction.bankId.startsWith('rec')) {
-          console.warn('⚠️ Transaction has invalid or missing bank ID:', {
-            bankId: editTransaction.bankId,
-            transactionTitle: editTransaction.title
-          });
-        }
       } else {
         setFormData(getInitialFormData());
       }
@@ -105,19 +85,16 @@ export function TransactionModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation
     if (!formData.title.trim()) {
       alert('Please enter a transaction title');
       return;
     }
     
-    // UPDATED: Allow £0 amounts for debt transactions (unpaid debts)
     if (formData.amount < 0) {
       alert('Please enter a valid amount (£0 or more)');
       return;
     }
 
-    // For non-debt transactions, amount must be greater than 0
     if (formData.type !== 'debt' && formData.amount <= 0) {
       alert('Please enter an amount greater than £0');
       return;
@@ -128,13 +105,11 @@ export function TransactionModal({
       return;
     }
 
-    // For debt transactions, remaining balance is required
     if (formData.type === 'debt' && (!formData.remainingBalance || formData.remainingBalance <= 0)) {
       alert('Please enter the remaining debt balance');
       return;
     }
 
-    // Validate interest inputs for debt transactions
     if (formData.type === 'debt') {
       if (formData.interestType === 'monetary' && formData.monthlyInterest && formData.monthlyInterest < 0) {
         alert('Monthly interest cannot be negative');
@@ -153,21 +128,16 @@ export function TransactionModal({
       }
     }
 
-    // Create transaction object with calculated monthly interest
     const transaction: Omit<Transaction, 'id'> = {
+      ...formData,
       title: formData.title.trim(),
-      amount: formData.amount,
-      type: formData.type,
-      frequency: formData.frequency,
       category: formData.type, // Use transaction type as category
-      date: formData.date,
-      bankId: formData.bankId,
-      remainingBalance: formData.type === 'debt' ? formData.remainingBalance : undefined,
-      monthlyInterest: formData.type === 'debt' ? calculateMonthlyInterest(formData as Transaction) : undefined,
-      interestRate: formData.type === 'debt' ? formData.interestRate : undefined,
-      interestType: formData.type === 'debt' ? formData.interestType : undefined,
-      rateFrequency: formData.type === 'debt' ? formData.rateFrequency : undefined,
-      description: formData.description || undefined,
+      remainingBalance: formData.type === 'debt' ? formData.remainingBalance : null,
+      monthlyInterest: formData.type === 'debt' ? calculateMonthlyInterest(formData as Transaction) : null,
+      interestRate: formData.type === 'debt' ? formData.interestRate : null,
+      interestType: formData.type === 'debt' ? formData.interestType : null,
+      rateFrequency: formData.type === 'debt' ? formData.rateFrequency : null,
+      description: formData.description || null,
     };
 
     onAddTransaction(transaction);
@@ -177,7 +147,6 @@ export function TransactionModal({
   const isDebt = formData.type === 'debt';
   const isPercentageType = formData.interestType === 'percentage';
 
-  // Calculate net payment for debt (payment - interest)
   const calculatedMonthlyInterest = isDebt ? calculateMonthlyInterest(formData as Transaction) : 0;
   const netPayment = isDebt && formData.amount > 0 
     ? Math.max(0, formData.amount - calculatedMonthlyInterest)
@@ -185,7 +154,7 @@ export function TransactionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto bg-card border-border max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl mx-auto bg-card border-border max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-foreground">
             {editTransaction ? 'Edit Transaction' : 'Add New Transaction'}
@@ -195,134 +164,103 @@ export function TransactionModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            {/* Transaction Type */}
-            <div className="space-y-2">
-              <Label htmlFor="type" className="text-foreground">Type</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value: TransactionType) => {
-                  setFormData({ ...formData, type: value });
-                }}
-              >
-                <SelectTrigger className="bg-input border-border text-foreground">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border">
-                  {transactionTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value} className="text-popover-foreground">
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2 md:gap-x-6 md:gap-y-4">
+          {/* Type */}
+          <div className="space-y-2">
+            <Label htmlFor="type" className="text-foreground">Type</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value: TransactionType) => setFormData({ ...formData, type: value })}
+            >
+              <SelectTrigger className="bg-input border-border text-foreground">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border">
+                {transactionTypes.map((type) => (
+                  <SelectItem key={type.value} value={type.value} className="text-popover-foreground">
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-            {/* Bank Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="bank" className="text-foreground">
-                Bank Account
-                {editTransaction && (!editTransaction.bankId || !editTransaction.bankId.startsWith('rec')) && (
-                  <span className="text-red-400 text-xs ml-2">⚠️ Required - missing bank link</span>
-                )}
-              </Label>
-              <Select
-                value={formData.bankId}
-                onValueChange={(value) => {
-                  console.log('🔄 Bank selected:', value);
-                  setFormData({ ...formData, bankId: value });
-                }}
-              >
-                <SelectTrigger className={`bg-input border-border text-foreground ${
-                  editTransaction && (!editTransaction.bankId || !editTransaction.bankId.startsWith('rec'))
-                    ? 'border-red-400/50 bg-red-500/5'
-                    : ''
-                }`}>
-                  <SelectValue placeholder="Select bank" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border">
-                  {banks.map((bank) => (
-                    <SelectItem key={bank.id} value={bank.id} className="text-popover-foreground">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: bank.color }}
-                        />
-                        {bank.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              {editTransaction && (!editTransaction.bankId || !editTransaction.bankId.startsWith('rec')) && (
-                <p className="text-xs text-red-400">
-                  This transaction has lost its bank connection. Please select a bank to continue.
-                </p>
-              )}
-            </div>
+          {/* Bank Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="bank" className="text-foreground">Bank Account</Label>
+            <Select
+              value={formData.bankId}
+              onValueChange={(value) => setFormData({ ...formData, bankId: value })}
+            >
+              <SelectTrigger className="bg-input border-border text-foreground">
+                <SelectValue placeholder="Select bank" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border">
+                {banks.map((bank) => (
+                  <SelectItem key={bank.id} value={bank.id} className="text-popover-foreground">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: bank.color }} />
+                      {bank.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Title */}
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <Label htmlFor="title" className="text-foreground">Title</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="Enter transaction title"
+              placeholder="e.g. Monthly Salary, Weekly Groceries, etc."
               className="bg-input border-border text-foreground placeholder:text-muted-foreground"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {/* Amount */}
-            <div className="space-y-2">
-              <Label htmlFor="amount" className="text-foreground">
-                {isDebt ? 'Payment Amount (£)' : 'Amount (£)'}
-              </Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.amount || ''}
-                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-                placeholder={isDebt ? '0.00 (£0 = not paying yet)' : '0.00'}
-                className="bg-input border-border text-foreground placeholder:text-muted-foreground"
-              />
-              {isDebt && (
-                <p className="text-xs text-muted-foreground">
-                  Set to £0 if you're not making payments yet
-                </p>
-              )}
-            </div>
-
-            {/* Frequency */}
-            <div className="space-y-2">
-              <Label htmlFor="frequency" className="text-foreground">Frequency</Label>
-              <Select
-                value={formData.frequency}
-                onValueChange={(value: TransactionFrequency) => setFormData({ ...formData, frequency: value })}
-              >
-                <SelectTrigger className="bg-input border-border text-foreground">
-                  <SelectValue placeholder="Select frequency" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border">
-                  {frequencies.map((freq) => (
-                    <SelectItem key={freq.value} value={freq.value} className="text-popover-foreground">
-                      {freq.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Amount */}
+          <div className="space-y-2">
+            <Label htmlFor="amount" className="text-foreground">
+              {isDebt ? 'Payment Amount (£)' : 'Amount (£)'}
+            </Label>
+            <Input
+              id="amount"
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.amount || ''}
+              onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
+              placeholder={isDebt ? '0.00' : '0.00'}
+              className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+            />
+            {isDebt && <p className="text-xs text-muted-foreground">Set to £0 if not making payments yet.</p>}
           </div>
 
+          {/* Frequency */}
           <div className="space-y-2">
-            {/* Date */}
-            <Label htmlFor="date" className="text-foreground">Date</Label>
+            <Label htmlFor="frequency" className="text-foreground">Frequency</Label>
+            <Select
+              value={formData.frequency}
+              onValueChange={(value: TransactionFrequency) => setFormData({ ...formData, frequency: value })}
+            >
+              <SelectTrigger className="bg-input border-border text-foreground">
+                <SelectValue placeholder="Select frequency" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border">
+                {frequencies.map((freq) => (
+                  <SelectItem key={freq.value} value={freq.value} className="text-popover-foreground">
+                    {freq.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Date */}
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="date" className="text-foreground">Date of First (or Next) Payment</Label>
             <Input
               id="date"
               type="date"
@@ -334,7 +272,8 @@ export function TransactionModal({
 
           {/* Debt-specific fields */}
           {isDebt && (
-            <>
+            <div className="p-4 space-y-4 border rounded-lg md:col-span-2 bg-muted/20 border-border">
+              <h4 className="font-medium text-foreground">Debt Details</h4>
               {/* Remaining Balance */}
               <div className="space-y-2">
                 <Label htmlFor="remainingBalance" className="text-foreground">Remaining Debt Balance (£) *</Label>
@@ -345,12 +284,9 @@ export function TransactionModal({
                   min="0"
                   value={formData.remainingBalance || ''}
                   onChange={(e) => setFormData({ ...formData, remainingBalance: parseFloat(e.target.value) || 0 })}
-                  placeholder="0.00"
+                  placeholder="e.g. 1500.00"
                   className="bg-input border-border text-foreground placeholder:text-muted-foreground"
                 />
-                <p className="text-xs text-muted-foreground">
-                  The total amount you still owe on this debt
-                </p>
               </div>
 
               {/* Interest Type Toggle */}
@@ -358,46 +294,35 @@ export function TransactionModal({
                 <div className="flex items-center justify-between">
                   <Label className="text-foreground">Interest Input Type</Label>
                   <div className="flex items-center gap-3">
-                    <span className={`text-sm ${!isPercentageType ? 'text-foreground' : 'text-muted-foreground'}`}>
-                      Monetary
-                    </span>
+                    <span className={`text-sm ${!isPercentageType ? 'text-foreground' : 'text-muted-foreground'}`}>Monetary</span>
                     <Switch
                       checked={isPercentageType}
                       onCheckedChange={(checked) => setFormData({ 
                         ...formData, 
                         interestType: checked ? 'percentage' : 'monetary',
-                        // Clear the other type's value when switching
-                        monthlyInterest: checked ? undefined : formData.monthlyInterest,
-                        interestRate: checked ? formData.interestRate : undefined,
+                        monthlyInterest: checked ? null : formData.monthlyInterest,
+                        interestRate: checked ? formData.interestRate : null,
                       })}
                     />
-                    <span className={`text-sm ${isPercentageType ? 'text-foreground' : 'text-muted-foreground'}`}>
-                      Percentage
-                    </span>
+                    <span className={`text-sm ${isPercentageType ? 'text-foreground' : 'text-muted-foreground'}`}>Percentage</span>
                   </div>
                 </div>
 
-                {/* Interest Input - Changes based on type */}
                 {isPercentageType ? (
-                  <div className="space-y-3">
-                    {/* Rate Frequency Selection */}
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label className="text-foreground">Rate Type</Label>
                       <Select
                         value={formData.rateFrequency}
                         onValueChange={(value: RateFrequency) => setFormData({ ...formData, rateFrequency: value })}
                       >
-                        <SelectTrigger className="bg-input border-border text-foreground">
-                          <SelectValue />
-                        </SelectTrigger>
+                        <SelectTrigger className="bg-input border-border text-foreground"><SelectValue /></SelectTrigger>
                         <SelectContent className="bg-popover border-border">
                           <SelectItem value="monthly" className="text-popover-foreground">Monthly Rate</SelectItem>
                           <SelectItem value="annual" className="text-popover-foreground">Annual Rate (APR)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-
-                    {/* Percentage Rate Input */}
                     <div className="space-y-2">
                       <Label htmlFor="interestRate" className="text-foreground">
                         {getInterestInputLabel('percentage', formData.rateFrequency)}
@@ -409,72 +334,37 @@ export function TransactionModal({
                         min="0"
                         max="100"
                         value={formData.interestRate || ''}
-                        onChange={(e) => setFormData({ ...formData, interestRate: parseFloat(e.target.value) || undefined })}
-                        placeholder="0.00"
+                        onChange={(e) => setFormData({ ...formData, interestRate: parseFloat(e.target.value) || null })}
+                        placeholder="e.g. 2.5"
                         className="bg-input border-border text-foreground placeholder:text-muted-foreground"
                       />
-                      <p className="text-xs text-muted-foreground">
-                        {formData.rateFrequency === 'annual' 
-                          ? 'Enter the annual percentage rate (APR) from your statement'
-                          : 'Enter the monthly percentage rate'
-                        }
-                      </p>
                     </div>
                   </div>
                 ) : (
-                  /* Monetary Interest Input */
                   <div className="space-y-2">
-                    <Label htmlFor="monthlyInterest" className="text-foreground">
-                      {getInterestInputLabel('monetary')}
-                    </Label>
+                    <Label htmlFor="monthlyInterest" className="text-foreground">{getInterestInputLabel('monetary')}</Label>
                     <Input
                       id="monthlyInterest"
                       type="number"
                       step="0.01"
                       min="0"
                       value={formData.monthlyInterest || ''}
-                      onChange={(e) => setFormData({ ...formData, monthlyInterest: parseFloat(e.target.value) || undefined })}
-                      placeholder="0.00 (optional)"
+                      onChange={(e) => setFormData({ ...formData, monthlyInterest: parseFloat(e.target.value) || null })}
+                      placeholder="e.g. 25.00 (optional)"
                       className="bg-input border-border text-foreground placeholder:text-muted-foreground"
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Fixed interest amount added to the debt each month
-                    </p>
-                  </div>
-                )}
-
-                {/* Interest Calculation Preview */}
-                {formData.remainingBalance && formData.remainingBalance > 0 && (
-                  <div className="text-xs text-muted-foreground bg-muted/20 p-3 rounded-lg border border-border/50">
-                    <div className="space-y-1">
-                      <p><strong>Interest Calculation:</strong></p>
-                      <p>Monthly Interest: <span className="text-yellow-400 font-medium">{formatCurrency(calculatedMonthlyInterest)}</span></p>
-                      {formData.amount > 0 && (
-                        <>
-                          <p className="text-foreground font-medium">Net payment towards debt: </p>
-                          <p className={netPayment > 0 ? 'text-green-400' : 'text-red-400'}>
-                            {formatCurrency(netPayment)}/month
-                          </p>
-                          {netPayment <= 0 && (
-                            <p className="text-red-400 text-xs mt-1">
-                              ⚠️ Interest exceeds payment - debt will grow
-                            </p>
-                          )}
-                        </>
-                      )}
-                    </div>
                   </div>
                 )}
               </div>
-            </>
+            </div>
           )}
 
           {/* Description */}
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <Label htmlFor="description" className="text-foreground">Description (Optional)</Label>
             <Textarea
               id="description"
-              value={formData.description}
+              value={formData.description || ''}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Enter additional details..."
               className="bg-input border-border text-foreground placeholder:text-muted-foreground min-h-[80px]"
@@ -482,21 +372,9 @@ export function TransactionModal({
           </div>
 
           {/* Form Actions */}
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="flex-1 border-border text-foreground hover:bg-accent"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              {editTransaction ? 'Update Transaction' : 'Add Transaction'}
-            </Button>
+          <div className="flex gap-3 pt-4 md:col-span-2">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
+            <Button type="submit" className="flex-1">{editTransaction ? 'Update Transaction' : 'Add Transaction'}</Button>
           </div>
         </form>
       </DialogContent>
