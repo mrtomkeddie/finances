@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/components/AuthProvider';
 
 export const metadata: Metadata = {
-  title: 'Finance Port',
+  title: 'Finances',
   description: 'Your personal finance companion.',
 };
 
