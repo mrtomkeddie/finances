@@ -17,7 +17,7 @@ function AppHeader() {
 
   return (
     <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-2 sm:px-4">
         <Logo />
         <Sheet>
           <SheetTrigger asChild>
@@ -82,7 +82,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-screen w-full flex-col bg-background">
         <AppHeader />
         <main className="flex flex-1 flex-col">
-          <div className="mx-auto w-full max-w-7xl p-4 pb-12 sm:p-6 sm:pb-16">
+          <div className="mx-auto w-full max-w-7xl px-2 pt-4 pb-12 sm:px-4 sm:pt-6 sm:pb-16">
             {children}
           </div>
         </main>
