@@ -276,16 +276,16 @@ export function TransactionModal({
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.date ? format(new Date(formData.date), "PPP") : <span>Pick a date</span>}
+                  {formData.date ? format(new Date(formData.date + 'T00:00:00'), "PPP") : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
                 <Calendar
                   mode="single"
-                  selected={new Date(formData.date)}
+                  selected={new Date(formData.date + 'T00:00:00')}
                   onSelect={(date) => {
                     if (date) {
-                      setFormData({ ...formData, date: date.toISOString().split('T')[0] });
+                      setFormData({ ...formData, date: format(date, 'yyyy-MM-dd') });
                     }
                   }}
                   initialFocus
@@ -389,7 +389,7 @@ export function TransactionModal({
             <Textarea
               id="description"
               value={formData.description || ''}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, description: e.g. target.value })}
               placeholder="Enter additional details..."
               className="bg-input border-border text-foreground placeholder:text-muted-foreground min-h-[80px]"
             />
