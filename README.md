@@ -62,3 +62,35 @@ npm run dev
 ```
 
 Open your browser to the provided URL, create an account, and start tracking your finances!
+
+## Managing Costs on the Blaze Plan
+
+Since publishing the app requires upgrading to the Firebase "Blaze" (Pay-as-you-go) plan, it's important to understand how to avoid unexpected costs. For a personal application like this, **it is highly unlikely you will ever pay anything**, as your usage will almost certainly fall within Firebase's generous free tier.
+
+Here’s how to ensure your app remains free:
+
+### 1. Understand the Free Tier
+
+The Blaze plan includes the same free tier as the Spark plan, which is very generous for personal use. The key services you are using are:
+*   **Firestore Database:** ~50,000 reads and ~20,000 writes per day.
+*   **Firebase Authentication:** 10,000 new users per month.
+*   **App Hosting:** 10 GB of hosting storage and 360 MB/day of data transfer.
+*   **Cloud Functions (for Genkit):** ~2 million function calls per month.
+
+For a single user, it is nearly impossible to exceed these limits through normal use of this application.
+
+### 2. Set Up a Billing Alert (Highly Recommended)
+
+This is the best way to get peace of mind. You can set up an alert to be notified by email if your bill ever exceeds a certain amount (e.g., $1).
+
+1.  Go to the **Google Cloud Console** for your project.
+2.  Navigate to the **Billing** section.
+3.  Find **Budgets & alerts** in the side menu.
+4.  **Create a new budget**. You can set the "Target amount" to a very low number, like `$1`.
+5.  Under "Actions", you can configure it to send you an email alert when your spending reaches, for example, 50% or 100% of your tiny budget.
+
+This way, you'll be the first to know if any costs are about to be incurred, and you can investigate before it becomes an issue.
+
+### 3. Monitor Your Usage
+
+You can see your real-time usage for all Firebase services directly in the **Firebase Console**. Go to the "Usage and billing" tab for your project to see charts for Firestore, Hosting, and other services. This will show you just how far you are from the free tier limits.
