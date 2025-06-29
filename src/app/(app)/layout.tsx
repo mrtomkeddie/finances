@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -26,31 +25,35 @@ function AppHeader() {
               <span className="sr-only">Open menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
+          <SheetContent className="flex h-full flex-col p-6">
+            <SheetHeader className="text-left">
               <SheetTitle className="sr-only">Menu</SheetTitle>
               <SheetDescription className="sr-only">
                 Main menu for navigating the app, adding transactions, and managing banks.
               </SheetDescription>
             </SheetHeader>
-            <div className="flex flex-col gap-4 py-8">
-               <SheetClose asChild>
-                  <Button variant="ghost" onClick={() => openTransactionModal(null)} className="w-full justify-start text-base py-6">
-                    <Plus className="mr-2 h-4 w-4" /> Add Transaction
-                  </Button>
-              </SheetClose>
-              <SheetClose asChild>
-                  <Button variant="ghost" onClick={openBankManagement} className="w-full justify-start text-base py-6">
-                    <Settings className="mr-2 h-4 w-4" /> Manage Banks
-                  </Button>
-              </SheetClose>
-            </div>
-            <Separator />
-            <div className="pt-4">
-              <Button variant="ghost" onClick={signOutUser} className="w-full justify-start text-base py-6">
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
+            <div className="flex flex-1 flex-col justify-between py-4">
+                <div className="flex flex-col gap-2">
+                  <SheetClose asChild>
+                      <Button variant="ghost" onClick={() => openTransactionModal(null)} className="w-full justify-start text-base font-normal py-4">
+                        <Plus className="mr-2 h-4 w-4" /> Add Transaction
+                      </Button>
+                  </SheetClose>
+                  <SheetClose asChild>
+                      <Button variant="ghost" onClick={openBankManagement} className="w-full justify-start text-base font-normal py-4">
+                        <Settings className="mr-2 h-4 w-4" /> Manage Banks
+                      </Button>
+                  </SheetClose>
+                </div>
+                <div>
+                  <Separator className="my-2" />
+                  <SheetClose asChild>
+                    <Button variant="ghost" onClick={signOutUser} className="w-full justify-start text-base text-muted-foreground hover:text-foreground py-4">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </Button>
+                  </SheetClose>
+                </div>
             </div>
           </SheetContent>
         </Sheet>
