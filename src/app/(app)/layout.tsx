@@ -89,10 +89,15 @@ function DesktopHeader() {
 }
 
 function MobileHeader() {
+  const { openTransactionModal } = useUI();
   return (
     <header className="sticky top-0 z-10 block border-b bg-background/95 backdrop-blur md:hidden">
-      <div className="mx-auto flex h-16 max-w-screen-2xl items-center justify-center px-4">
+      <div className="mx-auto flex h-16 max-w-screen-2xl items-center justify-between px-4">
         <Logo />
+        <Button variant="outline" size="icon" onClick={() => openTransactionModal(null)}>
+            <Plus className="h-5 w-5" />
+            <span className="sr-only">Add Transaction</span>
+        </Button>
       </div>
     </header>
   );

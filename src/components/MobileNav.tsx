@@ -3,9 +3,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, List, PlusCircle, Settings } from 'lucide-react';
+import { LayoutDashboard, List, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useUI } from '@/context/UIContext';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -15,7 +14,6 @@ const navItems = [
 
 export function MobileNav() {
   const pathname = usePathname();
-  const { openTransactionModal } = useUI();
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-20 border-t bg-background/95 backdrop-blur md:hidden">
@@ -36,13 +34,6 @@ export function MobileNav() {
             </Link>
           );
         })}
-        <button
-          onClick={() => openTransactionModal(null)}
-          className="flex flex-col items-center justify-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <PlusCircle className="h-5 w-5" />
-          <span>Add</span>
-        </button>
       </nav>
     </div>
   );
