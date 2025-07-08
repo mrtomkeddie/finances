@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Transaction, Bank } from '@/lib/types';
-import { getBanks, getTransactions, addBank, updateBank, deleteBank, addTransaction, updateTransaction, deleteTransaction, getUserProfile, updateUserProfile } from '@/lib/firebase';
+import { getBanks, getTransactions, addBank, updateBank, deleteBank, addTransaction, updateTransaction, deleteTransaction, getUserProfile, updateUserProfile, clearAllUserData } from '@/lib/firebase';
 import { airtableService } from '@/lib/airtableService';
 import { writeBatch, collection, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -17,9 +17,9 @@ interface DataContextType {
   error: string | null;
   setError: (error: string | null) => void;
   isImporting: boolean;
-  hasImported: boolean;
   refreshData: () => void;
   handleImportData: () => Promise<void>;
+  handleClearAllData: () => Promise<void>;
   handleAddBank: (newBank: Omit<Bank, 'id'>) => Promise<void>;
   handleUpdateBank: (bankId: string, updates: Partial<Bank>) => Promise<void>;
   handleDeleteBank: (bankId: string) => Promise<void>;
@@ -40,7 +40,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
-  const [hasImported, setHasImported] = useState(false);
 
   const loadData = async () => {
     if (!user) return;
@@ -58,10 +57,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       setTransactions(firebaseTransactions.filter(t => t.type !== 'transfer'));
       
       setWeeklyTransferAmount(userProfile?.weeklyTransferAmount || 0);
-
-      if (firebaseBanks.length > 0 || firebaseTransactions.length > 0) {
-        setHasImported(true);
-      }
       
     } catch (err: any) {
       console.error('Error loading data from Firebase:', err);
@@ -113,7 +108,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         });
         await batch.commit();
         await loadData();
-        setHasImported(true);
     } catch (err: any) {
       console.error('Full error object during import:', err);
       let detailedError = `Failed to import data: ${err.message}`;
@@ -210,6 +204,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const handleClearAllData = async () => {
+    if (!user) return;
+    try {
+      setError(null);
+      await clearAllUserData(user.uid);
+      await loadData();
+    } catch (err: any) {
+      setError(`Failed to clear data: ${err.message}`);
+    }
+  };
+
   const value = {
     banks,
     transactions,
@@ -218,9 +223,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     error,
     setError,
     isImporting,
-    hasImported,
     refreshData: loadData,
     handleImportData,
+    handleClearAllData,
     handleAddBank,
     handleUpdateBank,
     handleDeleteBank,

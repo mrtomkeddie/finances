@@ -4,9 +4,9 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, TrendingUp, TrendingDown, CreditCard, Loader2, Edit3, UploadCloud } from 'lucide-react';
+import { Settings, TrendingUp, TrendingDown, CreditCard, Loader2, Edit3 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
-import { calculateSummary, calculateMonthlyAmount, calculateNetMonthlyDebtPayment } from '@/lib/financial';
+import { calculateSummary, calculateMonthlyAmount } from '@/lib/financial';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { WeeklyForecast } from '@/components/WeeklyForecast';
 import { useUI } from '@/context/UIContext';
@@ -18,10 +18,7 @@ export default function DashboardPage() {
     weeklyTransferAmount, 
     isInitialLoading, 
     error,
-    setError,
-    isImporting,
-    handleImportData,
-    hasImported
+    setError
   } = useData();
 
   const { openTransferEditModal } = useUI();
@@ -83,7 +80,7 @@ export default function DashboardPage() {
     
   const hsbcTotals = calculateBankTotals('hsbc');
   const santanderTotals = calculateBankTotals('santander');
-  const showImportCard = !hasImported && (banks.length === 0 && transactions.length === 0);
+  const hasData = banks.length > 0 || transactions.length > 0;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -95,24 +92,19 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {showImportCard && (
+      {!hasData && !isInitialLoading && (
         <Card className="text-center py-12">
           <CardContent>
               <CreditCard className="h-12 w-12 mx-auto text-muted-foreground mb-6" />
               <h2 className="text-xl font-semibold text-foreground mb-2">Welcome to Your Financial Tracker</h2>
-              <p className="text-muted-foreground mb-6">
-                Get started by importing your existing data from Airtable.
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                It looks like you don't have any data yet. Head over to the <span className="font-semibold text-foreground">Settings</span> page to import your data or add banks and transactions manually.
               </p>
-              <div className="flex justify-center">
-                <Button variant="secondary" onClick={handleImportData} disabled={isImporting}>
-                  {isImporting ? <><Loader2 className="h-4 w-4 animate-spin mr-2"/> Importing...</> : <><UploadCloud className="h-4 w-4 mr-2"/>Import from Airtable</>}
-                </Button>
-              </div>
           </CardContent>
         </Card>
       )}
 
-      {!showImportCard && (
+      {hasData && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             <Card className="p-4 sm:p-6 bg-card border-border card-interactive">
