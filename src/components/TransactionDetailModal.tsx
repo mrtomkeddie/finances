@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -32,13 +33,11 @@ export function TransactionDetailModal({
 
   const handleEdit = () => {
     onEdit(transaction);
-    onClose();
   };
 
   const handleDelete = () => {
     if (window.confirm(`Are you sure you want to delete "${transaction.title}"?`)) {
       onDelete(transaction.id);
-      onClose();
     }
   };
 

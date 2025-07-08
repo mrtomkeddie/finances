@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ import { cn } from '@/lib/utils';
 interface TransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+  onAddTransaction: (transaction: Omit<Transaction, 'id'>, transactionId?: string) => void;
   banks: Bank[];
   editTransaction?: Transaction | null;
 }
@@ -145,7 +146,7 @@ export function TransactionModal({
       description: formData.description || null,
     };
 
-    onAddTransaction(transaction);
+    onAddTransaction(transaction, editTransaction?.id);
     onClose();
   };
 
