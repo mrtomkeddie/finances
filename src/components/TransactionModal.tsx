@@ -11,7 +11,7 @@ import { calculateMonthlyInterest, formatCurrency, getInterestInputLabel } from 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Calendar as CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 interface TransactionModalProps {
@@ -52,7 +52,7 @@ export function TransactionModal({
       type: 'income' as TransactionType,
       frequency: 'monthly' as TransactionFrequency,
       category: '',
-      date: new Date().toISOString().split('T')[0],
+      date: format(new Date(), 'yyyy-MM-dd'),
       bankId: '',
       remainingBalance: null,
       monthlyInterest: null,
@@ -156,6 +156,8 @@ export function TransactionModal({
   const netPayment = isDebt && formData.amount > 0 
     ? Math.max(0, formData.amount - calculatedMonthlyInterest)
     : formData.amount;
+    
+  const selectedDate = formData.date ? parse(formData.date, 'yyyy-MM-dd', new Date()) : undefined;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -276,13 +278,13 @@ export function TransactionModal({
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.date ? format(new Date(formData.date + 'T00:00:00'), "PPP") : <span>Pick a date</span>}
+                  {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
                 <Calendar
                   mode="single"
-                  selected={new Date(formData.date + 'T00:00:00')}
+                  selected={selectedDate}
                   onSelect={(date) => {
                     if (date) {
                       setFormData({ ...formData, date: format(date, 'yyyy-MM-dd') });
@@ -389,7 +391,7 @@ export function TransactionModal({
             <Textarea
               id="description"
               value={formData.description || ''}
-              onChange={(e) => setFormData({ ...formData, description: e.g. target.value })}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Enter additional details..."
               className="bg-input border-border text-foreground placeholder:text-muted-foreground min-h-[80px]"
             />
