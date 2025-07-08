@@ -550,9 +550,9 @@ export default function DashboardPage() {
                             activeFilter === filter ? 'bg-card shadow-sm border border-border text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                         }`}
                     >
-                        {filter === 'income' && <TrendingUp className="h-4 w-4" />}
-                        {filter === 'expense' && <TrendingDown className="h-4 w-4" />}
-                        {filter === 'debt' && <CreditCard className="h-4 w-4" />}
+                        {filter === 'income' && <TrendingUp className="h-4 w-4 text-green-500" />}
+                        {filter === 'expense' && <TrendingDown className="h-4 w-4 text-red-500" />}
+                        {filter === 'debt' && <CreditCard className="h-4 w-4 text-orange-500" />}
                         <span className="hidden xs:inline capitalize">{filter}</span>
                     </button>
                 ))}
