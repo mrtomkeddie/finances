@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, Plus, TrendingUp, TrendingDown, CreditCard, Clock, ChevronUp, ChevronDown, Loader2, Edit3, UploadCloud, Menu } from 'lucide-react';
+import { Settings, Plus, TrendingUp, TrendingDown, CreditCard, Clock, ChevronUp, ChevronDown, Loader2, Edit3, UploadCloud, Menu, SearchX } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { BankManagementModal } from '@/components/BankManagementModal';
 import { TransactionModal } from '@/components/TransactionModal';
@@ -21,6 +21,7 @@ import { db } from '@/lib/firebase';
 import { useUI } from '@/context/UIContext';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { WeeklyForecast } from '@/components/WeeklyForecast';
+import { Progress } from '@/components/ui/progress';
 
 type SortColumn = 'name' | 'amount' | 'frequency' | 'monthlyAmount' | 'remainingDebt' | 'weeksUntilPaidOff' | 'dueDate' | 'bank' | 'interest';
 type SortDirection = 'asc' | 'desc';
@@ -598,36 +599,65 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedTransactions.map((t) => (
-                    <tr key={t.id} className="cursor-pointer" onClick={() => handleTransactionClick(t)}>
-                      <td className="font-medium text-foreground truncate max-w-xs">{t.title}</td>
-                      <td className="text-foreground">{formatCurrency(t.amount)}</td>
-                      {activeFilter !== 'debt' && <>
-                        <td><Badge variant="outline" className={getFrequencyColor(t.frequency)}>{t.frequency}</Badge></td>
-                        <td className="text-foreground">{formatCurrency(calculateMonthlyAmount(t.amount, t.frequency))}</td>
-                      </>}
-                      {activeFilter === 'debt' && <>
-                        <td className="text-yellow-400">{t.monthlyInterest ? formatCurrency(t.monthlyInterest) : '£0.00'}</td>
-                        <td className="text-orange-400">{formatCurrency(t.remainingBalance || 0)}</td>
-                        <td className={t.amount === 0 ? 'text-muted-foreground' : calculateNetMonthlyDebtPayment(t) <= 0 ? 'text-red-400' : 'text-blue-400'}>{calculateWeeksUntilPaidOffDisplay(t)}</td>
-                      </>}
-                      <td>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-3 w-3 text-muted-foreground" />
-                          <div className="flex flex-col">
-                            <span className={getNextDueDateColor(t.date, t.frequency)}>{formatDate(getNextDueDate(t.date, t.frequency))}</span>
-                            <span className="text-xs text-muted-foreground">{formatNextDueDate(t.date, t.frequency)}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getBankColor(t.bankId) }}/>
-                          <span className="text-foreground truncate max-w-xs">{getBankName(t.bankId)}</span>
+                  {sortedTransactions.length === 0 ? (
+                    <tr>
+                      <td colSpan={activeFilter === 'debt' ? 7 : 6} className="py-20 text-center">
+                        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                          <SearchX className="h-16 w-16" />
+                          <h3 className="text-xl font-semibold text-foreground">No Transactions Found</h3>
+                          <p>Try adjusting your filters or adding a new transaction.</p>
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    sortedTransactions.map((t) => (
+                      <tr key={t.id} className="cursor-pointer" onClick={() => handleTransactionClick(t)}>
+                        <td className="font-medium text-foreground truncate max-w-xs">{t.title}</td>
+                        <td className="text-foreground">{formatCurrency(t.amount)}</td>
+                        {activeFilter !== 'debt' && <>
+                          <td><Badge variant="outline" className={getFrequencyColor(t.frequency)}>{t.frequency}</Badge></td>
+                          <td className="text-foreground">{formatCurrency(calculateMonthlyAmount(t.amount, t.frequency))}</td>
+                        </>}
+                        {activeFilter === 'debt' && <>
+                          <td className="text-yellow-400">{t.monthlyInterest ? formatCurrency(t.monthlyInterest) : '£0.00'}</td>
+                          <td className="text-orange-400">{formatCurrency(t.remainingBalance || 0)}</td>
+                          <td className="w-48">
+                            {(() => {
+                              const display = calculateWeeksUntilPaidOffDisplay(t);
+                              if (display.includes('weeks')) {
+                                const weeks = calculateWeeksUntilPaidOff(t)!;
+                                const maxWeeksForProgress = 104; // 2 years as baseline
+                                const progressValue = Math.max(0, Math.min(100, ((maxWeeksForProgress - weeks) / maxWeeksForProgress) * 100));
+                                return (
+                                  <div className="space-y-1.5">
+                                    <Progress value={progressValue} className="h-2 [&>div]:bg-blue-400" />
+                                    <span className="text-xs text-blue-400">{display}</span>
+                                  </div>
+                                );
+                              }
+                              const textColor = t.amount === 0 ? 'text-muted-foreground' : (calculateNetMonthlyDebtPayment(t) <= 0 ? 'text-red-400' : 'text-blue-400');
+                              return <span className={textColor}>{display}</span>;
+                            })()}
+                          </td>
+                        </>}
+                        <td>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            <div className="flex flex-col">
+                              <span className={getNextDueDateColor(t.date, t.frequency)}>{formatDate(getNextDueDate(t.date, t.frequency))}</span>
+                              <span className="text-xs text-muted-foreground">{formatNextDueDate(t.date, t.frequency)}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getBankColor(t.bankId) }}/>
+                            <span className="text-foreground truncate max-w-xs">{getBankName(t.bankId)}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

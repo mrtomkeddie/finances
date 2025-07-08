@@ -120,9 +120,10 @@ export function formatNextDueDate(originalDateString: string, frequency: string)
 export function getNextDueDateColor(originalDateString: string, frequency: string): string {
   const daysUntil = getDaysUntilNext(originalDateString, frequency);
   
-  if (daysUntil <= 1) return 'text-orange-400'; // Due today or tomorrow
+  if (daysUntil <= 0) return 'text-red-400 font-bold'; // Due today
+  if (daysUntil <= 3) return 'text-orange-400 font-semibold'; // Due in 1-3 days
   if (daysUntil <= 7) return 'text-yellow-400';  // Due within a week
-  return 'text-green-400';                       // Due later
+  return 'text-foreground';
 }
 
 // Get the next 7 days starting from today
