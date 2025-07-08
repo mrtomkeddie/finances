@@ -200,13 +200,4 @@
   .sticky-table thead th.sortable:hover {
     background-color: hsl(var(--accent) / 0.7);
   }
-
-  .category-filter-btn:hover:not(:disabled) {
-    transform: none !important;
-    box-shadow: none !important;
-  }
-  .category-filter-btn:active:not(:disabled) {
-    transform: none !important;
-    box-shadow: none !important;
-  }
 }
