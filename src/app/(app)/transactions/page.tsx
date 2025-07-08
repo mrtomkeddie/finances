@@ -11,6 +11,7 @@ import { Transaction, TransactionFrequency } from '@/lib/types';
 import { calculateSummary, formatCurrency, calculateMonthlyAmount, calculateNetMonthlyDebtPayment, calculateWeeksUntilPaidOff } from '@/lib/financial';
 import { formatDate, getNextDueDate, formatNextDueDate, getNextDueDateColor } from '@/lib/dateUtils';
 import { TrendingUp, TrendingDown, CreditCard, Clock, ChevronUp, ChevronDown, SearchX } from 'lucide-react';
+import { AnimatedNumber } from '@/components/AnimatedNumber';
 
 type SortColumn = 'name' | 'amount' | 'frequency' | 'monthlyAmount' | 'remainingDebt' | 'weeksUntilPaidOff' | 'dueDate' | 'bank' | 'interest';
 type SortDirection = 'asc' | 'desc';
