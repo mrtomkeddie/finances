@@ -451,7 +451,7 @@ export default function DashboardPage() {
       {!showImportCard && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-            <Card className="p-4 sm:p-6 bg-card border-border">
+            <Card className="p-4 sm:p-6 bg-card border-border card-interactive">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="p-2 sm:p-3 rounded-lg bg-green-500/10 border border-green-500/20 flex-shrink-0">
                   <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-green-500" />
@@ -463,7 +463,7 @@ export default function DashboardPage() {
               </div>
             </Card>
 
-            <Card className="p-4 sm:p-6 bg-card border-border">
+            <Card className="p-4 sm:p-6 bg-card border-border card-interactive">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="p-2 sm:p-3 rounded-lg bg-red-500/10 border border-red-500/20 flex-shrink-0">
                   <TrendingDown className="h-5 w-5 sm:h-6 sm:w-6 text-red-500" />
@@ -475,7 +475,7 @@ export default function DashboardPage() {
               </div>
             </Card>
 
-            <Card className="p-4 sm:p-6 bg-card border-border">
+            <Card className="p-4 sm:p-6 bg-card border-border card-interactive">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="p-2 sm:p-3 rounded-lg bg-orange-500/10 border border-orange-500/20 flex-shrink-0">
                   <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
@@ -489,7 +489,7 @@ export default function DashboardPage() {
           </div>
         
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            <Card className="p-4 sm:p-6 bg-card border-border">
+            <Card className="p-4 sm:p-6 bg-card border-border card-interactive">
               <h3 className="font-semibold mb-2 text-foreground text-sm sm:text-base">HSBC Overview</h3>
               <div className="space-y-2 sm:space-y-3">
                 <div className="flex justify-between items-center">
@@ -507,7 +507,7 @@ export default function DashboardPage() {
               </div>
             </Card>
 
-            <Card className="p-4 sm:p-6 bg-card border-border">
+            <Card className="p-4 sm:p-6 bg-card border-border card-interactive">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold text-foreground text-sm sm:text-base">Santander Overview</h3>
                 <Button variant="ghost" size="sm" className="p-1 h-6 w-6 text-muted-foreground hover:text-foreground" onClick={() => setIsTransferEditOpen(true)}>
@@ -578,7 +578,7 @@ export default function DashboardPage() {
             )}
           </div>
         
-          <Card className="bg-card border-border overflow-hidden">
+          <Card className="bg-card border-border overflow-hidden card-interactive">
             <div className="table-container custom-scrollbar overflow-x-auto">
               <table className="sticky-table min-w-full">
                 <thead>
@@ -665,11 +665,11 @@ export default function DashboardPage() {
 
           {(activeFilter === 'income' || activeFilter === 'expense') && (
             <div className="grid grid-cols-2 gap-4 sm:gap-6">
-              <Card className="p-4 bg-card border-border text-center">
+              <Card className="p-4 bg-card border-border text-center card-interactive">
                 <p className="text-sm text-muted-foreground mb-1">Weekly {getActiveFilterDisplayName()}</p>
                 <p className="text-xl font-bold text-foreground"><AnimatedNumber value={weeklyTotal} /></p>
               </Card>
-              <Card className="p-4 bg-card border-border text-center">
+              <Card className="p-4 bg-card border-border text-center card-interactive">
                 <p className="text-sm text-muted-foreground mb-1">Monthly {getActiveFilterDisplayName()}</p>
                 <p className="text-xl font-bold text-foreground"><AnimatedNumber value={monthlyTotal} /></p>
               </Card>
@@ -678,11 +678,11 @@ export default function DashboardPage() {
 
           {activeFilter === 'debt' && (
             <div className="grid grid-cols-2 gap-4 sm:gap-6">
-              <Card className="p-4 bg-card border-border">
+              <Card className="p-4 bg-card border-border card-interactive">
                 <h3 className="font-semibold text-foreground">Total Monthly Debt Payments</h3>
                 <p className="text-2xl font-bold text-orange-400"><AnimatedNumber value={debtSummary.monthlyDebt} /></p>
               </Card>
-              <Card className="p-4 bg-card border-border">
+              <Card className="p-4 bg-card border-border card-interactive">
                 <h3 className="font-semibold text-foreground">Total Monthly Interest</h3>
                 <p className="text-2xl font-bold text-yellow-400"><AnimatedNumber value={totalMonthlyInterest} /></p>
               </Card>

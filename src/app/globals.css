@@ -106,6 +106,13 @@
   .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgba(156, 163, 175, 0.6);
   }
+
+  .card-interactive {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  .card-interactive:hover {
+    @apply -translate-y-1 shadow-lg;
+  }
 }
 
 /* ROBUST STICKY TABLE HEADERS - Mobile optimized */
