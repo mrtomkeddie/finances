@@ -1,11 +1,10 @@
-
 'use client';
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useUI } from '@/context/UIContext';
 import { useAuth } from '@/hooks/useAuth';
-import { Bank, LogOut, UserRound } from 'lucide-react';
+import { Bank, LogOut } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 export default function SettingsPage() {
@@ -23,15 +22,10 @@ export default function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-4">
-            <UserRound className="h-8 w-8 text-muted-foreground" />
-            <div>
-              <CardTitle>Account</CardTitle>
-              <CardDescription>
-                {user ? `You are logged in as ${user.email}` : 'Manage your session.'}
-              </CardDescription>
-            </div>
-          </div>
+          <CardTitle>Account</CardTitle>
+          <CardDescription>
+            {user ? `You are logged in as ${user.email}` : 'Manage your session.'}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Button variant="outline" onClick={signOutUser}>
