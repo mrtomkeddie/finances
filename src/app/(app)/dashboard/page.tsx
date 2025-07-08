@@ -20,6 +20,7 @@ import { writeBatch, collection, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useUI } from '@/context/UIContext';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
+import { WeeklyForecast } from '@/components/WeeklyForecast';
 
 type SortColumn = 'name' | 'amount' | 'frequency' | 'monthlyAmount' | 'remainingDebt' | 'weeksUntilPaidOff' | 'dueDate' | 'bank' | 'interest';
 type SortDirection = 'asc' | 'desc';
@@ -532,6 +533,8 @@ export default function DashboardPage() {
               </div>
             </Card>
           </div>
+
+          <WeeklyForecast transactions={transactions} />
         
           <div className="space-y-4 sm:space-y-6">
             <div className="flex gap-1 p-1 bg-muted/30 rounded-2xl border border-border/50">
