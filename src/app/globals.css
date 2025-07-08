@@ -200,18 +200,6 @@
   .sticky-table thead th.sortable:hover {
     background-color: hsl(var(--accent) / 0.7);
   }
-  
-  .mobile-add-btn {
-    @media (max-width: 640px) {
-      width: 40px !important;
-      height: 40px !important;
-      border-radius: 50% !important;
-      padding: 0 !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-    }
-  }
 
   .category-filter-btn:hover:not(:disabled) {
     transform: none !important;
