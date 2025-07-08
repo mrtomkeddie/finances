@@ -1,3 +1,6 @@
+
+import { Transaction } from './types';
+
 export function formatDate(dateString: string | Date): string {
   const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
   return date.toLocaleDateString('en-GB', {
@@ -168,8 +171,8 @@ export function getDayOfMonth(date: Date): number {
 }
 
 // Check if a transaction is due on a specific date based on its frequency and original date
-export function isTransactionDueOnDate(transactionDate: string, frequency: string, targetDate: Date): boolean {
-  const originalDate = new Date(transactionDate);
+export function isTransactionDueOnDate(transaction: Transaction, targetDate: Date): boolean {
+  const originalDate = new Date(transaction.date);
   const target = new Date(targetDate);
   
   // Normalize dates to midnight for comparison
@@ -184,7 +187,7 @@ export function isTransactionDueOnDate(transactionDate: string, frequency: strin
   // Calculate days difference
   const daysDiff = Math.floor((target.getTime() - originalDate.getTime()) / (1000 * 60 * 60 * 24));
   
-  switch (frequency) {
+  switch (transaction.frequency) {
     case 'weekly':
       return daysDiff % 7 === 0;
       
@@ -224,16 +227,16 @@ export function isTransactionDueOnDate(transactionDate: string, frequency: strin
 }
 
 // Get all transactions due on a specific date
-export function getTransactionsDueOnDate(transactions: any[], targetDate: Date): any[] {
+export function getTransactionsDueOnDate(transactions: Transaction[], targetDate: Date): Transaction[] {
   return transactions.filter(transaction => 
-    isTransactionDueOnDate(transaction.date, transaction.frequency, targetDate)
+    isTransactionDueOnDate(transaction, targetDate)
   );
 }
 
 // Get transactions due on a specific date, grouped by type
-export function getTransactionsByTypeOnDate(transactions: any[], targetDate: Date): {
-  income: any[];
-  expenses: any[];
+export function getTransactionsByTypeOnDate(transactions: Transaction[], targetDate: Date): {
+  income: Transaction[];
+  expenses: Transaction[];
 } {
   const dueTransactions = getTransactionsDueOnDate(transactions, targetDate);
   
@@ -244,7 +247,7 @@ export function getTransactionsByTypeOnDate(transactions: any[], targetDate: Dat
 }
 
 // Calculate total income and expenses for a specific date
-export function calculateDayTotals(transactions: any[], targetDate: Date): {
+export function calculateDayTotals(transactions: Transaction[], targetDate: Date): {
   income: number;
   expenses: number;
   debts: number;
