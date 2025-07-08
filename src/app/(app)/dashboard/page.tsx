@@ -559,7 +559,7 @@ export default function DashboardPage() {
             </div>
 
             {banks.length > 0 && (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto custom-scrollbar">
                 <div className="flex gap-2 pb-2 min-w-max">
                   <button onClick={() => setActiveBankFilter(`all-${activeFilter}`)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm ${activeBankFilter.startsWith('all-') ? 'bg-card border-border shadow-sm text-foreground' : 'bg-muted/20 border-muted text-muted-foreground hover:bg-muted/40'}`}>
@@ -580,28 +580,28 @@ export default function DashboardPage() {
         
           <Card className="bg-card border-border overflow-hidden card-interactive">
             <div className="table-container custom-scrollbar overflow-x-auto">
-              <table className="sticky-table min-w-full">
+              <table className="sticky-table">
                 <thead>
                   <tr>
                     <th className="sortable text-muted-foreground text-left" onClick={() => handleSort('name')}><div className="flex items-center">Name{getSortIcon('name')}</div></th>
                     <th className="sortable text-muted-foreground text-left" onClick={() => handleSort('amount')}><div className="flex items-center">{activeFilter === 'debt' ? 'Payment' : 'Amount'}{getSortIcon('amount')}</div></th>
                     {activeFilter !== 'debt' && <>
-                      <th className="sortable text-muted-foreground text-left" onClick={() => handleSort('frequency')}><div className="flex items-center">Frequency{getSortIcon('frequency')}</div></th>
-                      <th className="sortable text-muted-foreground text-left" onClick={() => handleSort('monthlyAmount')}><div className="flex items-center">Monthly Amount{getSortIcon('monthlyAmount')}</div></th>
+                      <th className="sortable text-muted-foreground text-left hidden md:table-cell" onClick={() => handleSort('frequency')}><div className="flex items-center">Frequency{getSortIcon('frequency')}</div></th>
+                      <th className="sortable text-muted-foreground text-left hidden lg:table-cell" onClick={() => handleSort('monthlyAmount')}><div className="flex items-center">Monthly Amount{getSortIcon('monthlyAmount')}</div></th>
                     </>}
                     {activeFilter === 'debt' && <>
-                      <th className="sortable text-muted-foreground text-left" onClick={() => handleSort('interest')}><div className="flex items-center">Monthly Interest{getSortIcon('interest')}</div></th>
-                      <th className="sortable text-muted-foreground text-left" onClick={() => handleSort('remainingDebt')}><div className="flex items-center">Remaining Debt{getSortIcon('remainingDebt')}</div></th>
-                      <th className="sortable text-muted-foreground text-left" onClick={() => handleSort('weeksUntilPaidOff')}><div className="flex items-center">Weeks Until Paid Off{getSortIcon('weeksUntilPaidOff')}</div></th>
+                      <th className="sortable text-muted-foreground text-left hidden lg:table-cell" onClick={() => handleSort('interest')}><div className="flex items-center">Monthly Interest{getSortIcon('interest')}</div></th>
+                      <th className="sortable text-muted-foreground text-left hidden lg:table-cell" onClick={() => handleSort('remainingDebt')}><div className="flex items-center">Remaining Debt{getSortIcon('remainingDebt')}</div></th>
+                      <th className="sortable text-muted-foreground text-left hidden md:table-cell" onClick={() => handleSort('weeksUntilPaidOff')}><div className="flex items-center">Weeks Until Paid Off{getSortIcon('weeksUntilPaidOff')}</div></th>
                     </>}
-                    <th className="sortable text-muted-foreground text-left" onClick={() => handleSort('dueDate')}><div className="flex items-center">Next Due Date{getSortIcon('dueDate')}</div></th>
-                    <th className="sortable text-muted-foreground text-left" onClick={() => handleSort('bank')}><div className="flex items-center">Bank{getSortIcon('bank')}</div></th>
+                    <th className="sortable text-muted-foreground text-left hidden sm:table-cell" onClick={() => handleSort('dueDate')}><div className="flex items-center">Next Due Date{getSortIcon('dueDate')}</div></th>
+                    <th className="sortable text-muted-foreground text-left hidden sm:table-cell" onClick={() => handleSort('bank')}><div className="flex items-center">Bank{getSortIcon('bank')}</div></th>
                   </tr>
                 </thead>
                 <tbody>
                   {sortedTransactions.length === 0 ? (
                     <tr>
-                      <td colSpan={activeFilter === 'debt' ? 7 : 6} className="py-20 text-center">
+                      <td colSpan={7} className="py-20 text-center">
                         <div className="flex flex-col items-center gap-4 text-muted-foreground">
                           <SearchX className="h-16 w-16" />
                           <h3 className="text-xl font-semibold text-foreground">No Transactions Found</h3>
@@ -615,13 +615,13 @@ export default function DashboardPage() {
                         <td className="font-medium text-foreground truncate max-w-xs">{t.title}</td>
                         <td className="text-foreground">{formatCurrency(t.amount)}</td>
                         {activeFilter !== 'debt' && <>
-                          <td><Badge variant="outline" className={getFrequencyColor(t.frequency)}>{t.frequency}</Badge></td>
-                          <td className="text-foreground">{formatCurrency(calculateMonthlyAmount(t.amount, t.frequency))}</td>
+                          <td className="hidden md:table-cell"><Badge variant="outline" className={getFrequencyColor(t.frequency)}>{t.frequency}</Badge></td>
+                          <td className="text-foreground hidden lg:table-cell">{formatCurrency(calculateMonthlyAmount(t.amount, t.frequency))}</td>
                         </>}
                         {activeFilter === 'debt' && <>
-                          <td className="text-yellow-400">{t.monthlyInterest ? formatCurrency(t.monthlyInterest) : '£0.00'}</td>
-                          <td className="text-orange-400">{formatCurrency(t.remainingBalance || 0)}</td>
-                          <td className="w-48">
+                          <td className="text-yellow-400 hidden lg:table-cell">{t.monthlyInterest ? formatCurrency(t.monthlyInterest) : '£0.00'}</td>
+                          <td className="text-orange-400 hidden lg:table-cell">{formatCurrency(t.remainingBalance || 0)}</td>
+                          <td className="w-48 hidden md:table-cell">
                             {(() => {
                               const display = calculateWeeksUntilPaidOffDisplay(t);
                               if (display.includes('weeks')) {
@@ -640,7 +640,7 @@ export default function DashboardPage() {
                             })()}
                           </td>
                         </>}
-                        <td>
+                        <td className="hidden sm:table-cell">
                           <div className="flex items-center gap-2">
                             <Clock className="h-3 w-3 text-muted-foreground" />
                             <div className="flex flex-col">
@@ -649,7 +649,7 @@ export default function DashboardPage() {
                             </div>
                           </div>
                         </td>
-                        <td>
+                        <td className="hidden sm:table-cell">
                           <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getBankColor(t.bankId) }}/>
                             <span className="text-foreground truncate max-w-xs">{getBankName(t.bankId)}</span>

@@ -111,7 +111,7 @@
     @apply transition-shadow duration-300;
   }
   .card-interactive:hover {
-    box-shadow: 0 0 20px 0px hsl(var(--foreground) / 0.1);
+    box-shadow: 0 0 25px -5px hsl(var(--foreground) / 0.15);
   }
 }
 
@@ -133,14 +133,12 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    /* Minimum width for mobile horizontal scrolling */
-    min-width: 800px;
   }
   
-  /* Mobile: Reduce min-width for smaller screens */
-  @media (max-width: 640px) {
+  /* Set a min-width only on larger screens to enable horizontal scrolling */
+  @media (min-width: 768px) {
     .sticky-table {
-      min-width: 600px;
+      min-width: 800px;
     }
   }
   
