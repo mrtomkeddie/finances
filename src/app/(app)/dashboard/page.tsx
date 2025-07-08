@@ -19,6 +19,7 @@ import { airtableService } from '@/lib/airtableService';
 import { writeBatch, collection, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useUI } from '@/context/UIContext';
+import { AnimatedNumber } from '@/components/AnimatedNumber';
 
 type SortColumn = 'name' | 'amount' | 'frequency' | 'monthlyAmount' | 'remainingDebt' | 'weeksUntilPaidOff' | 'dueDate' | 'bank' | 'interest';
 type SortDirection = 'asc' | 'desc';
@@ -415,6 +416,8 @@ export default function DashboardPage() {
   const weeklyTotal = monthlyTotal / 4.33;
   
   const showImportCard = !hasImported && (banks.length === 0 && transactions.length === 0);
+  
+  const totalMonthlyInterest = transactions.filter(t => t.type === 'debt' && t.monthlyInterest).reduce((sum, t) => sum + (t.monthlyInterest || 0), 0);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -453,7 +456,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Monthly Income</p>
-                  <p className="text-xl sm:text-2xl font-bold text-foreground truncate">{formatCurrency(allSummary.monthlyIncome)}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-foreground truncate"><AnimatedNumber value={allSummary.monthlyIncome} /></p>
                 </div>
               </div>
             </Card>
@@ -465,7 +468,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Monthly Expenses</p>
-                  <p className="text-xl sm:text-2xl font-bold text-foreground truncate">{formatCurrency(totalExpenseAndDebt)}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-foreground truncate"><AnimatedNumber value={totalExpenseAndDebt} /></p>
                 </div>
               </div>
             </Card>
@@ -477,7 +480,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Debt Remaining</p>
-                  <p className="text-xl sm:text-2xl font-bold text-foreground truncate">{formatCurrency(allSummary.totalDebt)}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-foreground truncate"><AnimatedNumber value={allSummary.totalDebt} /></p>
                 </div>
               </div>
             </Card>
@@ -490,13 +493,13 @@ export default function DashboardPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-xs sm:text-sm text-muted-foreground">Weekly Net Income:</span>
                   <span className={`font-medium text-sm sm:text-base ${hsbcTotals.weeklyNet >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {formatCurrency(hsbcTotals.weeklyNet)}
+                    <AnimatedNumber value={hsbcTotals.weeklyNet} />
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs sm:text-sm text-muted-foreground">Monthly Net Income:</span>
                   <span className={`font-medium text-sm sm:text-base ${hsbcTotals.monthlyNet >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {formatCurrency(hsbcTotals.monthlyNet)}
+                    <AnimatedNumber value={hsbcTotals.monthlyNet} />
                   </span>
                 </div>
               </div>
@@ -513,18 +516,18 @@ export default function DashboardPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-xs sm:text-sm text-muted-foreground">Weekly Net Income:</span>
                   <span className={`font-medium text-sm sm:text-base ${santanderTotals.weeklyNet >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {formatCurrency(santanderTotals.weeklyNet)}
+                    <AnimatedNumber value={santanderTotals.weeklyNet} />
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs sm:text-sm text-muted-foreground">Monthly Net Income:</span>
                   <span className={`font-medium text-sm sm:text-base ${santanderTotals.monthlyNet >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {formatCurrency(santanderTotals.monthlyNet)}
+                    <AnimatedNumber value={santanderTotals.monthlyNet} />
                   </span>
                 </div>
                 <div className="flex justify-between items-center pt-1 border-t border-border/40">
                   <span className="text-xs sm:text-sm text-muted-foreground">Weekly Transfer In:</span>
-                  <span className="font-medium text-sm sm:text-base text-blue-400">{formatCurrency(weeklyTransferAmount)}</span>
+                  <span className="font-medium text-sm sm:text-base text-blue-400"><AnimatedNumber value={weeklyTransferAmount} /></span>
                 </div>
               </div>
             </Card>
@@ -631,11 +634,11 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 gap-4 sm:gap-6">
               <Card className="p-4 bg-card border-border text-center">
                 <p className="text-sm text-muted-foreground mb-1">Weekly {getActiveFilterDisplayName()}</p>
-                <p className="text-xl font-bold text-foreground">{formatCurrency(weeklyTotal)}</p>
+                <p className="text-xl font-bold text-foreground"><AnimatedNumber value={weeklyTotal} /></p>
               </Card>
               <Card className="p-4 bg-card border-border text-center">
                 <p className="text-sm text-muted-foreground mb-1">Monthly {getActiveFilterDisplayName()}</p>
-                <p className="text-xl font-bold text-foreground">{formatCurrency(monthlyTotal)}</p>
+                <p className="text-xl font-bold text-foreground"><AnimatedNumber value={monthlyTotal} /></p>
               </Card>
             </div>
           )}
@@ -644,11 +647,11 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 gap-4 sm:gap-6">
               <Card className="p-4 bg-card border-border">
                 <h3 className="font-semibold text-foreground">Total Monthly Debt Payments</h3>
-                <p className="text-2xl font-bold text-orange-400">{formatCurrency(debtSummary.monthlyDebt)}</p>
+                <p className="text-2xl font-bold text-orange-400"><AnimatedNumber value={debtSummary.monthlyDebt} /></p>
               </Card>
               <Card className="p-4 bg-card border-border">
                 <h3 className="font-semibold text-foreground">Total Monthly Interest</h3>
-                <p className="text-2xl font-bold text-yellow-400">{formatCurrency(transactions.filter(t => t.type === 'debt' && t.monthlyInterest).reduce((sum, t) => sum + (t.monthlyInterest || 0), 0))}</p>
+                <p className="text-2xl font-bold text-yellow-400"><AnimatedNumber value={totalMonthlyInterest} /></p>
               </Card>
             </div>
           )}
