@@ -4,7 +4,7 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { Loader2, LogOut, Menu, Plus, Settings } from 'lucide-react';
+import { LayoutDashboard, List, Loader2, LogOut, Menu, Plus, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -12,6 +12,7 @@ import { UIProvider, useUI } from '@/context/UIContext';
 import { Separator } from '@/components/ui/separator';
 import { DataProvider, useData } from '@/context/DataContext';
 import { MobileNav } from '@/components/MobileNav';
+import Link from 'next/link';
 
 // Modals
 import { BankManagementModal } from '@/components/BankManagementModal';
@@ -21,7 +22,7 @@ import { TransferEditModal } from '@/components/TransferEditModal';
 
 function DesktopHeader() {
   const { signOutUser } = useAuth();
-  const { openBankManagement, openTransactionModal } = useUI();
+  const { openTransactionModal } = useUI();
 
   return (
     <header className="sticky top-0 z-10 hidden border-b bg-background/95 backdrop-blur md:block">
@@ -42,15 +43,31 @@ function DesktopHeader() {
               <SheetHeader className="text-left">
                 <SheetTitle>Menu</SheetTitle>
                 <SheetDescription>
-                  Manage your app settings and account.
+                  Navigate through your app and manage settings.
                 </SheetDescription>
               </SheetHeader>
               <div className="flex flex-1 flex-col justify-between py-4">
                   <div className="flex flex-col gap-2">
                     <SheetClose asChild>
-                        <Button variant="ghost" onClick={openBankManagement} className="w-full justify-start text-base font-normal py-4">
-                          <Settings className="mr-2 h-4 w-4" /> Manage Banks
-                        </Button>
+                        <Link href="/dashboard" passHref>
+                            <Button variant="ghost" className="w-full justify-start text-base font-normal py-4">
+                                <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
+                            </Button>
+                        </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                        <Link href="/transactions" passHref>
+                            <Button variant="ghost" className="w-full justify-start text-base font-normal py-4">
+                                <List className="mr-2 h-4 w-4" /> Transactions
+                            </Button>
+                        </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                        <Link href="/settings" passHref>
+                            <Button variant="ghost" className="w-full justify-start text-base font-normal py-4">
+                                <Settings className="mr-2 h-4 w-4" /> Settings
+                            </Button>
+                        </Link>
                     </SheetClose>
                   </div>
                   <div>
