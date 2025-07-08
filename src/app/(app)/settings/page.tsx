@@ -5,7 +5,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useUI } from '@/context/UIContext';
 import { useAuth } from '@/hooks/useAuth';
-import { Bank, LogOut, User } from 'lucide-react';
+import { Bank, LogOut, UserCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 export default function SettingsPage() {
@@ -24,7 +24,7 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-4">
-            <User className="h-8 w-8 text-muted-foreground" />
+            <UserCircle className="h-8 w-8 text-muted-foreground" />
             <div>
               <CardTitle>Account</CardTitle>
               <CardDescription>
