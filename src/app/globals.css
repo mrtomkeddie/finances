@@ -108,10 +108,10 @@
   }
 
   .card-interactive {
-    @apply transition-all duration-200 ease-in-out;
+    @apply transition-shadow duration-300;
   }
   .card-interactive:hover {
-    @apply -translate-y-1 shadow-lg;
+    box-shadow: 0 0 20px 0px hsl(var(--foreground) / 0.1);
   }
 }
 
