@@ -17,6 +17,17 @@ export default {
         headline: ['Inter', 'sans-serif'],
         code: ['monospace'],
       },
+      fontSize: {
+        xs: '0.7rem',
+        sm: '0.8rem',
+        base: '0.9rem',
+        lg: '1rem',
+        xl: '1.125rem',
+        '2xl': '1.375rem',
+        '3xl': '1.7rem',
+        '4xl': '2rem',
+        '5xl': '2.5rem',
+      },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
