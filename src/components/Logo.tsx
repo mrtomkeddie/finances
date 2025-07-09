@@ -29,7 +29,6 @@ export function Logo({ className }: { className?: string }) {
       alt="Finance Port Logo"
       width={150}
       height={40}
-      priority
       className={className}
     />
   );
