@@ -29,7 +29,7 @@ const sortOptions: { value: string; label: string }[] = [
 ];
 
 export default function TransactionsPage() {
-    const { transactions, banks } = useData();
+    const { transactions, banks, weeklyTransferAmount } = useData();
     const { openDetailModal } = useUI();
     
     const [activeFilter, setActiveFilter] = useState<'all' | 'income' | 'expense' | 'debt'>('all');
@@ -72,11 +72,19 @@ export default function TransactionsPage() {
 
         const summary = calculateSummary(filteredTxs);
         
-        const income = summary.monthlyIncome;
+        let income = summary.monthlyIncome;
         const outgoings = summary.monthlyExpenses + summary.monthlyDebt;
+
+        // If filtering by Santander, add the weekly transfer amount
+        if (activeBankFilter !== 'all') {
+            const bankName = getBankName(activeBankFilter).toLowerCase();
+            if (bankName.includes('santander')) {
+                income += weeklyTransferAmount * 4.33;
+            }
+        }
         
         return { income, expenses: outgoings };
-    }, [transactions, activeBankFilter]);
+    }, [transactions, activeBankFilter, banks, weeklyTransferAmount]);
 
     const TransactionIcon = ({ type }: { type: string }) => {
         if (type === 'income') return <ArrowUp className="h-5 w-5 text-green-500" />;
