@@ -18,10 +18,8 @@ export function Logo({ className }: { className?: string }) {
   if (!mounted) {
     // Render a placeholder on the server to prevent hydration mismatch and layout shift
     return (
-      <div className={cn("flex items-center", className)}>
-        <div className="flex h-[64px] w-[64px] items-center justify-center rounded-lg bg-primary/10 p-2 border border-primary/20">
-          <Landmark className="h-8 w-8 text-primary" />
-        </div>
+      <div className={cn("flex items-center justify-center h-[64px] w-[64px] rounded-lg bg-primary/10 p-2 border border-primary/20", className)}>
+        <Landmark className="h-8 w-8 text-primary" />
       </div>
     );
   }
@@ -29,14 +27,13 @@ export function Logo({ className }: { className?: string }) {
   const src = resolvedTheme === 'dark' ? '/white.png' : '/dark.png';
   
   return (
-    <div className={cn("flex items-center", className)}>
-      <Image
-        src={src}
-        alt="Finances 2.0 Logo"
-        width={64}
-        height={64}
-        priority
-      />
-    </div>
+    <Image
+      src={src}
+      alt="Finances Logo"
+      width={64}
+      height={64}
+      priority
+      className={className}
+    />
   );
 }
