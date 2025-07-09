@@ -67,15 +67,15 @@ export function TransactionDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-xl mx-auto bg-card border-border">
+      <DialogContent className="max-w-md mx-auto bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-foreground">{transaction.title}</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-foreground">{transaction.title}</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            Details for this transaction.
+            Transaction Details
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-4 py-2">
           <div className="flex items-center gap-2">
             <Badge variant="outline" className={`${getTypeColor(transaction.type)} border`}>
               {transaction.type === 'debt' ? 'Debt Payment' : transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
@@ -87,49 +87,43 @@ export function TransactionDetailModal({
 
           <Separator />
           
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
-              <p className="text-sm text-muted-foreground">{isDebt ? 'Payment' : 'Amount'}</p>
-              <p className="text-2xl font-bold text-foreground">{formatCurrency(transaction.amount)}</p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 p-3 rounded-lg bg-muted/30 border border-border/50">
+              <p className="text-xs text-muted-foreground">{isDebt ? 'Payment' : 'Amount'}</p>
+              <p className="text-lg font-bold text-foreground">{formatCurrency(transaction.amount)}</p>
             </div>
-            <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
-              <p className="text-sm text-muted-foreground">Monthly Equivalent</p>
-              <p className="text-2xl font-bold text-foreground">{formatCurrency(monthlyAmount)}</p>
+            <div className="flex-1 p-3 rounded-lg bg-muted/30 border border-border/50">
+              <p className="text-xs text-muted-foreground">Monthly Equivalent</p>
+              <p className="text-lg font-bold text-foreground">{formatCurrency(monthlyAmount)}</p>
             </div>
           </div>
 
           {isDebt && (
-            <div className="space-y-4 p-4 bg-muted/30 rounded-lg border border-border/50">
-              <h4 className="font-semibold text-foreground flex items-center gap-2">
+            <div className="space-y-3 p-3 bg-muted/30 rounded-lg border border-border/50">
+              <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
                 <Percent className="h-4 w-4" /> Debt Analysis
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                 <div>
-                  <p className="text-sm text-muted-foreground">Remaining Balance</p>
-                  <p className="font-semibold text-orange-400">{formatCurrency(transaction.remainingBalance || 0)}</p>
+                  <p className="text-xs text-muted-foreground">Balance</p>
+                  <p className="text-sm font-semibold text-orange-400">{formatCurrency(transaction.remainingBalance || 0)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Monthly Interest</p>
-                  <p className="font-semibold text-yellow-400">{formatCurrency(actualMonthlyInterest)}</p>
-                  {transaction.interestType === 'percentage' && transaction.interestRate && (
-                    <p className="text-xs text-muted-foreground">({formatInterestRate(transaction)})</p>
-                  )}
+                  <p className="text-xs text-muted-foreground">Interest</p>
+                  <p className="text-sm font-semibold text-yellow-400">{formatCurrency(actualMonthlyInterest)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Net Monthly Payment</p>
-                  <p className={`font-semibold ${netMonthlyPayment > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  <p className="text-xs text-muted-foreground">Net Payment</p>
+                  <p className={`text-sm font-semibold ${netMonthlyPayment > 0 ? 'text-green-400' : 'text-red-400'}`}>
                     {formatCurrency(netMonthlyPayment)}
                   </p>
-                  {netMonthlyPayment <= 0 && transaction.amount > 0 && (
-                    <p className="text-xs text-red-400 mt-1">⚠️ Interest exceeds payment.</p>
-                  )}
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Est. Time to Pay Off</p>
-                  <p className={`font-semibold ${weeksUntilPaidOff === null ? 'text-muted-foreground' : 'text-blue-400'}`}>
+                  <p className="text-xs text-muted-foreground">Est. Pay Off</p>
+                  <p className={`text-sm font-semibold ${weeksUntilPaidOff === null ? 'text-muted-foreground' : 'text-blue-400'}`}>
                     {weeksUntilPaidOff === null 
-                      ? (netMonthlyPayment <= 0 && transaction.amount > 0) ? 'Debt will grow' : 'N/A'
-                      : `${weeksUntilPaidOff} weeks`
+                      ? (netMonthlyPayment <= 0 && transaction.amount > 0) ? 'Growing' : 'N/A'
+                      : `${weeksUntilPaidOff} wks`
                     }
                   </p>
                 </div>
@@ -137,30 +131,26 @@ export function TransactionDetailModal({
             </div>
           )}
           
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="flex items-start gap-3">
-                  <Banknote className="h-5 w-5 mt-1 text-muted-foreground" />
-                  <div>
-                      <p className="text-sm text-muted-foreground">Account</p>
-                      <div className="flex items-center gap-2">
-                        {bank && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: bank.color }} />}
-                        <p className="font-medium text-foreground">{bank?.name || 'Unknown'}</p>
-                      </div>
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-3 text-sm">
+              <div className="flex items-center gap-2">
+                  <Banknote className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">Account:</p>
+                  <div className="flex items-center gap-2">
+                    {bank && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: bank.color }} />}
+                    <p className="font-medium text-foreground">{bank?.name || 'Unknown'}</p>
                   </div>
               </div>
-              <div className="flex items-start gap-3">
-                  <Calendar className="h-5 w-5 mt-1 text-muted-foreground" />
-                  <div>
-                      <p className="text-sm text-muted-foreground">Payment Date</p>
-                      <p className="font-medium text-foreground">{formatDate(transaction.date)}</p>
-                  </div>
+              <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">Payment Date:</p>
+                  <p className="font-medium text-foreground">{formatDate(transaction.date)}</p>
               </div>
           </div>
           
           {transaction.description && (
             <div>
-              <p className="text-sm font-medium text-foreground mb-2">Description</p>
-              <p className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg border border-border/50">
+              <p className="text-sm font-medium text-foreground mb-1">Description</p>
+              <p className="text-xs text-muted-foreground bg-muted/30 p-2 rounded-lg border border-border/50">
                 {transaction.description}
               </p>
             </div>
@@ -168,10 +158,10 @@ export function TransactionDetailModal({
 
           <Separator />
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-2">
-            <Button variant="outline" onClick={handleEdit} className="flex-1 gap-2"><Edit /> Edit</Button>
-            <Button variant="destructive" onClick={handleDelete} className="flex-1 gap-2"><Trash2 /> Delete</Button>
-            <Button onClick={onClose} className="flex-1">Close</Button>
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+            <Button size="sm" variant="outline" onClick={handleEdit} className="flex-1 gap-2"><Edit /> Edit</Button>
+            <Button size="sm" variant="destructive" onClick={handleDelete} className="flex-1 gap-2"><Trash2 /> Delete</Button>
+            <Button size="sm" onClick={onClose} className="flex-1">Close</Button>
           </div>
         </div>
       </DialogContent>
