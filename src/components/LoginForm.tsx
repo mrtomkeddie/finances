@@ -10,11 +10,9 @@ import { AlertCircle, Landmark, Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export function LoginForm() {
-  const { signInWithEmail, signUpWithEmail, sendPasswordReset, error: authError } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const { signInWithEmail, sendPasswordReset, error: authError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -32,16 +30,7 @@ export function LoginForm() {
     setMessage('');
     setIsLoading(true);
 
-    if (isSignUp) {
-      if (password !== confirmPassword) {
-        setError("Passwords do not match.");
-        setIsLoading(false);
-        return;
-      }
-      await signUpWithEmail(email, password);
-    } else {
-      await signInWithEmail(email, password);
-    }
+    await signInWithEmail(email, password);
     // isLoading is reset by the useEffect hook on authError
   };
 
@@ -55,19 +44,9 @@ export function LoginForm() {
     try {
       await sendPasswordReset(email);
       setMessage('Password reset email sent. Please check your inbox.');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: any)      setError(err.message);
     }
   };
-
-  const toggleFormMode = () => {
-    setIsSignUp(!isSignUp);
-    setError('');
-    setMessage('');
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
-  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
@@ -78,10 +57,10 @@ export function LoginForm() {
               <Landmark className="h-8 w-8 text-primary" />
             </div>
             <CardTitle className="text-2xl font-bold text-foreground">
-              {isSignUp ? 'Create Your Account' : 'Welcome to Finances 2.0'}
+              Welcome to Finances 2.0
             </CardTitle>
             <CardDescription>
-              {isSignUp ? 'Fill in the details to get started.' : 'Sign in to access your financial dashboard.'}
+              Sign in to access your financial dashboard.
             </CardDescription>
           </CardHeader>
           
@@ -123,35 +102,13 @@ export function LoginForm() {
                     />
                   </div>
                 </div>
-
-                {isSignUp && (
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password" className="text-sm font-medium text-foreground">
-                      Confirm Password
-                    </Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="confirm-password"
-                        type="password"
-                        placeholder="Confirm your password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="pl-10 bg-input border-border text-foreground"
-                        required
-                      />
-                    </div>
-                  </div>
-                )}
               </div>
 
-               {!isSignUp && (
-                <div className="text-right">
+               <div className="text-right">
                     <button type="button" onClick={handlePasswordReset} className="text-sm text-muted-foreground hover:text-foreground underline">
                         Forgot Password?
                     </button>
                 </div>
-              )}
 
               {error && (
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
@@ -172,17 +129,10 @@ export function LoginForm() {
                   className="w-full"
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Processing...' : (isSignUp ? 'Create Account' : 'Sign In')}
+                  {isLoading ? 'Processing...' : 'Sign In'}
                 </Button>
               </div>
             </form>
-            
-            <div className="mt-6 text-center">
-              <button onClick={toggleFormMode} className="text-sm text-muted-foreground hover:text-foreground underline">
-                {isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up"}
-              </button>
-            </div>
-
           </CardContent>
         </Card>
       </div>
