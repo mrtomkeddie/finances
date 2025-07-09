@@ -2,11 +2,11 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, TrendingUp, TrendingDown, CreditCard, Loader2, Edit3 } from 'lucide-react';
+import { Settings, TrendingUp, TrendingDown, CreditCard, Loader2, Edit3, Banknote } from 'lucide-react';
 import { useData } from '@/context/DataContext';
-import { calculateSummary, calculateMonthlyAmount } from '@/lib/financial';
+import { calculateSummary, calculateMonthlyAmount, formatCurrency } from '@/lib/financial';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { WeeklyForecast } from '@/components/WeeklyForecast';
 import { useUI } from '@/context/UIContext';
@@ -43,6 +43,7 @@ export default function DashboardPage() {
       getBankName(t.bankId).toLowerCase().includes(normalizedBankName)
     );
     
+    // Special rule to combine HSBC and Barclays for main account overview
     if (normalizedBankName.includes('hsbc')) {
       bankTransactions = transactions.filter(t => {
         const transactionBankName = getBankName(t.bankId).toLowerCase();
@@ -59,6 +60,7 @@ export default function DashboardPage() {
     let adjustedWeeklyNet = summary.weeklyIncome - (expenseAndDebt / 4.33);
     let adjustedMonthlyNet = summary.monthlyIncome - expenseAndDebt;
     
+    // Adjust for weekly transfers
     if (normalizedBankName.includes('hsbc')) {
       adjustedWeeklyNet -= weeklyTransferAmount;
       adjustedMonthlyNet -= (weeklyTransferAmount * 4.33);
@@ -81,24 +83,25 @@ export default function DashboardPage() {
   const hsbcTotals = calculateBankTotals('hsbc');
   const santanderTotals = calculateBankTotals('santander');
   const hasData = banks.length > 0 || transactions.length > 0;
+  const netMonthlyCashflow = allSummary.monthlyIncome - totalExpenseAndDebt;
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-red-400 text-sm whitespace-pre-line relative">
+    <div className="space-y-6">
+      {error && (
+        <div className="relative rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-red-600 dark:text-red-400">
             <div className="font-bold mb-2">Error</div>
-            {error}
-            <button onClick={() => setError(null)} className="absolute top-2 right-2 text-red-300 hover:text-red-200">✕</button>
+            <p className="whitespace-pre-line">{error}</p>
+            <button onClick={() => setError(null)} className="absolute top-2 right-2 text-destructive/80 hover:text-destructive">✕</button>
         </div>
       )}
 
       {!hasData && !isInitialLoading && (
-        <Card className="text-center py-12">
+        <Card className="text-center py-16">
           <CardContent>
-              <CreditCard className="h-12 w-12 mx-auto text-muted-foreground mb-6" />
-              <h2 className="text-xl font-semibold text-foreground mb-2">Welcome to Your Financial Tracker</h2>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                It looks like you don't have any data yet. Head over to the <span className="font-semibold text-foreground">Settings</span> page to import your data or add banks and transactions manually.
+              <Banknote className="mx-auto mb-6 h-16 w-16 text-muted-foreground" />
+              <h2 className="text-xl font-semibold text-foreground mb-2">Welcome to Your Financial Hub</h2>
+              <p className="mx-auto max-w-md text-muted-foreground mb-6">
+                Get started by adding bank accounts and transactions in the <span className="font-semibold text-foreground">Settings</span> page.
               </p>
           </CardContent>
         </Card>
@@ -106,88 +109,97 @@ export default function DashboardPage() {
 
       {hasData && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-            <Card className="p-4 sm:p-6 bg-card border-border card-interactive">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="p-2 sm:p-3 rounded-lg bg-green-500/10 border border-green-500/20 flex-shrink-0">
-                  <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-green-500" />
+          <Card className="w-full text-center p-6">
+              <p className="text-sm text-muted-foreground mb-1">Net Monthly Cashflow</p>
+              <p className={`text-4xl font-bold ${netMonthlyCashflow >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                <AnimatedNumber value={netMonthlyCashflow} />
+              </p>
+          </Card>
+          
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
+            <Card>
+              <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Monthly Income</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600 dark:text-green-500">
+                  <AnimatedNumber value={allSummary.monthlyIncome} />
                 </div>
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Monthly Income</p>
-                  <p className="text-xl sm:text-2xl font-bold text-foreground truncate"><AnimatedNumber value={allSummary.monthlyIncome} /></p>
-                </div>
-              </div>
+              </CardContent>
             </Card>
 
-            <Card className="p-4 sm:p-6 bg-card border-border card-interactive">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="p-2 sm:p-3 rounded-lg bg-red-500/10 border border-red-500/20 flex-shrink-0">
-                  <TrendingDown className="h-5 w-5 sm:h-6 sm:w-6 text-red-500" />
+            <Card>
+              <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Monthly Expenses</CardTitle>
+                <TrendingDown className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600 dark:text-red-500">
+                  <AnimatedNumber value={totalExpenseAndDebt} />
                 </div>
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Monthly Expenses</p>
-                  <p className="text-xl sm:text-2xl font-bold text-foreground truncate"><AnimatedNumber value={totalExpenseAndDebt} /></p>
-                </div>
-              </div>
+              </CardContent>
             </Card>
 
-            <Card className="p-4 sm:p-6 bg-card border-border card-interactive">
-              <div className="flex items-center gap-3 sm:gap-4">
-                <div className="p-2 sm:p-3 rounded-lg bg-orange-500/10 border border-orange-500/20 flex-shrink-0">
-                  <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-orange-500" />
+            <Card>
+              <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Debt Remaining</CardTitle>
+                <CreditCard className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-600 dark:text-orange-500">
+                  <AnimatedNumber value={allSummary.totalDebt} />
                 </div>
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Debt Remaining</p>
-                  <p className="text-xl sm:text-2xl font-bold text-foreground truncate"><AnimatedNumber value={allSummary.totalDebt} /></p>
-                </div>
-              </div>
+              </CardContent>
             </Card>
           </div>
         
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            <Card className="p-4 sm:p-6 bg-card border-border card-interactive">
-              <h3 className="font-semibold mb-2 text-foreground text-sm sm:text-base">HSBC Overview</h3>
-              <div className="space-y-2 sm:space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs sm:text-sm text-muted-foreground">Weekly Net Income:</span>
-                  <span className={`font-medium text-sm sm:text-base ${hsbcTotals.weeklyNet >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 sm:gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">HSBC Overview</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Weekly Net:</span>
+                  <span className={`text-base font-medium ${hsbcTotals.weeklyNet >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
                     <AnimatedNumber value={hsbcTotals.weeklyNet} />
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs sm:text-sm text-muted-foreground">Monthly Net Income:</span>
-                  <span className={`font-medium text-sm sm:text-base ${hsbcTotals.monthlyNet >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Monthly Net:</span>
+                  <span className={`text-base font-medium ${hsbcTotals.monthlyNet >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
                     <AnimatedNumber value={hsbcTotals.monthlyNet} />
                   </span>
                 </div>
-              </div>
+              </CardContent>
             </Card>
 
-            <Card className="p-4 sm:p-6 bg-card border-border card-interactive">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-foreground text-sm sm:text-base">Santander Overview</h3>
-                <Button variant="ghost" size="sm" className="p-1 h-6 w-6 text-muted-foreground hover:text-foreground" onClick={() => openTransferEditModal()}>
-                  <Edit3 className="h-3 w-3" />
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-base">Santander Overview</CardTitle>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => openTransferEditModal()}>
+                  <Edit3 className="h-4 w-4" />
                 </Button>
-              </div>
-              <div className="space-y-2 sm:space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs sm:text-sm text-muted-foreground">Weekly Net Income:</span>
-                  <span className={`font-medium text-sm sm:text-base ${santanderTotals.weeklyNet >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Weekly Net:</span>
+                  <span className={`text-base font-medium ${santanderTotals.weeklyNet >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
                     <AnimatedNumber value={santanderTotals.weeklyNet} />
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs sm:text-sm text-muted-foreground">Monthly Net Income:</span>
-                  <span className={`font-medium text-sm sm:text-base ${santanderTotals.monthlyNet >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Monthly Net:</span>
+                  <span className={`text-base font-medium ${santanderTotals.monthlyNet >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
                     <AnimatedNumber value={santanderTotals.monthlyNet} />
                   </span>
                 </div>
-                <div className="flex justify-between items-center pt-1 border-t border-border/40">
-                  <span className="text-xs sm:text-sm text-muted-foreground">Weekly Transfer In:</span>
-                  <span className="font-medium text-sm sm:text-base text-blue-400"><AnimatedNumber value={weeklyTransferAmount} /></span>
+                <div className="flex items-center justify-between border-t pt-3">
+                  <span className="text-sm text-muted-foreground">Weekly Transfer In:</span>
+                  <span className="text-base font-medium text-blue-500"><AnimatedNumber value={weeklyTransferAmount} /></span>
                 </div>
-              </div>
+              </CardContent>
             </Card>
           </div>
 
