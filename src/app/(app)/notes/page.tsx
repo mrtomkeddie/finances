@@ -32,11 +32,9 @@ export default function NotesPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Notes</h1>
-          <p className="text-muted-foreground">Your personal space for thoughts and reminders.</p>
-        </div>
+      <div className="text-center">
+        <h1 className="text-3xl font-bold tracking-tight">Notes</h1>
+        <p className="text-muted-foreground mt-2 mb-6">Your personal space for thoughts and reminders.</p>
         <Button onClick={() => openNoteModal()}>
           <Plus className="mr-2 h-4 w-4" />
           Add Note
