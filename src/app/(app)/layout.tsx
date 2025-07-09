@@ -23,35 +23,27 @@ import { NoteModal } from '@/components/NoteModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Note } from '@/lib/types';
 
-function DesktopHeader() {
-  const { signOutUser } = useAuth();
-  const { openTransactionModal } = useUI();
 
-  return (
-    <header className="sticky top-0 z-10 hidden border-b bg-background/80 backdrop-blur-lg md:block">
-      <div className="mx-auto flex h-20 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Logo />
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => openTransactionModal(null)}>
-            <Plus className="mr-2 h-4 w-4" /> Add Transaction
-          </Button>
-          <ThemeToggle />
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Open menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="flex h-full flex-col p-6">
-              <SheetHeader className="text-left">
+function SideMenuContent() {
+    const { signOutUser } = useAuth();
+    const { openTransactionModal } = useUI();
+    
+    return (
+        <SheetContent className="flex h-full flex-col p-6">
+            <SheetHeader className="text-left">
                 <SheetTitle>Menu</SheetTitle>
                 <SheetDescription>
                   Navigate through your app and manage settings.
                 </SheetDescription>
-              </SheetHeader>
-              <div className="flex flex-1 flex-col justify-between py-4">
-                  <div className="flex flex-col gap-2">
+            </SheetHeader>
+            <div className="flex flex-1 flex-col justify-between py-4">
+                <div className="flex flex-col gap-2">
+                     <SheetClose asChild>
+                        <Button variant="outline" className="w-full justify-start text-base font-normal py-4" onClick={() => openTransactionModal(null)}>
+                           <Plus className="mr-2 h-4 w-4" /> Add Transaction
+                        </Button>
+                    </SheetClose>
+                    <Separator className="my-2" />
                     <SheetClose asChild>
                         <Link href="/dashboard" passHref>
                             <Button variant="ghost" className="w-full justify-start text-base font-normal py-4">
@@ -80,18 +72,37 @@ function DesktopHeader() {
                             </Button>
                         </Link>
                     </SheetClose>
-                  </div>
-                  <div>
+                </div>
+                <div>
                     <Separator className="my-2" />
                     <SheetClose asChild>
-                      <Button variant="ghost" onClick={signOutUser} className="w-full justify-start text-base text-muted-foreground hover:text-foreground py-4">
+                        <Button variant="ghost" onClick={signOutUser} className="w-full justify-start text-base text-muted-foreground hover:text-foreground py-4">
                         <LogOut className="mr-2 h-4 w-4" />
                         Logout
-                      </Button>
+                        </Button>
                     </SheetClose>
-                  </div>
-              </div>
-            </SheetContent>
+                </div>
+            </div>
+        </SheetContent>
+    );
+}
+
+
+function DesktopHeader() {
+  return (
+    <header className="sticky top-0 z-10 hidden border-b bg-background/80 backdrop-blur-lg md:block">
+      <div className="mx-auto flex h-20 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        <Logo />
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </SheetTrigger>
+            <SideMenuContent />
           </Sheet>
         </div>
       </div>
@@ -100,17 +111,21 @@ function DesktopHeader() {
 }
 
 function MobileHeader() {
-  const { openTransactionModal } = useUI();
   return (
     <header className="sticky top-0 z-10 block border-b bg-background/80 backdrop-blur-lg md:hidden">
       <div className="mx-auto flex h-20 max-w-screen-2xl items-center justify-between px-4">
         <Logo />
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Button variant="outline" size="icon" onClick={() => openTransactionModal(null)}>
-              <Plus className="h-5 w-5" />
-              <span className="sr-only">Add Transaction</span>
-          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </SheetTrigger>
+            <SideMenuContent />
+          </Sheet>
         </div>
       </div>
     </header>

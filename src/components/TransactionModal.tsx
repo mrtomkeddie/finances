@@ -152,7 +152,7 @@ export function TransactionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl mx-auto bg-card border-border max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl mx-auto bg-card border-border max-h-[90vh] overflow-y-auto custom-scrollbar">
         <DialogHeader>
           <DialogTitle className="text-foreground">
             {editTransaction ? 'Edit Transaction' : 'Add New Transaction'}
