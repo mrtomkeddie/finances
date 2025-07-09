@@ -11,7 +11,6 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle,
 import { UIProvider, useUI } from '@/context/UIContext';
 import { Separator } from '@/components/ui/separator';
 import { DataProvider, useData } from '@/context/DataContext';
-import { MobileNav } from '@/components/MobileNav';
 import Link from 'next/link';
 
 // Modals
@@ -88,32 +87,10 @@ function SideMenuContent() {
 }
 
 
-function DesktopHeader() {
+function Header() {
   return (
-    <header className="sticky top-0 z-10 hidden border-b bg-background/80 backdrop-blur-lg md:block">
+    <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-lg">
       <div className="mx-auto flex h-20 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Logo />
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Open menu</span>
-              </Button>
-            </SheetTrigger>
-            <SideMenuContent />
-          </Sheet>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-function MobileHeader() {
-  return (
-    <header className="sticky top-0 z-10 block border-b bg-background/80 backdrop-blur-lg md:hidden">
-      <div className="mx-auto flex h-20 max-w-screen-2xl items-center justify-between px-4">
         <Logo />
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -226,18 +203,14 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <UIProvider>
       <DataProvider>
-        <div className="bg-background">
-          <div className="flex min-h-screen w-full flex-col">
-            <DesktopHeader />
-            <MobileHeader />
-            <main className="flex flex-1 flex-col">
-              <div className="mx-auto w-full max-w-screen-lg px-4 pt-4 pb-24 sm:px-6 sm:pt-6 md:pb-16">
-                {children}
-              </div>
-            </main>
-            <AppModals />
-          </div>
-          <MobileNav />
+        <div className="flex min-h-screen w-full flex-col bg-background">
+          <Header />
+          <main className="flex flex-1 flex-col">
+            <div className="mx-auto w-full max-w-screen-lg flex-1 px-4 pt-4 pb-8 sm:px-6 sm:pt-6">
+              {children}
+            </div>
+          </main>
+          <AppModals />
         </div>
       </DataProvider>
     </UIProvider>
