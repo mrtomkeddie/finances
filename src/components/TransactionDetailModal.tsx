@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -67,7 +68,7 @@ export function TransactionDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md sm:max-w-lg mx-auto bg-card border-border">
+      <DialogContent className="max-w-md sm:max-w-2xl mx-auto bg-card border-border">
         <DialogHeader>
           <DialogTitle className="text-xl sm:text-2xl font-bold text-foreground">{transaction.title}</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
@@ -158,10 +159,10 @@ export function TransactionDetailModal({
 
           <Separator />
 
-          <div className="flex flex-col sm:flex-row gap-2 pt-2 sm:pt-4">
-            <Button variant="outline" onClick={handleEdit} className="flex-1 gap-2"><Edit /> Edit</Button>
-            <Button variant="destructive" onClick={handleDelete} className="flex-1 gap-2"><Trash2 /> Delete</Button>
-            <Button onClick={onClose} className="flex-1 sm:flex-initial sm:ml-auto">Close</Button>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-4">
+            <Button variant="outline" onClick={handleEdit} className="w-full gap-2"><Edit className="h-4 w-4" /> Edit</Button>
+            <Button variant="destructive" onClick={handleDelete} className="w-full gap-2"><Trash2 className="h-4 w-4" /> Delete</Button>
+            <Button onClick={onClose} className="w-full">Close</Button>
           </div>
         </div>
       </DialogContent>
