@@ -9,21 +9,24 @@ import { useUI } from '@/context/UIContext';
 import { Transaction, TransactionFrequency } from '@/lib/types';
 import { calculateSummary, formatCurrency, calculateMonthlyAmount, calculateWeeksUntilPaidOff, calculateNetMonthlyDebtPayment } from '@/lib/financial';
 import { formatDate, formatNextDueDate, getNextDueDate } from '@/lib/dateUtils';
-import { ArrowDown, ArrowUp, CreditCard, Calendar, Banknote, SearchX, ChevronUp, ChevronDown, Check } from 'lucide-react';
+import { ArrowDown, ArrowUp, CreditCard, Calendar, Banknote, SearchX, ChevronUp, ChevronDown, Check, ArrowUpDown } from 'lucide-react';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 type SortColumn = 'name' | 'amount' | 'dueDate' | 'bank';
 type SortDirection = 'asc' | 'desc';
 
-const SortButton = ({ children, active, direction, onClick }: { children: React.ReactNode, active: boolean, direction: SortDirection, onClick: () => void }) => (
-    <Button variant="ghost" onClick={onClick} className={cn("gap-1 text-muted-foreground", active && "text-primary")}>
-        {children}
-        {active && (direction === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />)}
-    </Button>
-);
+const sortOptions: { value: string; label: string }[] = [
+    { value: 'dueDate_asc', label: 'Due Date (Soonest)' },
+    { value: 'dueDate_desc', label: 'Due Date (Latest)' },
+    { value: 'amount_desc', label: 'Amount (High-Low)' },
+    { value: 'amount_asc', label: 'Amount (Low-High)' },
+    { value: 'name_asc', label: 'Name (A-Z)' },
+    { value: 'name_desc', label: 'Name (Z-A)' },
+];
 
 export default function TransactionsPage() {
     const { transactions, banks } = useData();
@@ -31,22 +34,12 @@ export default function TransactionsPage() {
     
     const [activeFilter, setActiveFilter] = useState<'all' | 'income' | 'expense' | 'debt'>('all');
     const [activeBankFilter, setActiveBankFilter] = useState<string>('all');
+    const [isBankPopoverOpen, setBankPopoverOpen] = useState(false);
     
-    const [sortColumn, setSortColumn] = useState<SortColumn>('dueDate');
-    const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-
-    useEffect(() => {
-        setSortColumn('dueDate');
-        setSortDirection('asc');
-    }, [activeFilter, activeBankFilter]);
+    const [sort, setSort] = useState<string>('dueDate_asc');
 
     const getBankName = (bankId: string) => banks.find(b => b.id === bankId)?.name || 'Unknown';
     const getBankColor = (bankId: string) => banks.find(b => b.id === bankId)?.color || '#6366f1';
-
-    const handleSort = (column: SortColumn) => {
-        setSortDirection(prevDir => (sortColumn === column && prevDir === 'asc' ? 'desc' : 'asc'));
-        setSortColumn(column);
-    };
 
     const sortedTransactions = useMemo(() => {
         const filtered = transactions.filter(t => {
@@ -54,6 +47,8 @@ export default function TransactionsPage() {
             const bankMatches = activeBankFilter === 'all' || t.bankId === activeBankFilter;
             return typeMatches && bankMatches;
         });
+
+        const [sortColumn, sortDirection] = sort.split('_') as [SortColumn, SortDirection];
 
         return [...filtered].sort((a, b) => {
             let aValue: any, bValue: any;
@@ -68,7 +63,7 @@ export default function TransactionsPage() {
             if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
             return 0;
         });
-    }, [transactions, activeFilter, activeBankFilter, sortColumn, sortDirection]);
+    }, [transactions, activeFilter, activeBankFilter, sort, banks]);
 
     const totalSummary = useMemo(() => {
         const income = calculateSummary(transactions.filter(t => t.type === 'income')).monthlyIncome;
@@ -99,17 +94,17 @@ export default function TransactionsPage() {
             </Card>
 
             <div className="space-y-4">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex flex-wrap gap-2">
-                        {['all', 'income', 'expense', 'debt'].map(filter => (
-                            <Button key={filter} variant={activeFilter === filter ? 'default' : 'secondary'}
-                                onClick={() => setActiveFilter(filter as any)}>
-                                {filter.charAt(0).toUpperCase() + filter.slice(1)}
-                            </Button>
-                        ))}
-                    </div>
+                <div className="flex flex-wrap gap-2">
+                    {['all', 'income', 'expense', 'debt'].map(filter => (
+                        <Button key={filter} variant={activeFilter === filter ? 'default' : 'secondary'}
+                            onClick={() => setActiveFilter(filter as any)}>
+                            {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                        </Button>
+                    ))}
+                </div>
 
-                    <Popover>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                     <Popover open={isBankPopoverOpen} onOpenChange={setBankPopoverOpen}>
                         <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full sm:w-auto">
                                 <Banknote className="mr-2 h-4 w-4" />
@@ -120,11 +115,11 @@ export default function TransactionsPage() {
                             <div className="p-2 space-y-1">
                                 <Button variant={activeBankFilter === 'all' ? 'secondary' : 'ghost'} 
                                         className="w-full justify-start"
-                                        onClick={() => setActiveBankFilter('all')}>All Banks</Button>
+                                        onClick={() => { setActiveBankFilter('all'); setBankPopoverOpen(false); }}>All Banks</Button>
                                 {banks.map(bank => (
                                     <Button key={bank.id} variant={activeBankFilter === bank.id ? 'secondary' : 'ghost'} 
                                             className="w-full justify-start gap-2"
-                                            onClick={() => setActiveBankFilter(bank.id)}>
+                                            onClick={() => { setActiveBankFilter(bank.id); setBankPopoverOpen(false); }}>
                                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: bank.color }} />
                                         {bank.name}
                                     </Button>
@@ -132,17 +127,23 @@ export default function TransactionsPage() {
                             </div>
                         </PopoverContent>
                     </Popover>
-                </div>
 
-                <Card className="hidden sm:block">
-                    <CardContent className="flex items-center justify-end gap-2 p-2">
-                        <span className="text-sm text-muted-foreground">Sort by:</span>
-                        <SortButton active={sortColumn === 'name'} direction={sortDirection} onClick={() => handleSort('name')}>Name</SortButton>
-                        <SortButton active={sortColumn === 'amount'} direction={sortDirection} onClick={() => handleSort('amount')}>Amount</SortButton>
-                        <SortButton active={sortColumn === 'dueDate'} direction={sortDirection} onClick={() => handleSort('dueDate')}>Due Date</SortButton>
-                        <SortButton active={sortColumn === 'bank'} direction={sortDirection} onClick={() => handleSort('bank')}>Bank</SortButton>
-                    </CardContent>
-                </Card>
+                    <Select value={sort} onValueChange={setSort}>
+                      <SelectTrigger>
+                        <div className="flex items-center gap-2">
+                            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                            <SelectValue placeholder="Sort by..." />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sortOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                </div>
             </div>
 
             <div className="space-y-3">
