@@ -44,7 +44,8 @@ export function LoginForm() {
     try {
       await sendPasswordReset(email);
       setMessage('Password reset email sent. Please check your inbox.');
-    } catch (err: any)      setError(err.message);
+    } catch (err: any) {
+      setError(err.message);
     }
   };
 
