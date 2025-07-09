@@ -27,6 +27,11 @@ interface UIContextType {
   editingNote: Note | null;
   openNoteModal: (note?: Note | null) => void;
   closeNoteModal: () => void;
+
+  isNoteDetailModalOpen: boolean;
+  detailedNote: Note | null;
+  openNoteDetailModal: (note: Note) => void;
+  closeNoteDetailModal: () => void;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
@@ -40,6 +45,8 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
   const [isTransferEditOpen, setIsTransferEditOpen] = useState(false);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [isNoteDetailModalOpen, setIsNoteDetailModalOpen] = useState(false);
+  const [detailedNote, setDetailedNote] = useState<Note | null>(null);
 
   const openBankManagement = () => setIsBankManagementOpen(true);
   const closeBankManagement = () => setIsBankManagementOpen(false);
@@ -76,6 +83,15 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
     setEditingNote(null);
   };
 
+  const openNoteDetailModal = (note: Note) => {
+    setDetailedNote(note);
+    setIsNoteDetailModalOpen(true);
+  };
+  const closeNoteDetailModal = () => {
+    setIsNoteDetailModalOpen(false);
+    setDetailedNote(null);
+  };
+
   const value = {
     isBankManagementOpen,
     openBankManagement,
@@ -95,6 +111,10 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
     editingNote,
     openNoteModal,
     closeNoteModal,
+    isNoteDetailModalOpen,
+    detailedNote,
+    openNoteDetailModal,
+    closeNoteDetailModal,
   };
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>;

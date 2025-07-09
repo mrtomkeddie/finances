@@ -1,0 +1,56 @@
+
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Note } from '@/lib/types';
+import { format, parseISO } from 'date-fns';
+import { Edit } from 'lucide-react';
+import { ScrollArea } from './ui/scroll-area';
+
+interface NoteDetailModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  note: Note | null;
+  onEdit: (note: Note) => void;
+}
+
+export function NoteDetailModal({ isOpen, onClose, note, onEdit }: NoteDetailModalProps) {
+  if (!note) return null;
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    try {
+      return format(parseISO(dateString), "do MMMM yyyy, h:mm a");
+    } catch (error) {
+      return 'Invalid date';
+    }
+  };
+
+  const handleEdit = () => {
+    onEdit(note);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl bg-card border-border max-h-[80vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold text-foreground">{note.title}</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            Last updated: {formatDate(note.updatedAt)}
+          </DialogDescription>
+        </DialogHeader>
+
+        <ScrollArea className="flex-grow my-4 pr-4 custom-scrollbar">
+            <p className="text-base text-foreground whitespace-pre-wrap">{note.content}</p>
+        </ScrollArea>
+
+        <div className="flex justify-between items-center pt-4 border-t border-border">
+            <Button variant="outline" onClick={handleEdit}>
+                <Edit className="mr-2 h-4 w-4" /> Edit Note
+            </Button>
+            <Button onClick={onClose}>Close</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

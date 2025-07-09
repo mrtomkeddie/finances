@@ -11,7 +11,7 @@ import { format, parseISO } from 'date-fns';
 
 export default function NotesPage() {
   const { notes, handleDeleteNote } = useData();
-  const { openNoteModal } = useUI();
+  const { openNoteModal, openNoteDetailModal } = useUI();
 
   const sortedNotes = [...notes].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
@@ -54,7 +54,11 @@ export default function NotesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedNotes.map(note => (
-            <Card key={note.id} className="flex flex-col">
+            <Card 
+              key={note.id} 
+              className="flex flex-col cursor-pointer transition-transform hover:-translate-y-1"
+              onClick={() => openNoteDetailModal(note)}
+            >
               <CardHeader>
                 <CardTitle>{note.title}</CardTitle>
                 <CardDescription>
@@ -62,13 +66,18 @@ export default function NotesPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">
-                <p className="text-sm whitespace-pre-wrap">{note.content}</p>
+                <p className="text-sm text-muted-foreground line-clamp-4">{note.content}</p>
               </CardContent>
               <CardFooter className="flex justify-end gap-2">
-                <Button variant="ghost" size="icon" onClick={() => openNoteModal(note)}>
+                <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openNoteModal(note); }}>
                   <Edit className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => handleDelete(note.id, note.title)}>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-destructive hover:text-destructive" 
+                  onClick={(e) => { e.stopPropagation(); handleDelete(note.id, note.title); }}
+                >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </CardFooter>

@@ -19,6 +19,7 @@ import { TransactionModal } from '@/components/TransactionModal';
 import { TransactionDetailModal } from '@/components/TransactionDetailModal';
 import { TransferEditModal } from '@/components/TransferEditModal';
 import { NoteModal } from '@/components/NoteModal';
+import { NoteDetailModal } from '@/components/NoteDetailModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Note } from '@/lib/types';
 
@@ -135,12 +136,16 @@ function AppModals() {
     isDetailModalOpen,
     closeDetailModal,
     detailedTransaction,
-    openTransactionModal,
     isTransferEditOpen,
     closeTransferEditModal,
     isNoteModalOpen,
     editingNote,
     closeNoteModal,
+    isNoteDetailModalOpen,
+    detailedNote,
+    closeNoteDetailModal,
+    openNoteModal,
+    openTransactionModal,
   } = useUI();
 
   const handleSaveNote = (noteData: Omit<Note, 'id'> | Partial<Omit<Note, 'id'>>, noteId?: string) => {
@@ -194,6 +199,15 @@ function AppModals() {
         onSave={handleSaveNote}
         editingNote={editingNote}
       />
+      <NoteDetailModal
+        isOpen={isNoteDetailModalOpen}
+        onClose={closeNoteDetailModal}
+        note={detailedNote}
+        onEdit={(note) => {
+          closeNoteDetailModal();
+          openNoteModal(note);
+        }}
+      />
     </>
   );
 }
@@ -205,7 +219,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
       <DataProvider>
         <div className="flex min-h-screen w-full flex-col bg-background">
           <Header />
-          <main className="flex flex-1 flex-col">
+          <main className="flex flex-1 flex-col pb-16 md:pb-0">
             <div className="mx-auto w-full max-w-screen-lg flex-1 px-4 pt-4 pb-8 sm:px-6 sm:pt-6">
               {children}
             </div>
