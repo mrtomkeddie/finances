@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button';
 import { useUI } from '@/context/UIContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useData } from '@/context/DataContext';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Banknote, Import, Trash2, LogOut } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Banknote, Trash2, LogOut } from 'lucide-react';
 
 export default function SettingsPage() {
   const { openBankManagement } = useUI();
   const { signOutUser, user } = useAuth();
-  const { handleImportData, isImporting, handleClearAllData } = useData();
+  const { handleClearAllData } = useData();
 
   const handleClearDataClick = () => {
     const confirmation = "DELETE";
@@ -51,23 +51,16 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle>Data Management</CardTitle>
           <CardDescription>
-            Manage your financial accounts and import data.
+            Manage your financial accounts.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
+        <CardContent className="grid gap-4 grid-cols-1">
           <Button variant="outline" className="h-auto p-4 flex flex-col items-start text-left" onClick={openBankManagement}>
              <div className="flex items-center gap-2 mb-2">
                 <Banknote className="w-5 h-5" />
                 <h4 className="font-semibold text-base">Manage Banks</h4>
              </div>
             <p className="text-sm text-muted-foreground font-normal">Add, edit, or delete your bank accounts and credit cards.</p>
-          </Button>
-           <Button variant="outline" className="h-auto p-4 flex flex-col items-start text-left" onClick={handleImportData} disabled={isImporting}>
-             <div className="flex items-center gap-2 mb-2">
-                <Import className="w-5 h-5" />
-                <h4 className="font-semibold text-base">{isImporting ? 'Importing...' : 'Import Data'}</h4>
-             </div>
-            <p className="text-sm text-muted-foreground font-normal">Import your data from an existing Airtable base.</p>
           </Button>
         </CardContent>
       </Card>

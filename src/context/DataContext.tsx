@@ -5,9 +5,6 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useAuth } from '@/hooks/useAuth';
 import { Transaction, Bank } from '@/lib/types';
 import { getBanks, getTransactions, addBank, updateBank, deleteBank, addTransaction, updateTransaction, deleteTransaction, getUserProfile, updateUserProfile, clearAllUserData } from '@/lib/firebase';
-import { airtableService } from '@/lib/airtableService';
-import { writeBatch, collection, doc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 
 interface DataContextType {
   banks: Bank[];
@@ -16,9 +13,7 @@ interface DataContextType {
   isInitialLoading: boolean;
   error: string | null;
   setError: (error: string | null) => void;
-  isImporting: boolean;
   refreshData: () => void;
-  handleImportData: () => Promise<void>;
   handleClearAllData: () => Promise<void>;
   handleAddBank: (newBank: Omit<Bank, 'id'>) => Promise<void>;
   handleUpdateBank: (bankId: string, updates: Partial<Bank>) => Promise<void>;
@@ -39,7 +34,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [weeklyTransferAmount, setWeeklyTransferAmount] = useState(0);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isImporting, setIsImporting] = useState(false);
 
   const loadData = async () => {
     if (!user) return;
@@ -77,52 +71,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       loadData();
     }
   }, [user]);
-
-  const handleImportData = async () => {
-    if (!user) {
-        setError('You must be logged in to import data.');
-        return;
-    }
-    setIsImporting(true);
-    setError(null);
-    try {
-        const [airtableBanks, airtableTransactions] = await Promise.all([
-            airtableService.getBanks(),
-            airtableService.getTransactions(),
-        ]);
-        const batch = writeBatch(db);
-        const bankIdMap = new Map<string, string>();
-        airtableBanks.forEach(bank => {
-            const firestoreBankRef = doc(collection(db, `users/${user.uid}/banks`));
-            batch.set(firestoreBankRef, { name: bank.name, type: bank.type, color: bank.color });
-            bankIdMap.set(bank.id, firestoreBankRef.id);
-        });
-        airtableTransactions.forEach(transaction => {
-            const firestoreTransactionRef = doc(collection(db, `users/${user.uid}/transactions`));
-            const firestoreBankId = bankIdMap.get(transaction.bankId);
-            if (!firestoreBankId) return;
-            const transactionData: Omit<Transaction, 'id'> = {
-              title: transaction.title, amount: transaction.amount, type: transaction.type, frequency: transaction.frequency, category: transaction.category, date: transaction.date, bankId: firestoreBankId, remainingBalance: transaction.remainingBalance ?? null, monthlyInterest: transaction.monthlyInterest ?? null, interestRate: transaction.interestRate ?? null, interestType: transaction.interestType ?? null, rateFrequency: transaction.rateFrequency ?? null, description: transaction.description ?? null,
-            };
-            batch.set(firestoreTransactionRef, transactionData);
-        });
-        await batch.commit();
-        await loadData();
-    } catch (err: any) {
-      console.error('Full error object during import:', err);
-      let detailedError = `Failed to import data: ${err.message}`;
-      if (err.code === 'permission-denied' || (err.message && err.message.includes('permission-denied'))) {
-          detailedError = 'Firestore Permissions Error\n\nYour security rules are preventing the data from being saved. Please make sure you have correctly deployed the firestore.rules file.';
-      } else if (err.message && err.message.includes('Airtable')) {
-          detailedError = 'Airtable Connection Error\n\nThere was a problem connecting to Airtable. The API key may have expired.';
-      } else {
-          detailedError += '\n\nAn unknown error occurred during the import process.';
-      }
-      setError(detailedError);
-    } finally {
-        setIsImporting(false);
-    }
-  };
   
   const handleSaveTransferAmount = async (amount: number) => {
     if (!user) return;
@@ -222,9 +170,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     isInitialLoading,
     error,
     setError,
-    isImporting,
     refreshData: loadData,
-    handleImportData,
     handleClearAllData,
     handleAddBank,
     handleUpdateBank,

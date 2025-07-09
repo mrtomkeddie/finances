@@ -19,6 +19,7 @@ import { BankManagementModal } from '@/components/BankManagementModal';
 import { TransactionModal } from '@/components/TransactionModal';
 import { TransactionDetailModal } from '@/components/TransactionDetailModal';
 import { TransferEditModal } from '@/components/TransferEditModal';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 function DesktopHeader() {
   const { signOutUser } = useAuth();
@@ -32,6 +33,7 @@ function DesktopHeader() {
           <Button variant="outline" onClick={() => openTransactionModal(null)}>
             <Plus className="mr-2 h-4 w-4" /> Add Transaction
           </Button>
+          <ThemeToggle />
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon">

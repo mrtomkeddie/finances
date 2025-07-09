@@ -114,6 +114,9 @@ export default function DashboardPage() {
               <p className={`text-4xl font-bold ${netMonthlyCashflow >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 <AnimatedNumber value={netMonthlyCashflow} />
               </p>
+              <p className="text-xs text-muted-foreground mt-2 max-w-xs mx-auto">
+                This is your total monthly income minus all of your monthly expenses and debt payments.
+              </p>
           </Card>
           
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
