@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -6,26 +7,34 @@ import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 
 export function Logo({ className }: { className?: string }) {
-  const [mounted, setMounted] = useState(false);
   const { resolvedTheme } = useTheme();
+  // State to hold a cache-busting value, generated only on the client
+  const [cacheKey, setCacheKey] = useState<number | null>(null);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    // This runs only on the client, after the component has mounted.
+    // It generates a unique timestamp to force the browser to re-fetch the image.
+    setCacheKey(Date.now());
+  }, []); // The empty dependency array ensures this effect runs only once.
 
-  // Render a placeholder on the server to prevent hydration mismatch and layout shift
-  if (!mounted) {
+  // On the server, or before the client-side effect has run, render a placeholder
+  // This prevents hydration mismatch and avoids layout shift.
+  if (!cacheKey) {
     return (
       <div style={{ width: '150px', height: '40px' }} className={className} />
     );
   }
 
+  // Determine the correct logo source based on the theme
   const src = resolvedTheme === 'dark' ? '/white.png' : '/dark.png';
-  
+
   return (
     <Image
-      key={src}
-      src={src}
+      // The key is crucial. It tells React to treat this as a new component
+      // when the source URL changes, ensuring a re-render.
+      key={`${src}-${cacheKey}`}
+      // Append the cache-busting key as a query parameter
+      src={`${src}?v=${cacheKey}`}
       alt="Finance Port Logo"
       width={150}
       height={40}
