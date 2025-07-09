@@ -96,10 +96,13 @@ function MobileHeader() {
     <header className="sticky top-0 z-10 block border-b bg-background/95 backdrop-blur md:hidden">
       <div className="mx-auto flex h-16 max-w-screen-2xl items-center justify-between px-4">
         <Logo />
-        <Button variant="outline" size="icon" onClick={() => openTransactionModal(null)}>
-            <Plus className="h-5 w-5" />
-            <span className="sr-only">Add Transaction</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Button variant="outline" size="icon" onClick={() => openTransactionModal(null)}>
+              <Plus className="h-5 w-5" />
+              <span className="sr-only">Add Transaction</span>
+          </Button>
+        </div>
       </div>
     </header>
   );
