@@ -66,10 +66,17 @@ export default function TransactionsPage() {
     }, [transactions, activeFilter, activeBankFilter, sort, banks]);
 
     const totalSummary = useMemo(() => {
-        const income = calculateSummary(transactions.filter(t => t.type === 'income')).monthlyIncome;
-        const expenses = calculateSummary(transactions.filter(t => t.type === 'expense' || t.type === 'debt')).monthlyDebt;
-        return { income, expenses };
-    }, [transactions]);
+        const filteredTxs = transactions.filter(t => 
+            activeBankFilter === 'all' || t.bankId === activeBankFilter
+        );
+
+        const summary = calculateSummary(filteredTxs);
+        
+        const income = summary.monthlyIncome;
+        const outgoings = summary.monthlyExpenses + summary.monthlyDebt;
+        
+        return { income, expenses: outgoings };
+    }, [transactions, activeBankFilter]);
 
     const TransactionIcon = ({ type }: { type: string }) => {
         if (type === 'income') return <ArrowUp className="h-5 w-5 text-green-500" />;
