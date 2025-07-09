@@ -6,7 +6,6 @@ import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Pencil, Trash2 } from 'lucide-react';
 import { Bank, BankType } from '@/lib/types';
-import { ScrollArea } from './ui/scroll-area';
 import { cn } from '@/lib/utils';
 
 interface BankManagementModalProps {
@@ -97,8 +96,8 @@ export function BankManagementModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-card border-border max-h-[90vh] flex flex-col p-0 sm:p-6">
-        <DialogHeader className="p-6 sm:p-0">
+      <DialogContent className="max-w-2xl bg-card border-border max-h-[90vh] flex flex-col p-0 sm:p-6 overflow-y-auto custom-scrollbar">
+        <DialogHeader className="p-6 sm:p-0 sm:pb-4">
           <DialogTitle className="text-lg font-semibold text-foreground">
             Manage Banks & Cards
           </DialogTitle>
@@ -107,9 +106,9 @@ export function BankManagementModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6 py-4 px-6 sm:px-0 min-h-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4 px-6 sm:px-0">
           {/* Add New Account Section */}
-          <div className="flex flex-col space-y-4 border-r-0 md:border-r md:pr-6 border-border">
+          <div className="space-y-4 border-r-0 md:border-r md:pr-6 border-border">
             <h3 className="text-base font-semibold text-foreground">Add New Account</h3>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -160,7 +159,6 @@ export function BankManagementModal({
                 </div>
               </div>
             </div>
-             <div className="flex-grow" />
              <Button 
                 onClick={handleAddBank}
                 disabled={!newBankName.trim()}
@@ -171,109 +169,107 @@ export function BankManagementModal({
           </div>
 
           {/* Your Accounts Section */}
-          <div className="flex flex-col space-y-4 min-h-0">
+          <div className="space-y-4">
             <h3 className="text-base font-semibold text-foreground">Your Accounts</h3>
-             <ScrollArea className="flex-grow -mr-2">
-                <div className="pr-4 space-y-2">
-                {userBanks.map((bank) => (
-                    <div
-                    key={bank.id}
-                    className="p-3 rounded-lg bg-muted/50 border border-border"
-                    >
-                    {editingBank === bank.id ? (
-                        <div className="flex-1 space-y-3">
-                          <div>
-                            <Label className="text-xs text-muted-foreground">Name</Label>
-                            <Input
-                                value={editName}
-                                onChange={(e) => setEditName(e.target.value)}
-                                className="h-9 bg-background border-border text-foreground"
-                            />
-                          </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <Label className="text-xs text-muted-foreground">Type</Label>
-                              <Select value={editType} onValueChange={(value: BankType) => setEditType(value)}>
-                                <SelectTrigger className="h-9 bg-background border-border text-foreground">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="bg-popover border-border">
-                                    <SelectItem value="bank">Bank</SelectItem>
-                                    <SelectItem value="credit-card">Card</SelectItem>
-                                    <SelectItem value="loan">Loan</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                               <Label className="text-xs text-muted-foreground">Color</Label>
-                               <div className="flex items-center gap-1.5 h-9">
-                                {colorOptions.map((color) => (
-                                    <button
-                                    key={color}
-                                    type="button"
-                                    onClick={() => setEditColor(color)}
-                                    className={cn(`w-5 h-5 rounded-full border-2`,
-                                      editColor === color 
-                                      ? 'border-primary' 
-                                      : 'border-border'
-                                    )}
-                                    style={{ backgroundColor: color }}
-                                    />
-                                ))}
-                                </div>
-                            </div>
-                          </div>
-                          <div className="flex gap-2 pt-1">
-                              <Button size="sm" onClick={handleSaveEdit}>Save Changes</Button>
-                              <Button size="sm" variant="ghost" onClick={handleCancelEdit}>Cancel</Button>
-                          </div>
+            <div className="space-y-2">
+            {userBanks.map((bank) => (
+                <div
+                key={bank.id}
+                className="p-3 rounded-lg bg-muted/50 border border-border"
+                >
+                {editingBank === bank.id ? (
+                    <div className="flex-1 space-y-3">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Name</Label>
+                        <Input
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            className="h-9 bg-background border-border text-foreground"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Type</Label>
+                          <Select value={editType} onValueChange={(value: BankType) => setEditType(value)}>
+                            <SelectTrigger className="h-9 bg-background border-border text-foreground">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-popover border-border">
+                                <SelectItem value="bank">Bank</SelectItem>
+                                <SelectItem value="credit-card">Card</SelectItem>
+                                <SelectItem value="loan">Loan</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
-                    ) : (
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                              <div
-                              className="w-3 h-3 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: bank.color }}
-                              />
-                              <div>
-                                <div className="font-medium text-foreground leading-tight">{bank.name}</div>
-                                <div className="text-xs text-muted-foreground">
-                                    {getAccountTypeLabel(bank.type)}
-                                </div>
-                              </div>
-                          </div>
-                          <div className="flex items-center">
-                              <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => handleStartEdit(bank)}
-                              className="w-8 h-8"
-                              >
-                              <Pencil className="w-4 h-4" />
-                              </Button>
-                              <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => onDeleteBank(bank.id)}
-                              className="w-8 h-8 text-destructive hover:text-destructive"
-                              >
-                              <Trash2 className="w-4 h-4" />
-                              </Button>
-                          </div>
+                        <div>
+                           <Label className="text-xs text-muted-foreground">Color</Label>
+                           <div className="flex items-center gap-1.5 h-9">
+                            {colorOptions.map((color) => (
+                                <button
+                                key={color}
+                                type="button"
+                                onClick={() => setEditColor(color)}
+                                className={cn(`w-5 h-5 rounded-full border-2`,
+                                  editColor === color 
+                                  ? 'border-primary' 
+                                  : 'border-border'
+                                )}
+                                style={{ backgroundColor: color }}
+                                />
+                            ))}
+                            </div>
                         </div>
-                    )}
+                      </div>
+                      <div className="flex gap-2 pt-1">
+                          <Button size="sm" onClick={handleSaveEdit}>Save Changes</Button>
+                          <Button size="sm" variant="ghost" onClick={handleCancelEdit}>Cancel</Button>
+                      </div>
                     </div>
-                ))}
-                
-                {userBanks.length === 0 && (
-                    <div className="h-full flex items-center justify-center">
-                      <p className="py-6 text-center text-sm text-muted-foreground">
-                        No accounts added yet.
-                      </p>
+                ) : (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                          <div
+                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: bank.color }}
+                          />
+                          <div>
+                            <div className="font-medium text-foreground leading-tight">{bank.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                                {getAccountTypeLabel(bank.type)}
+                            </div>
+                          </div>
+                      </div>
+                      <div className="flex items-center">
+                          <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleStartEdit(bank)}
+                          className="w-8 h-8"
+                          >
+                          <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => onDeleteBank(bank.id)}
+                          className="w-8 h-8 text-destructive hover:text-destructive"
+                          >
+                          <Trash2 className="w-4 h-4" />
+                          </Button>
+                      </div>
                     </div>
                 )}
                 </div>
-            </ScrollArea>
+            ))}
+            
+            {userBanks.length === 0 && (
+                <div className="h-full flex items-center justify-center">
+                  <p className="py-6 text-center text-sm text-muted-foreground">
+                    No accounts added yet.
+                  </p>
+                </div>
+            )}
+            </div>
           </div>
         </div>
       </DialogContent>
