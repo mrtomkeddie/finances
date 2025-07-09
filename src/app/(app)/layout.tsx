@@ -236,8 +236,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   React.useEffect(() => {
-    if (!loading && user) {
-      router.push('/dashboard');
+    if (!loading && !user) {
+      router.push('/login');
     }
   }, [user, loading, router]);
 
