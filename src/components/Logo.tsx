@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -18,8 +19,8 @@ export function Logo({ className }: { className?: string }) {
     // Render a placeholder on the server to prevent hydration mismatch and layout shift
     return (
       <div className={cn("flex items-center", className)}>
-        <div className="flex h-[48px] w-[48px] items-center justify-center rounded-lg bg-primary/10 p-2 border border-primary/20">
-          <Landmark className="h-7 w-7 text-primary" />
+        <div className="flex h-[56px] w-[56px] items-center justify-center rounded-lg bg-primary/10 p-2 border border-primary/20">
+          <Landmark className="h-8 w-8 text-primary" />
         </div>
       </div>
     );
@@ -32,8 +33,8 @@ export function Logo({ className }: { className?: string }) {
       <Image
         src={src}
         alt="Finances 2.0 Logo"
-        width={48}
-        height={48}
+        width={56}
+        height={56}
         priority
       />
     </div>
