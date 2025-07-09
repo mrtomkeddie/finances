@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   description: 'Your personal finance companion.',
   manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.ico?v=2',
-    apple: '/favicon.ico?v=2',
+    icon: '/icon.png',
+    apple: '/icon.png',
   },
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#f3f1ec' },
