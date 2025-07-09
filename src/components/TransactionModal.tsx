@@ -37,6 +37,25 @@ const frequencies: { value: TransactionFrequency; label: string }[] = [
   { value: 'yearly', label: 'Yearly' },
 ];
 
+type FormData = Omit<Transaction, 'id' | 'date'>;
+
+function getInitialFormData(): FormData {
+  return {
+    title: '',
+    amount: 0,
+    type: 'income' as TransactionType,
+    frequency: 'monthly' as TransactionFrequency,
+    category: '',
+    bankId: '',
+    remainingBalance: null,
+    monthlyInterest: null,
+    interestRate: null,
+    interestType: 'monetary' as InterestType,
+    rateFrequency: 'monthly' as RateFrequency,
+    description: '',
+  };
+}
+
 export function TransactionModal({ 
   isOpen, 
   onClose, 
@@ -44,46 +63,18 @@ export function TransactionModal({
   banks, 
   editTransaction 
 }: TransactionModalProps) {
-  const [formData, setFormData] = useState<Omit<Transaction, 'id'>>(getInitialFormData());
-
-  function getInitialFormData(): Omit<Transaction, 'id'> {
-    return {
-      title: '',
-      amount: 0,
-      type: 'income' as TransactionType,
-      frequency: 'monthly' as TransactionFrequency,
-      category: '',
-      date: format(new Date(), 'yyyy-MM-dd'),
-      bankId: '',
-      remainingBalance: null,
-      monthlyInterest: null,
-      interestRate: null,
-      interestType: 'monetary' as InterestType,
-      rateFrequency: 'monthly' as RateFrequency,
-      description: '',
-    };
-  }
+  const [formData, setFormData] = useState<FormData>(getInitialFormData());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
 
   useEffect(() => {
     if (isOpen) {
       if (editTransaction) {
-        setFormData({
-          title: editTransaction.title,
-          amount: editTransaction.amount,
-          type: editTransaction.type,
-          frequency: editTransaction.frequency,
-          category: editTransaction.category || '',
-          date: editTransaction.date,
-          bankId: editTransaction.bankId || '',
-          remainingBalance: editTransaction.remainingBalance,
-          monthlyInterest: editTransaction.monthlyInterest,
-          interestRate: editTransaction.interestRate,
-          interestType: editTransaction.interestType || 'monetary',
-          rateFrequency: editTransaction.rateFrequency || 'monthly',
-          description: editTransaction.description || '',
-        });
+        const { date, ...rest } = editTransaction;
+        setFormData(rest);
+        setSelectedDate(date ? parse(date, 'yyyy-MM-dd', new Date()) : new Date());
       } else {
         setFormData(getInitialFormData());
+        setSelectedDate(new Date());
       }
     }
   }, [isOpen, editTransaction]);
@@ -136,10 +127,11 @@ export function TransactionModal({
 
     const transaction: Omit<Transaction, 'id'> = {
       ...formData,
+      date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
       title: formData.title.trim(),
       category: formData.type, // Use transaction type as category
       remainingBalance: formData.type === 'debt' ? formData.remainingBalance : null,
-      monthlyInterest: formData.type === 'debt' ? calculateMonthlyInterest(formData as Transaction) : null,
+      monthlyInterest: formData.type === 'debt' ? calculateMonthlyInterest({ ...formData, date: '' } as Transaction) : null,
       interestRate: formData.type === 'debt' ? formData.interestRate : null,
       interestType: formData.type === 'debt' ? formData.interestType : null,
       rateFrequency: formData.type === 'debt' ? formData.rateFrequency : null,
@@ -153,12 +145,10 @@ export function TransactionModal({
   const isDebt = formData.type === 'debt';
   const isPercentageType = formData.interestType === 'percentage';
 
-  const calculatedMonthlyInterest = isDebt ? calculateMonthlyInterest(formData as Transaction) : 0;
+  const calculatedMonthlyInterest = isDebt ? calculateMonthlyInterest({ ...formData, date: '' } as Transaction) : 0;
   const netPayment = isDebt && formData.amount > 0 
     ? Math.max(0, formData.amount - calculatedMonthlyInterest)
     : formData.amount;
-    
-  const selectedDate = formData.date ? parse(formData.date, 'yyyy-MM-dd', new Date()) : undefined;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -275,7 +265,7 @@ export function TransactionModal({
                   variant={'outline'}
                   className={cn(
                     "w-full justify-start text-left font-normal bg-input border-border text-foreground placeholder:text-muted-foreground",
-                    !formData.date && "text-muted-foreground"
+                    !selectedDate && "text-muted-foreground"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -286,11 +276,7 @@ export function TransactionModal({
                 <Calendar
                   mode="single"
                   selected={selectedDate}
-                  onSelect={(date) => {
-                    if (date) {
-                      setFormData({ ...formData, date: format(date, 'yyyy-MM-dd') });
-                    }
-                  }}
+                  onSelect={setSelectedDate}
                   initialFocus
                 />
               </PopoverContent>

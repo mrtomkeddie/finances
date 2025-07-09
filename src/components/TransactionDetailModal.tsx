@@ -67,16 +67,16 @@ export function TransactionDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto bg-card border-border">
+      <DialogContent className="max-w-md sm:max-w-lg mx-auto bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-foreground">{transaction.title}</DialogTitle>
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-foreground">{transaction.title}</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
             Transaction Details
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          <div className="flex items-center gap-2">
+        <div className="space-y-4 py-2 sm:py-4">
+          <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="outline" className={`${getTypeColor(transaction.type)} border`}>
               {transaction.type === 'debt' ? 'Debt Payment' : transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
             </Badge>
@@ -87,20 +87,20 @@ export function TransactionDetailModal({
 
           <Separator />
           
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 p-3 rounded-lg bg-muted/30 border border-border/50">
-              <p className="text-xs text-muted-foreground">{isDebt ? 'Payment' : 'Amount'}</p>
-              <p className="text-lg font-bold text-foreground">{formatCurrency(transaction.amount)}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="flex-1 p-3 sm:p-4 rounded-lg bg-muted/30 border border-border/50">
+              <p className="text-xs sm:text-sm text-muted-foreground">{isDebt ? 'Payment' : 'Amount'}</p>
+              <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(transaction.amount)}</p>
             </div>
-            <div className="flex-1 p-3 rounded-lg bg-muted/30 border border-border/50">
-              <p className="text-xs text-muted-foreground">Monthly Equivalent</p>
-              <p className="text-lg font-bold text-foreground">{formatCurrency(monthlyAmount)}</p>
+            <div className="flex-1 p-3 sm:p-4 rounded-lg bg-muted/30 border border-border/50">
+              <p className="text-xs sm:text-sm text-muted-foreground">Monthly Equivalent</p>
+              <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(monthlyAmount)}</p>
             </div>
           </div>
 
           {isDebt && (
-            <div className="space-y-3 p-3 bg-muted/30 rounded-lg border border-border/50">
-              <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+            <div className="space-y-3 p-3 sm:p-4 bg-muted/30 rounded-lg border border-border/50">
+              <h4 className="font-semibold text-sm sm:text-base text-foreground flex items-center gap-2">
                 <Percent className="h-4 w-4" /> Debt Analysis
               </h4>
               <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -150,7 +150,7 @@ export function TransactionDetailModal({
           {transaction.description && (
             <div>
               <p className="text-sm font-medium text-foreground mb-1">Description</p>
-              <p className="text-xs text-muted-foreground bg-muted/30 p-2 rounded-lg border border-border/50">
+              <p className="text-xs text-muted-foreground bg-muted/30 p-2 sm:p-3 rounded-lg border border-border/50">
                 {transaction.description}
               </p>
             </div>
@@ -158,10 +158,10 @@ export function TransactionDetailModal({
 
           <Separator />
 
-          <div className="flex flex-col sm:flex-row gap-2 pt-2">
-            <Button size="sm" variant="outline" onClick={handleEdit} className="flex-1 gap-2"><Edit /> Edit</Button>
-            <Button size="sm" variant="destructive" onClick={handleDelete} className="flex-1 gap-2"><Trash2 /> Delete</Button>
-            <Button size="sm" onClick={onClose} className="flex-1">Close</Button>
+          <div className="flex flex-col sm:flex-row gap-2 pt-2 sm:pt-4">
+            <Button variant="outline" onClick={handleEdit} className="flex-1 gap-2"><Edit /> Edit</Button>
+            <Button variant="destructive" onClick={handleDelete} className="flex-1 gap-2"><Trash2 /> Delete</Button>
+            <Button onClick={onClose} className="flex-1 sm:flex-initial sm:ml-auto">Close</Button>
           </div>
         </div>
       </DialogContent>
