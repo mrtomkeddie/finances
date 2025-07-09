@@ -24,6 +24,7 @@ export function Logo({ className }: { className?: string }) {
   
   return (
     <Image
+      key={src}
       src={src}
       alt="Finance Port Logo"
       width={150}
