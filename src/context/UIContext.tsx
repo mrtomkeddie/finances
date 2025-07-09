@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { Transaction } from '@/lib/types';
+import type { Transaction, Note } from '@/lib/types';
 
 interface UIContextType {
   isBankManagementOpen: boolean;
@@ -22,6 +22,11 @@ interface UIContextType {
   isTransferEditOpen: boolean;
   openTransferEditModal: () => void;
   closeTransferEditModal: () => void;
+
+  isNoteModalOpen: boolean;
+  editingNote: Note | null;
+  openNoteModal: (note?: Note | null) => void;
+  closeNoteModal: () => void;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
@@ -33,6 +38,8 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [detailedTransaction, setDetailedTransaction] = useState<Transaction | null>(null);
   const [isTransferEditOpen, setIsTransferEditOpen] = useState(false);
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
 
   const openBankManagement = () => setIsBankManagementOpen(true);
   const closeBankManagement = () => setIsBankManagementOpen(false);
@@ -60,6 +67,15 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
   const openTransferEditModal = () => setIsTransferEditOpen(true);
   const closeTransferEditModal = () => setIsTransferEditOpen(false);
 
+  const openNoteModal = (note: Note | null = null) => {
+    setEditingNote(note);
+    setIsNoteModalOpen(true);
+  };
+  const closeNoteModal = () => {
+    setIsNoteModalOpen(false);
+    setEditingNote(null);
+  };
+
   const value = {
     isBankManagementOpen,
     openBankManagement,
@@ -75,6 +91,10 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
     isTransferEditOpen,
     openTransferEditModal,
     closeTransferEditModal,
+    isNoteModalOpen,
+    editingNote,
+    openNoteModal,
+    closeNoteModal,
   };
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>;

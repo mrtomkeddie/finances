@@ -4,7 +4,7 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, List, Loader2, LogOut, Menu, Plus, Settings } from 'lucide-react';
+import { LayoutDashboard, List, Loader2, LogOut, Menu, Plus, Settings, Notebook } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -19,7 +19,9 @@ import { BankManagementModal } from '@/components/BankManagementModal';
 import { TransactionModal } from '@/components/TransactionModal';
 import { TransactionDetailModal } from '@/components/TransactionDetailModal';
 import { TransferEditModal } from '@/components/TransferEditModal';
+import { NoteModal } from '@/components/NoteModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Note } from '@/lib/types';
 
 function DesktopHeader() {
   const { signOutUser } = useAuth();
@@ -61,6 +63,13 @@ function DesktopHeader() {
                         <Link href="/transactions" passHref>
                             <Button variant="ghost" className="w-full justify-start text-base font-normal py-4">
                                 <List className="mr-2 h-4 w-4" /> Transactions
+                            </Button>
+                        </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                        <Link href="/notes" passHref>
+                            <Button variant="ghost" className="w-full justify-start text-base font-normal py-4">
+                                <Notebook className="mr-2 h-4 w-4" /> Notes
                             </Button>
                         </Link>
                     </SheetClose>
@@ -112,6 +121,7 @@ function MobileHeader() {
 function AppModals() {
   const {
     banks,
+    notes,
     weeklyTransferAmount,
     handleAddBank,
     handleUpdateBank,
@@ -120,6 +130,8 @@ function AppModals() {
     handleUpdateTransaction,
     handleDeleteTransaction,
     handleSaveTransferAmount,
+    handleAddNote,
+    handleUpdateNote,
   } = useData();
 
   const {
@@ -134,7 +146,18 @@ function AppModals() {
     openTransactionModal,
     isTransferEditOpen,
     closeTransferEditModal,
+    isNoteModalOpen,
+    editingNote,
+    closeNoteModal,
   } = useUI();
+
+  const handleSaveNote = (noteData: Omit<Note, 'id'> | Partial<Omit<Note, 'id'>>, noteId?: string) => {
+    if (noteId) {
+      handleUpdateNote(noteData, noteId);
+    } else {
+      handleAddNote(noteData as Omit<Note, 'id'>);
+    }
+  };
 
   return (
     <>
@@ -172,6 +195,12 @@ function AppModals() {
         onClose={closeTransferEditModal} 
         currentAmount={weeklyTransferAmount} 
         onSave={handleSaveTransferAmount} 
+      />
+      <NoteModal
+        isOpen={isNoteModalOpen}
+        onClose={closeNoteModal}
+        onSave={handleSaveNote}
+        editingNote={editingNote}
       />
     </>
   );

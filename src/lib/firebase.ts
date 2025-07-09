@@ -18,7 +18,7 @@ import {
   Unsubscribe,
   setDoc,
 } from 'firebase/firestore';
-import type { Transaction, Bank, Goal, UserProfile } from './types';
+import type { Transaction, Bank, Goal, UserProfile, Note } from './types';
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -84,6 +84,29 @@ export const deleteTransaction = (userId: string, transactionId: string) => {
     return deleteDoc(doc(db, `users/${userId}/transactions`, transactionId));
 };
 
+// Note Operations
+export const getNotes = async (userId: string): Promise<Note[]> => {
+  const q = query(collection(db, `users/${userId}/notes`));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(docToObj) as Note[];
+};
+
+export const addNote = async (userId: string, note: Omit<Note, 'id'>): Promise<Note> => {
+    const docRef = await addDoc(collection(db, `users/${userId}/notes`), note);
+    return { id: docRef.id, ...note };
+};
+
+export const updateNote = async (userId: string, noteId: string, updates: Partial<Note>): Promise<Note> => {
+    const docRef = doc(db, `users/${userId}/notes`, noteId);
+    await updateDoc(docRef, updates);
+    const updatedDoc = await getDoc(docRef);
+    return docToObj(updatedDoc) as Note;
+};
+
+export const deleteNote = (userId: string, noteId: string) => {
+    return deleteDoc(doc(db, `users/${userId}/notes`, noteId));
+};
+
 
 // Goal Operations
 export const getGoals = (userId: string, callback: (goals: Goal[]) => void): Unsubscribe => {
@@ -125,7 +148,7 @@ export const updateUserProfile = async (userId: string, profile: Partial<UserPro
 export const clearAllUserData = async (userId: string) => {
     const batch = writeBatch(db);
 
-    const collections = ['transactions', 'banks', 'goals'];
+    const collections = ['transactions', 'banks', 'goals', 'notes'];
     for (const col of collections) {
         const snapshot = await getDocs(collection(db, `users/${userId}/${col}`));
         snapshot.docs.forEach((d) => batch.delete(d.ref));

@@ -3,12 +3,13 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Transaction, Bank } from '@/lib/types';
-import { getBanks, getTransactions, addBank, updateBank, deleteBank, addTransaction, updateTransaction, deleteTransaction, getUserProfile, updateUserProfile, clearAllUserData } from '@/lib/firebase';
+import { Transaction, Bank, Note } from '@/lib/types';
+import { getBanks, getTransactions, addBank, updateBank, deleteBank, addTransaction, updateTransaction, deleteTransaction, getUserProfile, updateUserProfile, clearAllUserData, getNotes, addNote, updateNote, deleteNote } from '@/lib/firebase';
 
 interface DataContextType {
   banks: Bank[];
   transactions: Transaction[];
+  notes: Note[];
   weeklyTransferAmount: number;
   isInitialLoading: boolean;
   error: string | null;
@@ -22,6 +23,9 @@ interface DataContextType {
   handleUpdateTransaction: (updatedTransaction: Omit<Transaction, 'id'>, transactionId: string) => Promise<void>;
   handleDeleteTransaction: (transactionId: string) => Promise<void>;
   handleSaveTransferAmount: (amount: number) => Promise<void>;
+  handleAddNote: (newNote: Omit<Note, 'id'>) => Promise<void>;
+  handleUpdateNote: (updates: Partial<Omit<Note, 'id'>>, noteId: string) => Promise<void>;
+  handleDeleteNote: (noteId: string) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -31,6 +35,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   
   const [banks, setBanks] = useState<Bank[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [weeklyTransferAmount, setWeeklyTransferAmount] = useState(0);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,14 +46,16 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       setIsInitialLoading(true);
       setError(null);
       
-      const [firebaseBanks, firebaseTransactions, userProfile] = await Promise.all([
+      const [firebaseBanks, firebaseTransactions, userProfile, firebaseNotes] = await Promise.all([
         getBanks(user.uid),
         getTransactions(user.uid),
         getUserProfile(user.uid),
+        getNotes(user.uid),
       ]);
       
       setBanks(firebaseBanks);
       setTransactions(firebaseTransactions.filter(t => t.type !== 'transfer'));
+      setNotes(firebaseNotes);
       
       setWeeklyTransferAmount(userProfile?.weeklyTransferAmount || 0);
       
@@ -61,6 +68,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       setError(detailedError);
       setBanks([]);
       setTransactions([]);
+      setNotes([]);
     } finally {
       setIsInitialLoading(false);
     }
@@ -152,6 +160,39 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const handleAddNote = async (newNote: Omit<Note, 'id'>) => {
+    if (!user) return;
+    try {
+      setError(null);
+      const createdNote = await addNote(user.uid, newNote);
+      setNotes(prev => [createdNote, ...prev]);
+    } catch (err: any) {
+      setError(`Failed to add note: ${err.message}`);
+    }
+  };
+
+  const handleUpdateNote = async (updates: Partial<Omit<Note, 'id'>>, noteId: string) => {
+    if (!user) return;
+    try {
+      setError(null);
+      const updatedNote = await updateNote(user.uid, noteId, updates);
+      setNotes(prev => prev.map(n => (n.id === noteId ? { ...n, ...updatedNote } : n)));
+    } catch (err: any) {
+      setError(`Failed to update note: ${err.message}`);
+    }
+  };
+  
+  const handleDeleteNote = async (noteId: string) => {
+    if (!user) return;
+    try {
+      setError(null);
+      await deleteNote(user.uid, noteId);
+      setNotes(prev => prev.filter(n => n.id !== noteId));
+    } catch (err: any) {
+      setError(`Failed to delete note: ${err.message}`);
+    }
+  };
+
   const handleClearAllData = async () => {
     if (!user) return;
     try {
@@ -166,6 +207,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     banks,
     transactions,
+    notes,
     weeklyTransferAmount,
     isInitialLoading,
     error,
@@ -179,6 +221,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     handleUpdateTransaction,
     handleDeleteTransaction,
     handleSaveTransferAmount,
+    handleAddNote,
+    handleUpdateNote,
+    handleDeleteNote,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

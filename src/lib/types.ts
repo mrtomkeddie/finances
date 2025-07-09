@@ -36,6 +36,14 @@ export interface Goal {
   currentAmount: number;
 }
 
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string; // ISO String
+  updatedAt: string; // ISO String
+}
+
 export interface UserProfile {
   name: string;
   description?: string;
