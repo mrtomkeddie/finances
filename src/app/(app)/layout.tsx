@@ -27,7 +27,7 @@ function DesktopHeader() {
 
   return (
     <header className="sticky top-0 z-10 hidden border-b bg-background/95 backdrop-blur md:block">
-      <div className="mx-auto flex h-16 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-20 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Logo />
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => openTransactionModal(null)}>
@@ -94,7 +94,7 @@ function MobileHeader() {
   const { openTransactionModal } = useUI();
   return (
     <header className="sticky top-0 z-10 block border-b bg-background/95 backdrop-blur md:hidden">
-      <div className="mx-auto flex h-16 max-w-screen-2xl items-center justify-between px-4">
+      <div className="mx-auto flex h-20 max-w-screen-2xl items-center justify-between px-4">
         <Logo />
         <div className="flex items-center gap-2">
           <ThemeToggle />
