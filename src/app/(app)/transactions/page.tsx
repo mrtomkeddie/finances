@@ -9,7 +9,7 @@ import { useUI } from '@/context/UIContext';
 import { Transaction, TransactionFrequency } from '@/lib/types';
 import { calculateSummary, formatCurrency, calculateMonthlyAmount, calculateWeeksUntilPaidOff, calculateNetMonthlyDebtPayment } from '@/lib/financial';
 import { formatDate, formatNextDueDate, getNextDueDate } from '@/lib/dateUtils';
-import { ArrowDown, ArrowUp, CreditCard, Calendar, Banknote, SearchX, ChevronUp, ChevronDown, Check, ArrowUpDown } from 'lucide-react';
+import { ArrowDown, ArrowUp, CreditCard, Calendar, Banknote, SearchX, ChevronUp, ChevronDown, Check, ArrowUpDown, Loader2 } from 'lucide-react';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -29,7 +29,14 @@ const sortOptions: { value: string; label: string }[] = [
 ];
 
 export default function TransactionsPage() {
-    const { transactions, banks, weeklyTransferAmount } = useData();
+    const { 
+      transactions, 
+      banks, 
+      weeklyTransferAmount, 
+      isInitialLoading, 
+      isTransactionsLoading, 
+      loadTransactions 
+    } = useData();
     const { openDetailModal } = useUI();
     
     const [activeFilter, setActiveFilter] = useState<'all' | 'income' | 'expense' | 'debt'>('all');
@@ -37,6 +44,10 @@ export default function TransactionsPage() {
     const [isBankPopoverOpen, setBankPopoverOpen] = useState(false);
     
     const [sort, setSort] = useState<string>('dueDate_asc');
+
+    useEffect(() => {
+        loadTransactions();
+    }, [loadTransactions]);
 
     const getBankName = (bankId: string) => banks.find(b => b.id === bankId)?.name || 'Unknown';
     const getBankColor = (bankId: string) => banks.find(b => b.id === bankId)?.color || '#6366f1';
@@ -85,6 +96,17 @@ export default function TransactionsPage() {
         
         return { income, expenses: outgoings };
     }, [transactions, activeBankFilter, banks, weeklyTransferAmount]);
+
+    if (isInitialLoading || isTransactionsLoading) {
+        return (
+          <div className="flex h-full items-center justify-center py-20">
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-muted-foreground">Loading transactions...</p>
+            </div>
+          </div>
+        );
+    }
 
     const TransactionIcon = ({ type }: { type: string }) => {
         if (type === 'income') return <ArrowUp className="h-5 w-5 text-green-500" />;

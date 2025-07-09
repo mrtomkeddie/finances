@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Transaction, Bank, Note } from '@/lib/types';
 import { getBanks, getTransactions, addBank, updateBank, deleteBank, addTransaction, updateTransaction, deleteTransaction, getUserProfile, updateUserProfile, clearAllUserData, getNotes, addNote, updateNote, deleteNote } from '@/lib/firebase';
@@ -11,15 +11,17 @@ interface DataContextType {
   transactions: Transaction[];
   notes: Note[];
   weeklyTransferAmount: number;
-  isInitialLoading: boolean;
+  isInitialLoading: boolean; // Core data
+  isTransactionsLoading: boolean;
   error: string | null;
   setError: (error: string | null) => void;
+  loadTransactions: () => Promise<void>;
   refreshData: () => void;
   handleClearAllData: () => Promise<void>;
   handleAddBank: (newBank: Omit<Bank, 'id'>) => Promise<void>;
   handleUpdateBank: (bankId: string, updates: Partial<Bank>) => Promise<void>;
   handleDeleteBank: (bankId: string) => Promise<void>;
-  handleAddTransaction: (newTransaction: Omit<Transaction, 'id'>) => Promise<void>;
+  handleAddTransaction: (newTransaction: Omit<Transaction, 'id'>, transactionId?: string) => Promise<void>;
   handleUpdateTransaction: (updatedTransaction: Omit<Transaction, 'id'>, transactionId: string) => Promise<void>;
   handleDeleteTransaction: (transactionId: string) => Promise<void>;
   handleSaveTransferAmount: (amount: number) => Promise<void>;
@@ -38,29 +40,28 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [weeklyTransferAmount, setWeeklyTransferAmount] = useState(0);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isTransactionsLoading, setIsTransactionsLoading] = useState(false);
+  const [areTransactionsLoaded, setAreTransactionsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadData = async () => {
+  const loadCoreData = useCallback(async () => {
     if (!user) return;
     try {
       setIsInitialLoading(true);
       setError(null);
       
-      const [firebaseBanks, firebaseTransactions, userProfile, firebaseNotes] = await Promise.all([
+      const [firebaseBanks, userProfile, firebaseNotes] = await Promise.all([
         getBanks(user.uid),
-        getTransactions(user.uid),
         getUserProfile(user.uid),
         getNotes(user.uid),
       ]);
       
       setBanks(firebaseBanks);
-      setTransactions(firebaseTransactions.filter(t => t.type !== 'transfer'));
       setNotes(firebaseNotes);
-      
       setWeeklyTransferAmount(userProfile?.weeklyTransferAmount || 0);
       
     } catch (err: any) {
-      console.error('Error loading data from Firebase:', err);
+      console.error('Error loading core data from Firebase:', err);
       let detailedError = `Failed to load data: ${err.message}`;
       if (err.code === 'permission-denied' || (err.message && err.message.includes('permission-denied'))) {
           detailedError = 'Firestore Permissions Error\n\nPlease make sure you have deployed the firestore.rules file to your Firebase project and waited a minute for the rules to apply.';
@@ -72,14 +73,43 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsInitialLoading(false);
     }
-  };
+  }, [user]);
+
+  const loadTransactions = useCallback(async () => {
+    if (!user || areTransactionsLoaded || isTransactionsLoading) return;
+    try {
+        setIsTransactionsLoading(true);
+        setError(null);
+        const firebaseTransactions = await getTransactions(user.uid);
+        setTransactions(firebaseTransactions.filter(t => t.type !== 'transfer'));
+        setAreTransactionsLoaded(true);
+    } catch (err: any) {
+        console.error('Error loading transactions from Firebase:', err);
+        setError(`Failed to load transactions: ${err.message}`);
+    } finally {
+        setIsTransactionsLoading(false);
+    }
+  }, [user, areTransactionsLoaded, isTransactionsLoading]);
 
   useEffect(() => {
     if (user) {
-      loadData();
+      loadCoreData();
+    } else {
+      // Clear data on logout
+      setBanks([]);
+      setTransactions([]);
+      setNotes([]);
+      setWeeklyTransferAmount(0);
+      setAreTransactionsLoaded(false);
+      setIsInitialLoading(true);
     }
-  }, [user]);
+  }, [user, loadCoreData]);
   
+  const refreshData = () => {
+    setAreTransactionsLoaded(false);
+    loadCoreData();
+  };
+
   const handleSaveTransferAmount = async (amount: number) => {
     if (!user) return;
     setWeeklyTransferAmount(amount);
@@ -198,21 +228,25 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     try {
       setError(null);
       await clearAllUserData(user.uid);
-      await loadData();
+      setTransactions([]);
+      setAreTransactionsLoaded(false);
+      await loadCoreData();
     } catch (err: any) {
       setError(`Failed to clear data: ${err.message}`);
     }
   };
 
-  const value = {
+  const value: DataContextType = {
     banks,
     transactions,
     notes,
     weeklyTransferAmount,
     isInitialLoading,
+    isTransactionsLoading,
     error,
     setError,
-    refreshData: loadData,
+    loadTransactions,
+    refreshData,
     handleClearAllData,
     handleAddBank,
     handleUpdateBank,

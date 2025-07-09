@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Settings, TrendingUp, TrendingDown, CreditCard, Loader2, Edit3, Banknote } from 'lucide-react';
@@ -17,13 +17,19 @@ export default function DashboardPage() {
     banks, 
     weeklyTransferAmount, 
     isInitialLoading, 
+    isTransactionsLoading,
+    loadTransactions,
     error,
     setError
   } = useData();
 
   const { openTransferEditModal } = useUI();
 
-  if (isInitialLoading) {
+  useEffect(() => {
+    loadTransactions();
+  }, [loadTransactions]);
+
+  if (isInitialLoading || isTransactionsLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -95,7 +101,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {!hasData && !isInitialLoading && (
+      {!hasData && !isInitialLoading && !isTransactionsLoading && (
         <Card className="text-center py-16">
           <CardContent>
               <Banknote className="mx-auto mb-6 h-16 w-16 text-muted-foreground" />
