@@ -182,16 +182,18 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <UIProvider>
       <DataProvider>
-        <div className="flex min-h-screen w-full flex-col bg-background">
-          <DesktopHeader />
-          <MobileHeader />
-          <main className="flex flex-1 flex-col">
-            <div className="mx-auto w-full max-w-screen-lg px-4 pt-4 pb-24 sm:px-6 sm:pt-6 md:pb-16">
-              {children}
-            </div>
-          </main>
+        <div className="bg-background">
+          <div className="flex min-h-screen w-full flex-col">
+            <DesktopHeader />
+            <MobileHeader />
+            <main className="flex flex-1 flex-col">
+              <div className="mx-auto w-full max-w-screen-lg px-4 pt-4 pb-24 sm:px-6 sm:pt-6 md:pb-16">
+                {children}
+              </div>
+            </main>
+            <AppModals />
+          </div>
           <MobileNav />
-          <AppModals />
         </div>
       </DataProvider>
     </UIProvider>
