@@ -1,0 +1,16 @@
+{
+  "name": "Finances",
+  "short_name": "Finances",
+  "description": "Your personal finance companion.",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3f1ec",
+  "theme_color": "#f3f1ec"
+}
