@@ -4,7 +4,7 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, List, Loader2, LogOut, Menu, Plus, Settings, Notebook } from 'lucide-react';
+import { LayoutDashboard, List, Loader2, LogOut, Menu, Plus, Notebook, Banknote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -26,7 +26,7 @@ import { Note } from '@/lib/types';
 
 function SideMenuContent() {
     const { signOutUser } = useAuth();
-    const { openTransactionModal } = useUI();
+    const { openTransactionModal, openBankManagement } = useUI();
     
     return (
         <SheetContent className="flex h-full flex-col p-6">
@@ -41,6 +41,11 @@ function SideMenuContent() {
                      <SheetClose asChild>
                         <Button variant="outline" className="w-full justify-start text-base font-normal py-4" onClick={() => openTransactionModal(null)}>
                            <Plus className="mr-2 h-4 w-4" /> Add Transaction
+                        </Button>
+                    </SheetClose>
+                    <SheetClose asChild>
+                        <Button variant="outline" className="w-full justify-start text-base font-normal py-4" onClick={openBankManagement}>
+                           <Banknote className="mr-2 h-4 w-4" /> Manage Banks
                         </Button>
                     </SheetClose>
                     <Separator className="my-2" />
@@ -62,13 +67,6 @@ function SideMenuContent() {
                         <Link href="/notes" passHref>
                             <Button variant="ghost" className="w-full justify-start text-base font-normal py-4">
                                 <Notebook className="mr-2 h-4 w-4" /> Notes
-                            </Button>
-                        </Link>
-                    </SheetClose>
-                    <SheetClose asChild>
-                        <Link href="/settings" passHref>
-                            <Button variant="ghost" className="w-full justify-start text-base font-normal py-4">
-                                <Settings className="mr-2 h-4 w-4" /> Settings
                             </Button>
                         </Link>
                     </SheetClose>
