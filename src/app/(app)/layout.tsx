@@ -26,7 +26,7 @@ function DesktopHeader() {
   const { openTransactionModal } = useUI();
 
   return (
-    <header className="sticky top-0 z-10 hidden border-b bg-background/95 backdrop-blur md:block">
+    <header className="sticky top-0 z-10 hidden border-b bg-background/80 backdrop-blur-lg md:block">
       <div className="mx-auto flex h-20 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Logo />
         <div className="flex items-center gap-2">
@@ -93,7 +93,7 @@ function DesktopHeader() {
 function MobileHeader() {
   const { openTransactionModal } = useUI();
   return (
-    <header className="sticky top-0 z-10 block border-b bg-background/95 backdrop-blur md:hidden">
+    <header className="sticky top-0 z-10 block border-b bg-background/80 backdrop-blur-lg md:hidden">
       <div className="mx-auto flex h-20 max-w-screen-2xl items-center justify-between px-4">
         <Logo />
         <div className="flex items-center gap-2">
@@ -203,8 +203,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   React.useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
+    if (!loading && user) {
+      router.push('/dashboard');
     }
   }, [user, loading, router]);
 
