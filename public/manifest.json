@@ -1,11 +1,11 @@
 {
-  "name": "Finances 2.0",
+  "name": "Finances",
   "short_name": "Finances",
   "description": "Your personal finance companion.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#111827",
+  "theme_color": "#111827",
   "icons": [
     {
       "src": "/icon.png",
