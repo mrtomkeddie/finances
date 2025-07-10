@@ -30,7 +30,7 @@ export function TransferEditModal({ isOpen, onClose, currentAmount, onSave }: Tr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto bg-card border-border">
+      <DialogContent className="max-w-lg mx-auto bg-card border-border">
         <DialogHeader className="pb-2">
           <DialogTitle className="text-xl font-bold text-foreground">
             Edit Weekly Transfer
