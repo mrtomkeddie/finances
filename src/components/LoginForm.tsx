@@ -58,7 +58,7 @@ export function LoginForm() {
               <Landmark className="h-8 w-8 text-primary" />
             </div>
             <CardTitle className="text-2xl font-bold text-foreground">
-              Welcome to Finances 2.0
+              Finances
             </CardTitle>
             <CardDescription>
               Sign in to access your financial dashboard.
