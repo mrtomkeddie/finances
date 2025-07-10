@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, Landmark, Lock, Mail } from 'lucide-react';
+import { AlertCircle, Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import Image from 'next/image';
 
 export function LoginForm() {
   const { signInWithEmail, sendPasswordReset, error: authError } = useAuth();
@@ -30,8 +31,12 @@ export function LoginForm() {
     setMessage('');
     setIsLoading(true);
 
-    await signInWithEmail(email, password);
-    // isLoading is reset by the useEffect hook on authError
+    try {
+        await signInWithEmail(email, password);
+    } catch (err) {
+        // Error is handled by the auth context hook
+    }
+    // isLoading is reset by the useEffect hook on authError or on navigation
   };
 
   const handlePasswordReset = async () => {
@@ -55,7 +60,7 @@ export function LoginForm() {
         <Card className="bg-card border-border shadow-2xl">
           <CardHeader className="text-center pb-6">
             <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10 border border-primary/20 w-fit flex items-center justify-center">
-              <Landmark className="h-8 w-8 text-primary" />
+              <Image src="/icon.png" alt="App Logo" width={40} height={40} className="rounded-full" />
             </div>
             <CardTitle className="text-2xl font-bold text-foreground">
               Finances
