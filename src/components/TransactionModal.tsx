@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Transaction, Bank, TransactionType, TransactionFrequency, InterestType, RateFrequency } from '@/lib/types';
 import { calculateMonthlyInterest, formatCurrency, getInterestInputLabel } from '@/lib/financial';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { format, parse } from 'date-fns';
@@ -65,6 +64,7 @@ export function TransactionModal({
 }: TransactionModalProps) {
   const [formData, setFormData] = useState<FormData>(getInitialFormData());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -259,8 +259,8 @@ export function TransactionModal({
           {/* Date */}
           <div className="space-y-2 md:col-span-2">
             <Label className="text-foreground">Date of First (or Next) Payment</Label>
-            <Popover>
-              <PopoverTrigger asChild>
+            <Dialog open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+              <DialogTrigger asChild>
                 <Button
                   variant={'outline'}
                   className={cn(
@@ -271,16 +271,19 @@ export function TransactionModal({
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
+              </DialogTrigger>
+              <DialogContent className="w-auto p-0 bg-card border-border">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
-                  onSelect={setSelectedDate}
+                  onSelect={(date) => {
+                    setSelectedDate(date);
+                    setIsCalendarOpen(false);
+                  }}
                   initialFocus
                 />
-              </PopoverContent>
-            </Popover>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {/* Debt-specific fields */}
@@ -394,3 +397,5 @@ export function TransactionModal({
     </Dialog>
   );
 }
+
+    
