@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import Image from 'next/image';
 
 export function LoginForm() {
   const { signInWithEmail, sendPasswordReset, error: authError } = useAuth();
@@ -60,7 +59,7 @@ export function LoginForm() {
         <Card className="bg-card border-border shadow-2xl">
           <CardHeader className="text-center pb-6">
             <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10 border border-primary/20 w-fit flex items-center justify-center">
-              <Image src="/icon.png" alt="App Logo" width={40} height={40} className="rounded-full" />
+              <img src="/icon.png" alt="App Logo" width="40" height="40" className="rounded-full" />
             </div>
             <CardTitle className="text-2xl font-bold text-foreground">
               Finances
