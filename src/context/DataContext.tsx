@@ -13,9 +13,11 @@ interface DataContextType {
   weeklyTransferAmount: number;
   isInitialLoading: boolean; // Core data
   isTransactionsLoading: boolean;
+  isNotesLoading: boolean;
   error: string | null;
   setError: (error: string | null) => void;
   loadTransactions: () => Promise<void>;
+  loadNotes: () => Promise<void>;
   refreshData: () => void;
   handleClearAllData: () => Promise<void>;
   handleAddBank: (newBank: Omit<Bank, 'id'>) => Promise<void>;
@@ -41,7 +43,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [weeklyTransferAmount, setWeeklyTransferAmount] = useState(0);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isTransactionsLoading, setIsTransactionsLoading] = useState(false);
+  const [isNotesLoading, setIsNotesLoading] = useState(false);
   const [areTransactionsLoaded, setAreTransactionsLoaded] = useState(false);
+  const [areNotesLoaded, setAreNotesLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadCoreData = useCallback(async () => {
@@ -50,14 +54,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       setIsInitialLoading(true);
       setError(null);
       
-      const [firebaseBanks, userProfile, firebaseNotes] = await Promise.all([
+      const [firebaseBanks, userProfile] = await Promise.all([
         getBanks(user.uid),
         getUserProfile(user.uid),
-        getNotes(user.uid),
       ]);
       
       setBanks(firebaseBanks);
-      setNotes(firebaseNotes);
       setWeeklyTransferAmount(userProfile?.weeklyTransferAmount || 0);
       
     } catch (err: any) {
@@ -91,6 +93,22 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user, areTransactionsLoaded, isTransactionsLoading]);
 
+  const loadNotes = useCallback(async () => {
+    if (!user || areNotesLoaded || isNotesLoading) return;
+    try {
+      setIsNotesLoading(true);
+      setError(null);
+      const firebaseNotes = await getNotes(user.uid);
+      setNotes(firebaseNotes);
+      setAreNotesLoaded(true);
+    } catch (err: any) {
+      console.error('Error loading notes from Firebase:', err);
+      setError(`Failed to load notes: ${err.message}`);
+    } finally {
+      setIsNotesLoading(false);
+    }
+  }, [user, areNotesLoaded, isNotesLoading]);
+
   useEffect(() => {
     if (user) {
       loadCoreData();
@@ -101,12 +119,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       setNotes([]);
       setWeeklyTransferAmount(0);
       setAreTransactionsLoaded(false);
+      setAreNotesLoaded(false);
       setIsInitialLoading(true);
     }
   }, [user, loadCoreData]);
   
   const refreshData = () => {
     setAreTransactionsLoaded(false);
+    setAreNotesLoaded(false);
     loadCoreData();
   };
 
@@ -230,6 +250,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       await clearAllUserData(user.uid);
       setTransactions([]);
       setAreTransactionsLoaded(false);
+      setNotes([]);
+      setAreNotesLoaded(false);
       await loadCoreData();
     } catch (err: any) {
       setError(`Failed to clear data: ${err.message}`);
@@ -243,9 +265,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     weeklyTransferAmount,
     isInitialLoading,
     isTransactionsLoading,
+    isNotesLoading,
     error,
     setError,
     loadTransactions,
+    loadNotes,
     refreshData,
     handleClearAllData,
     handleAddBank,

@@ -1,17 +1,21 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { useData } from '@/context/DataContext';
 import { useUI } from '@/context/UIContext';
-import { Plus, Edit, Trash2, Notebook } from 'lucide-react';
+import { Plus, Edit, Trash2, Notebook, Loader2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
 export default function NotesPage() {
-  const { notes, handleDeleteNote } = useData();
+  const { notes, handleDeleteNote, loadNotes, isNotesLoading } = useData();
   const { openNoteModal, openNoteDetailModal } = useUI();
+
+  useEffect(() => {
+    loadNotes();
+  }, [loadNotes]);
 
   const sortedNotes = [...notes].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
@@ -41,7 +45,12 @@ export default function NotesPage() {
         </Button>
       </div>
       
-      {notes.length === 0 ? (
+      {isNotesLoading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground mt-4">Loading your notes...</p>
+        </div>
+      ) : notes.length === 0 ? (
         <Card className="text-center py-16">
           <CardContent>
             <Notebook className="mx-auto mb-6 h-16 w-16 text-muted-foreground" />
