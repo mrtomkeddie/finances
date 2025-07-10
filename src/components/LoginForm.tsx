@@ -53,83 +53,74 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full lg:grid min-h-screen lg:grid-cols-2">
-      <div className="flex items-center justify-center py-12 px-6">
-        <div className="mx-auto grid w-[350px] gap-6">
-          <div className="grid gap-2 text-center">
-            <h1 className="text-3xl font-bold">Sign In</h1>
-            <p className="text-balance text-muted-foreground">
-              Enter your email below to login to your account
+    <div className="flex min-h-screen items-center justify-center bg-gray-900 text-white p-6">
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center">
+            <img src="/white.png" alt="Finances App Logo" className="mx-auto h-auto w-40 mb-6" />
+            <h1 className="text-3xl font-bold">Welcome Back</h1>
+            <p className="text-balance text-gray-400 mt-2">
+              Sign in to access your financial hub.
             </p>
-          </div>
-          <form onSubmit={handleSubmit} className="grid gap-4">
-            <div className="grid gap-2">
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
                <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="m@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 bg-gray-800 border-gray-700 text-white"
                   required
                 />
               </div>
             </div>
-            <div className="grid gap-2">
+            <div className="space-y-2">
               <div className="flex items-center">
                 <Label htmlFor="password">Password</Label>
                 <button 
                   type="button" 
                   onClick={handlePasswordReset} 
-                  className="ml-auto inline-block text-sm underline text-muted-foreground hover:text-foreground"
+                  className="ml-auto inline-block text-sm text-gray-400 hover:text-white underline"
                 >
-                  Forgot your password?
+                  Forgot password?
                 </button>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input 
                   id="password" 
                   type="password" 
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 bg-gray-800 border-gray-700 text-white"
                   required 
                 />
               </div>
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-                <AlertCircle className="h-4 w-4 text-red-500" />
-                <p className="text-sm text-red-500">{error}</p>
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/20 border border-red-500/30">
+                <AlertCircle className="h-4 w-4 text-red-400" />
+                <p className="text-sm text-red-400">{error}</p>
               </div>
             )}
 
             {message && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-                <p className="text-sm text-green-500">{message}</p>
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/20 border border-green-500/30">
+                <p className="text-sm text-green-400">{message}</p>
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Processing...' : 'Sign In'}
+            <Button type="submit" className="w-full bg-white text-gray-900 hover:bg-gray-200" disabled={isLoading}>
+              {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
-          </form>
-        </div>
-      </div>
-      <div className="hidden bg-primary lg:flex items-center justify-center p-12 text-center">
-        <div className="flex flex-col items-center gap-6 text-primary-foreground">
-          <img src="/white.png" alt="Finances App Logo" width={200} height={200} className="w-48 h-auto" />
-          <div className="space-y-2">
-            <h2 className="text-4xl font-bold">Welcome Back</h2>
-            <p className="text-lg text-primary-foreground/80">Your personal finance hub, always at your fingertips.</p>
-          </div>
-        </div>
+        </form>
       </div>
     </div>
   );
