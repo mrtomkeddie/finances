@@ -68,7 +68,7 @@ export function TransferEditModal({ isOpen, onClose, currentAmount, onSave }: Tr
             </div>
           </div>
 
-          <div className="flex gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Button
               type="button"
               variant="outline"
