@@ -10,6 +10,7 @@ import { calculateSummary, calculateMonthlyAmount, formatCurrency } from '@/lib/
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { WeeklyForecast } from '@/components/WeeklyForecast';
 import { useUI } from '@/context/UIContext';
+import { Separator } from '@/components/ui/separator';
 
 export default function DashboardPage() {
   const { 
@@ -38,6 +39,11 @@ export default function DashboardPage() {
         </div>
       </div>
     );
+  }
+  
+  const getBank = (bankIdOrName: string) => {
+    const normalizedName = bankIdOrName.toLowerCase();
+    return banks.find(b => b.id === bankIdOrName || b.name.toLowerCase().includes(normalizedName));
   }
   
   const getBankName = (bankId: string) => banks.find(b => b.id === bankId)?.name || 'Unknown Bank';
@@ -87,7 +93,11 @@ export default function DashboardPage() {
     .reduce((sum, t) => sum + calculateMonthlyAmount(t.amount, t.frequency), 0);
     
   const hsbcTotals = calculateBankTotals('hsbc');
+  const hsbcBank = getBank('hsbc');
+
   const santanderTotals = calculateBankTotals('santander');
+  const santanderBank = getBank('santander');
+  
   const hasData = banks.length > 0 || transactions.length > 0;
   const netMonthlyCashflow = allSummary.monthlyIncome - totalExpenseAndDebt;
 
@@ -117,7 +127,7 @@ export default function DashboardPage() {
         <>
           <Card className="w-full text-center p-6">
               <p className="text-sm text-muted-foreground mb-1">Net Monthly Cashflow</p>
-              <p className={`text-4xl font-bold ${netMonthlyCashflow >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+              <p className={`text-4xl font-bold ${netMonthlyCashflow >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                 <AnimatedNumber value={netMonthlyCashflow} />
               </p>
               <p className="text-xs text-muted-foreground mt-2 max-w-xs mx-auto">
@@ -132,7 +142,7 @@ export default function DashboardPage() {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600 dark:text-green-500">
+                <div className="text-2xl font-bold text-green-500">
                   <AnimatedNumber value={allSummary.monthlyIncome} />
                 </div>
               </CardContent>
@@ -144,7 +154,7 @@ export default function DashboardPage() {
                 <TrendingDown className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-red-600 dark:text-red-500">
+                <div className="text-2xl font-bold text-red-500">
                   <AnimatedNumber value={totalExpenseAndDebt} />
                 </div>
               </CardContent>
@@ -156,7 +166,7 @@ export default function DashboardPage() {
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-600 dark:text-orange-500">
+                <div className="text-2xl font-bold text-orange-500">
                   <AnimatedNumber value={allSummary.totalDebt} />
                 </div>
               </CardContent>
@@ -164,51 +174,60 @@ export default function DashboardPage() {
           </div>
         
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 sm:gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">HSBC Overview</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Weekly Net:</span>
-                  <span className={`text-base font-medium ${hsbcTotals.weeklyNet >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
-                    <AnimatedNumber value={hsbcTotals.weeklyNet} />
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Monthly Net:</span>
-                  <span className={`text-base font-medium ${hsbcTotals.monthlyNet >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
-                    <AnimatedNumber value={hsbcTotals.monthlyNet} />
-                  </span>
-                </div>
-              </CardContent>
+            <Card className="relative overflow-hidden">
+                {hsbcBank && <div className="h-1 absolute top-0 left-0 right-0" style={{ backgroundColor: hsbcBank.color }} />}
+                <CardHeader>
+                    <CardTitle className="text-base font-semibold">HSBC Overview</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-4">
+                    <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Weekly Net</p>
+                    <p className={`text-xl font-bold ${hsbcTotals.weeklyNet >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        <AnimatedNumber value={hsbcTotals.weeklyNet} />
+                    </p>
+                    </div>
+                    <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Monthly Net</p>
+                    <p className={`text-xl font-bold ${hsbcTotals.monthlyNet >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        <AnimatedNumber value={hsbcTotals.monthlyNet} />
+                    </p>
+                    </div>
+                </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-base">Santander Overview</CardTitle>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => openTransferEditModal()}>
-                  <Edit3 className="h-4 w-4" />
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Weekly Net:</span>
-                  <span className={`text-base font-medium ${santanderTotals.weeklyNet >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
-                    <AnimatedNumber value={santanderTotals.weeklyNet} />
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Monthly Net:</span>
-                  <span className={`text-base font-medium ${santanderTotals.monthlyNet >= 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
-                    <AnimatedNumber value={santanderTotals.monthlyNet} />
-                  </span>
-                </div>
-                <div className="flex items-center justify-between border-t pt-3">
-                  <span className="text-sm text-muted-foreground">Weekly Transfer In:</span>
-                  <span className="text-base font-medium text-blue-500"><AnimatedNumber value={weeklyTransferAmount} /></span>
-                </div>
-              </CardContent>
+            <Card className="relative overflow-hidden">
+                {santanderBank && <div className="h-1 absolute top-0 left-0 right-0" style={{ backgroundColor: santanderBank.color }} />}
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle className="text-base font-semibold">Santander Overview</CardTitle>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => openTransferEditModal()}>
+                    <Edit3 className="h-4 w-4" />
+                    </Button>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="text-center">
+                            <p className="text-sm text-muted-foreground">Weekly Net</p>
+                            <p className={`text-xl font-bold ${santanderTotals.weeklyNet >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                            <AnimatedNumber value={santanderTotals.weeklyNet} />
+                            </p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-sm text-muted-foreground">Monthly Net</p>
+                            <p className={`text-xl font-bold ${santanderTotals.monthlyNet >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                            <AnimatedNumber value={santanderTotals.monthlyNet} />
+                            </p>
+                        </div>
+                    </div>
+                    {weeklyTransferAmount > 0 && (
+                        <>
+                            <Separator className="my-3" />
+                            <div className="flex items-center justify-between px-2">
+                                <span className="text-sm text-muted-foreground">Weekly Transfer In:</span>
+                                <span className="text-base font-medium text-blue-500"><AnimatedNumber value={weeklyTransferAmount} /></span>
+                            </div>
+                        </>
+                    )}
+                </CardContent>
             </Card>
           </div>
 
