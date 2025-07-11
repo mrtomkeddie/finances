@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +13,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { format, parse } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Separator } from './ui/separator';
 
 interface TransactionModalProps {
   isOpen: boolean;
@@ -152,250 +153,251 @@ export function TransactionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl mx-auto bg-card border-border max-h-[90vh] overflow-y-auto custom-scrollbar">
-        <DialogHeader>
-          <DialogTitle className="text-foreground">
-            {editTransaction ? 'Edit Transaction' : 'Add New Transaction'}
-          </DialogTitle>
-          <DialogDescription className="text-sm text-muted-foreground">
-            {editTransaction ? 'Update the transaction details below' : 'Fill out the transaction details below'}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-2xl mx-auto bg-card border-border max-h-[90vh] overflow-y-auto custom-scrollbar p-0">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader className="p-6 pb-4">
+            <DialogTitle className="text-foreground">
+              {editTransaction ? 'Edit Transaction' : 'Add New Transaction'}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">
+              {editTransaction ? 'Update the transaction details below' : 'Fill out the transaction details below'}
+            </DialogDescription>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2 md:gap-x-6 md:gap-y-4">
-          {/* Type */}
-          <div className="space-y-2">
-            <Label htmlFor="type" className="text-foreground">Type</Label>
-            <Select
-              value={formData.type}
-              onValueChange={(value: TransactionType) => setFormData({ ...formData, type: value })}
-            >
-              <SelectTrigger className="bg-input border-border text-foreground">
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border-border">
-                {transactionTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value} className="text-popover-foreground">
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <div className="grid grid-cols-1 gap-4 px-6 pt-2 pb-6 md:grid-cols-2 md:gap-x-6 md:gap-y-4">
+            {/* Type */}
+            <div className="space-y-2">
+              <Label htmlFor="type" className="text-foreground">Type</Label>
+              <Select
+                value={formData.type}
+                onValueChange={(value: TransactionType) => setFormData({ ...formData, type: value })}
+              >
+                <SelectTrigger className="bg-input border-border text-foreground">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  {transactionTypes.map((type) => (
+                    <SelectItem key={type.value} value={type.value} className="text-popover-foreground">
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Bank Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="bank" className="text-foreground">Bank Account</Label>
-            <Select
-              value={formData.bankId}
-              onValueChange={(value) => setFormData({ ...formData, bankId: value })}
-            >
-              <SelectTrigger className="bg-input border-border text-foreground">
-                <SelectValue placeholder="Select bank" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border-border">
-                {banks.map((bank) => (
-                  <SelectItem key={bank.id} value={bank.id} className="text-popover-foreground">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: bank.color }} />
-                      {bank.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            {/* Bank Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="bank" className="text-foreground">Bank Account</Label>
+              <Select
+                value={formData.bankId}
+                onValueChange={(value) => setFormData({ ...formData, bankId: value })}
+              >
+                <SelectTrigger className="bg-input border-border text-foreground">
+                  <SelectValue placeholder="Select bank" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  {banks.map((bank) => (
+                    <SelectItem key={bank.id} value={bank.id} className="text-popover-foreground">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: bank.color }} />
+                        {bank.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Title */}
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="title" className="text-foreground">Title</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="e.g. Monthly Salary, Weekly Groceries, etc."
-              className="bg-input border-border text-foreground placeholder:text-muted-foreground"
-            />
-          </div>
+            {/* Title */}
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="title" className="text-foreground">Title</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="e.g. Monthly Salary, Weekly Groceries, etc."
+                className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+              />
+            </div>
 
-          {/* Amount */}
-          <div className="space-y-2">
-            <Label htmlFor="amount" className="text-foreground">
-              {isDebt ? 'Payment Amount (£)' : 'Amount (£)'}
-            </Label>
-            <Input
-              id="amount"
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.amount || ''}
-              onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-              placeholder={isDebt ? '0.00' : '0.00'}
-              className="bg-input border-border text-foreground placeholder:text-muted-foreground"
-            />
-            {isDebt && <p className="text-xs text-muted-foreground">Set to £0 if not making payments yet.</p>}
-          </div>
+            {/* Amount */}
+            <div className="space-y-2">
+              <Label htmlFor="amount" className="text-foreground">
+                {isDebt ? 'Payment Amount (£)' : 'Amount (£)'}
+              </Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.amount || ''}
+                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
+                placeholder={isDebt ? '0.00' : '0.00'}
+                className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+              />
+              {isDebt && <p className="text-xs text-muted-foreground">Set to £0 if not making payments yet.</p>}
+            </div>
 
-          {/* Frequency */}
-          <div className="space-y-2">
-            <Label htmlFor="frequency" className="text-foreground">Frequency</Label>
-            <Select
-              value={formData.frequency}
-              onValueChange={(value: TransactionFrequency) => setFormData({ ...formData, frequency: value })}
-            >
-              <SelectTrigger className="bg-input border-border text-foreground">
-                <SelectValue placeholder="Select frequency" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border-border">
-                {frequencies.map((freq) => (
-                  <SelectItem key={freq.value} value={freq.value} className="text-popover-foreground">
-                    {freq.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {/* Date */}
-          <div className="space-y-2 md:col-span-2">
-            <Label className="text-foreground">Date of First (or Next) Payment</Label>
-            <Dialog open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  variant={'outline'}
-                  className={cn(
-                    "w-full justify-start text-left font-normal bg-input border-border text-foreground placeholder:text-muted-foreground",
-                    !selectedDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="w-auto p-0 bg-card border-border">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                    setSelectedDate(date);
-                    setIsCalendarOpen(false);
-                  }}
-                  initialFocus
-                />
-              </DialogContent>
-            </Dialog>
-          </div>
+            {/* Frequency */}
+            <div className="space-y-2">
+              <Label htmlFor="frequency" className="text-foreground">Frequency</Label>
+              <Select
+                value={formData.frequency}
+                onValueChange={(value: TransactionFrequency) => setFormData({ ...formData, frequency: value })}
+              >
+                <SelectTrigger className="bg-input border-border text-foreground">
+                  <SelectValue placeholder="Select frequency" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  {frequencies.map((freq) => (
+                    <SelectItem key={freq.value} value={freq.value} className="text-popover-foreground">
+                      {freq.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Date */}
+            <div className="space-y-2 md:col-span-2">
+              <Label className="text-foreground">Date of First (or Next) Payment</Label>
+              <Dialog open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant={'outline'}
+                    className={cn(
+                      "w-full justify-start text-left font-normal bg-input border-border text-foreground placeholder:text-muted-foreground",
+                      !selectedDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-auto p-0 bg-card border-border">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      setSelectedDate(date);
+                      setIsCalendarOpen(false);
+                    }}
+                    initialFocus
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
 
-          {/* Debt-specific fields */}
-          {isDebt && (
-            <div className="p-4 space-y-4 border rounded-lg md:col-span-2 bg-muted/20 border-border">
-              <h4 className="font-medium text-foreground">Debt Details</h4>
-              {/* Remaining Balance */}
-              <div className="space-y-2">
-                <Label htmlFor="remainingBalance" className="text-foreground">Remaining Debt Balance (£) *</Label>
-                <Input
-                  id="remainingBalance"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.remainingBalance || ''}
-                  onChange={(e) => setFormData({ ...formData, remainingBalance: parseFloat(e.target.value) || 0 })}
-                  placeholder="e.g. 1500.00"
-                  className="bg-input border-border text-foreground placeholder:text-muted-foreground"
-                />
-              </div>
-
-              {/* Interest Type Toggle */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-foreground">Interest Input Type</Label>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-sm ${!isPercentageType ? 'text-foreground' : 'text-muted-foreground'}`}>Monetary</span>
-                    <Switch
-                      checked={isPercentageType}
-                      onCheckedChange={(checked) => setFormData({ 
-                        ...formData, 
-                        interestType: checked ? 'percentage' : 'monetary',
-                        monthlyInterest: checked ? null : formData.monthlyInterest,
-                        interestRate: checked ? formData.interestRate : null,
-                      })}
-                    />
-                    <span className={`text-sm ${isPercentageType ? 'text-foreground' : 'text-muted-foreground'}`}>Percentage</span>
-                  </div>
+            {/* Debt-specific fields */}
+            {isDebt && (
+              <div className="p-4 space-y-4 border rounded-lg md:col-span-2 bg-muted/20 border-border">
+                <h4 className="font-medium text-foreground">Debt Details</h4>
+                {/* Remaining Balance */}
+                <div className="space-y-2">
+                  <Label htmlFor="remainingBalance" className="text-foreground">Remaining Debt Balance (£) *</Label>
+                  <Input
+                    id="remainingBalance"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.remainingBalance || ''}
+                    onChange={(e) => setFormData({ ...formData, remainingBalance: parseFloat(e.target.value) || 0 })}
+                    placeholder="e.g. 1500.00"
+                    className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+                  />
                 </div>
 
-                {isPercentageType ? (
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="text-foreground">Rate Type</Label>
-                      <Select
-                        value={formData.rateFrequency}
-                        onValueChange={(value: RateFrequency) => setFormData({ ...formData, rateFrequency: value })}
-                      >
-                        <SelectTrigger className="bg-input border-border text-foreground"><SelectValue /></SelectTrigger>
-                        <SelectContent className="bg-popover border-border">
-                          <SelectItem value="monthly" className="text-popover-foreground">Monthly Rate</SelectItem>
-                          <SelectItem value="annual" className="text-popover-foreground">Annual Rate (APR)</SelectItem>
-                        </SelectContent>
-                      </Select>
+                {/* Interest Type Toggle */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-foreground">Interest Input Type</Label>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-sm ${!isPercentageType ? 'text-foreground' : 'text-muted-foreground'}`}>Monetary</span>
+                      <Switch
+                        checked={isPercentageType}
+                        onCheckedChange={(checked) => setFormData({ 
+                          ...formData, 
+                          interestType: checked ? 'percentage' : 'monetary',
+                          monthlyInterest: checked ? null : formData.monthlyInterest,
+                          interestRate: checked ? formData.interestRate : null,
+                        })}
+                      />
+                      <span className={`text-sm ${isPercentageType ? 'text-foreground' : 'text-muted-foreground'}`}>Percentage</span>
                     </div>
+                  </div>
+
+                  {isPercentageType ? (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label className="text-foreground">Rate Type</Label>
+                        <Select
+                          value={formData.rateFrequency}
+                          onValueChange={(value: RateFrequency) => setFormData({ ...formData, rateFrequency: value })}
+                        >
+                          <SelectTrigger className="bg-input border-border text-foreground"><SelectValue /></SelectTrigger>
+                          <SelectContent className="bg-popover border-border">
+                            <SelectItem value="monthly" className="text-popover-foreground">Monthly Rate</SelectItem>
+                            <SelectItem value="annual" className="text-popover-foreground">Annual Rate (APR)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="interestRate" className="text-foreground">
+                          {getInterestInputLabel('percentage', formData.rateFrequency)}
+                        </Label>
+                        <Input
+                          id="interestRate"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="100"
+                          value={formData.interestRate || ''}
+                          onChange={(e) => setFormData({ ...formData, interestRate: parseFloat(e.target.value) || null })}
+                          placeholder="e.g. 2.5"
+                          className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+                        />
+                      </div>
+                    </div>
+                  ) : (
                     <div className="space-y-2">
-                      <Label htmlFor="interestRate" className="text-foreground">
-                        {getInterestInputLabel('percentage', formData.rateFrequency)}
-                      </Label>
+                      <Label htmlFor="monthlyInterest" className="text-foreground">{getInterestInputLabel('monetary')}</Label>
                       <Input
-                        id="interestRate"
+                        id="monthlyInterest"
                         type="number"
                         step="0.01"
                         min="0"
-                        max="100"
-                        value={formData.interestRate || ''}
-                        onChange={(e) => setFormData({ ...formData, interestRate: parseFloat(e.target.value) || null })}
-                        placeholder="e.g. 2.5"
+                        value={formData.monthlyInterest || ''}
+                        onChange={(e) => setFormData({ ...formData, monthlyInterest: parseFloat(e.target.value) || null })}
+                        placeholder="e.g. 25.00 (optional)"
                         className="bg-input border-border text-foreground placeholder:text-muted-foreground"
                       />
                     </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="monthlyInterest" className="text-foreground">{getInterestInputLabel('monetary')}</Label>
-                    <Input
-                      id="monthlyInterest"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={formData.monthlyInterest || ''}
-                      onChange={(e) => setFormData({ ...formData, monthlyInterest: parseFloat(e.target.value) || null })}
-                      placeholder="e.g. 25.00 (optional)"
-                      className="bg-input border-border text-foreground placeholder:text-muted-foreground"
-                    />
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
+            )}
+
+            {/* Description */}
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="description" className="text-foreground">Description (Optional)</Label>
+              <Textarea
+                id="description"
+                value={formData.description || ''}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Enter additional details..."
+                className="bg-input border-border text-foreground placeholder:text-muted-foreground min-h-[80px]"
+              />
             </div>
-          )}
-
-          {/* Description */}
-          <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="description" className="text-foreground">Description (Optional)</Label>
-            <Textarea
-              id="description"
-              value={formData.description || ''}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Enter additional details..."
-              className="bg-input border-border text-foreground placeholder:text-muted-foreground min-h-[80px]"
-            />
           </div>
 
-          {/* Form Actions */}
-          <div className="flex gap-3 pt-4 md:col-span-2">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
-            <Button type="submit" className="flex-1">{editTransaction ? 'Update Transaction' : 'Add Transaction'}</Button>
-          </div>
+          <Separator />
+          
+          <DialogFooter className="p-6 pt-4">
+            <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto">Cancel</Button>
+            <Button type="submit" className="w-full sm:w-auto">{editTransaction ? 'Update Transaction' : 'Add Transaction'}</Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
-
-    
