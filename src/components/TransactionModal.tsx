@@ -153,9 +153,9 @@ export function TransactionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl mx-auto bg-card border-border max-h-[90vh] overflow-y-auto custom-scrollbar p-0">
+      <DialogContent className="max-w-2xl mx-auto bg-card border-border max-h-[90vh] overflow-y-auto custom-scrollbar p-6">
         <form onSubmit={handleSubmit}>
-          <DialogHeader className="p-6 pb-4">
+          <DialogHeader className="pb-4">
             <DialogTitle className="text-foreground">
               {editTransaction ? 'Edit Transaction' : 'Add New Transaction'}
             </DialogTitle>
@@ -164,7 +164,7 @@ export function TransactionModal({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-1 gap-4 px-6 pt-2 pb-6 md:grid-cols-2 md:gap-x-6 md:gap-y-4">
+          <div className="grid grid-cols-1 gap-4 pt-2 pb-6 md:grid-cols-2 md:gap-x-6 md:gap-y-4">
             {/* Type */}
             <div className="space-y-2">
               <Label htmlFor="type" className="text-foreground">Type</Label>
@@ -392,7 +392,7 @@ export function TransactionModal({
 
           <Separator className="mt-4" />
           
-          <DialogFooter className="p-6 pt-4">
+          <DialogFooter className="pt-4">
             <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto">Cancel</Button>
             <Button type="submit" className="w-full sm:w-auto">{editTransaction ? 'Update Transaction' : 'Add Transaction'}</Button>
           </DialogFooter>
