@@ -32,7 +32,7 @@ export function NoteDetailModal({ isOpen, onClose, note, onEdit }: NoteDetailMod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-card border-border max-h-[80vh] flex flex-col">
+      <DialogContent className="max-w-lg md:max-w-3xl bg-card border-border max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-foreground">{note.title}</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">

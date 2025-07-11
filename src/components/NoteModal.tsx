@@ -58,7 +58,7 @@ export function NoteModal({ isOpen, onClose, onSave, editingNote }: NoteModalPro
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl mx-auto bg-card border-border">
+      <DialogContent className="max-w-lg md:max-w-3xl mx-auto bg-card border-border">
         <DialogHeader>
           <DialogTitle className="text-foreground">
             {editingNote ? 'Edit Note' : 'Add New Note'}
