@@ -5,21 +5,21 @@
 
 @layer base {
   :root {
-    --background: 33 50% 96%; /* #FAF5EF */
-    --foreground: 210 29% 24%; /* #22303C */
-    --card: 211 29% 90%; /* #E1E8EE derived from Muted Sky #B3C5D7 */
+    --background: 33 50% 96%; /* Cream: #FAF5EF */
+    --foreground: 210 29% 24%; /* Navy: #22303C */
+    --card: 211 29% 90%; /* Derived from Muted Sky */
     --card-foreground: 210 29% 24%;
     --popover: 33 50% 96%;
     --popover-foreground: 210 29% 24%;
-    --primary: 40 44% 60%; /* #C8A96A */
+    --primary: 40 44% 60%; /* Gold: #C8A96A */
     --primary-foreground: 210 29% 15%; /* Darker Navy for text on gold */
     --secondary: 211 29% 92%; /* Lighter Muted Sky */
     --secondary-foreground: 210 29% 24%;
     --muted: 211 29% 92%;
-    --muted-foreground: 0 0% 35%; /* #5A5A5A */
+    --muted-foreground: 0 0% 35%; /* Secondary Text: #5A5A5A */
     --accent: 211 29% 94%; /* Even Lighter Muted Sky */
     --accent-foreground: 210 29% 24%;
-    --destructive: 0 72% 51%; /* #E53E3E a tasteful red */
+    --destructive: 0 72% 51%; /* A tasteful red, kept for consistency */
     --destructive-foreground: 0 0% 98%;
     --border: 211 29% 85%;
     --input: 211 29% 88%;
