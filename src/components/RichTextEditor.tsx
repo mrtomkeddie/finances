@@ -5,7 +5,7 @@ import { useEditor, EditorContent, FloatingMenu, BubbleMenu } from '@tiptap/reac
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
-import { Bold, Italic, Underline as UnderlineIcon } from 'lucide-react';
+import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useEffect } from 'react';
@@ -17,7 +17,6 @@ const TiptapEditor = ({ value, onChange, placeholder }: { value: string; onChang
         heading: {
           levels: [1, 2, 3],
         },
-        // The horizontal rule is part of the starter kit, so we configure it here
         horizontalRule: {
           HTMLAttributes: {
             class: 'my-4 border-border',
@@ -73,6 +72,22 @@ const TiptapEditor = ({ value, onChange, placeholder }: { value: string; onChang
           onClick={() => editor.chain().focus().toggleUnderline().run()}
         >
           <UnderlineIcon className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={editor.isActive('bulletList') ? 'secondary' : 'ghost'}
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+        >
+          <List className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={editor.isActive('orderedList') ? 'secondary' : 'ghost'}
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        >
+          <ListOrdered className="h-4 w-4" />
         </Button>
       </div>
       <EditorContent editor={editor} />
