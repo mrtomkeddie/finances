@@ -4,7 +4,6 @@
 import { useEditor, EditorContent, FloatingMenu, BubbleMenu } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
-import HorizontalRule from '@tiptap/extension-horizontal-rule';
 import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
