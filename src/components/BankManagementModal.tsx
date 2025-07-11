@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -160,13 +160,6 @@ export function BankManagementModal({
                 </div>
               </div>
             </div>
-             <Button 
-                onClick={handleAddBank}
-                disabled={!newBankName.trim()}
-                className="w-full mt-4"
-              >
-                Add Account
-              </Button>
           </div>
 
           {/* Your Accounts Section */}
@@ -273,10 +266,17 @@ export function BankManagementModal({
             </div>
           </div>
         </div>
-        <Separator className="my-4" />
-        <div className="flex justify-end px-6 sm:px-0 pb-6 sm:pb-0">
-            <Button variant="outline" onClick={onClose}>Close</Button>
-        </div>
+        <Separator className="mt-4" />
+        <DialogFooter className="px-6 sm:px-0 pt-4 pb-6 sm:pb-0">
+            <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">Close</Button>
+            <Button 
+                onClick={handleAddBank}
+                disabled={!newBankName.trim()}
+                className="w-full sm:w-auto"
+              >
+                Add Account
+            </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
