@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Pencil, Trash2 } from 'lucide-react';
 import { Bank, BankType } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Separator } from './ui/separator';
 
 interface BankManagementModalProps {
   isOpen: boolean;
@@ -106,7 +107,7 @@ export function BankManagementModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4 px-6 sm:px-0">
+        <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6 py-4 px-6 sm:px-0">
           {/* Add New Account Section */}
           <div className="space-y-4 border-r-0 md:border-r md:pr-6 border-border">
             <h3 className="text-base font-semibold text-foreground">Add New Account</h3>
@@ -271,6 +272,10 @@ export function BankManagementModal({
             )}
             </div>
           </div>
+        </div>
+        <Separator className="my-4" />
+        <div className="flex justify-end px-6 sm:px-0 pb-6 sm:pb-0">
+            <Button variant="outline" onClick={onClose}>Close</Button>
         </div>
       </DialogContent>
     </Dialog>
