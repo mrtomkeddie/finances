@@ -9,6 +9,7 @@ import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered } from 'luc
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useEffect } from 'react';
+import { Separator } from './ui/separator';
 
 const TiptapEditor = ({ value, onChange, placeholder }: { value: string; onChange: (value: string) => void, placeholder?: string }) => {
   const editor = useEditor({
@@ -48,7 +49,42 @@ const TiptapEditor = ({ value, onChange, placeholder }: { value: string; onChang
   
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-1 rounded-md border border-input bg-transparent p-1">
+      <div className="flex flex-wrap items-center gap-1 rounded-md border border-input bg-transparent p-1">
+        <Button
+          type="button"
+          size="sm"
+          variant={editor.isActive('paragraph') ? 'secondary' : 'ghost'}
+          onClick={() => editor.chain().focus().setParagraph().run()}
+        >
+          Text
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={editor.isActive('heading', { level: 1 }) ? 'secondary' : 'ghost'}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        >
+          H1
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={editor.isActive('heading', { level: 2 }) ? 'secondary' : 'ghost'}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        >
+          H2
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant={editor.isActive('heading', { level: 3 }) ? 'secondary' : 'ghost'}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+        >
+          H3
+        </Button>
+
+        <Separator orientation='vertical' className="h-6 mx-1" />
+
         <Button
           type="button"
           size="sm"
@@ -73,6 +109,9 @@ const TiptapEditor = ({ value, onChange, placeholder }: { value: string; onChang
         >
           <UnderlineIcon className="h-4 w-4" />
         </Button>
+        
+        <Separator orientation='vertical' className="h-6 mx-1" />
+
         <Button
           type="button"
           size="sm"
