@@ -5,25 +5,25 @@
 
 @layer base {
   :root {
-    --background: 47 11% 95%; /* Very light, warm greige */
-    --foreground: 224 10% 10%;
-    --card: 47 11% 92%; /* Slightly darker greige for cards */
-    --card-foreground: 224 10% 10%;
-    --popover: 47 11% 92%;
-    --popover-foreground: 224 10% 10%;
-    --primary: 221.2 83.2% 53.3%;
+    --background: 200 17% 96%; /* #ECF0F1 */
+    --foreground: 210 29% 24%; /* #2C3E50 */
+    --card: 204 8% 90%; /* #E1E3E4 derived from BDC3C7 */
+    --card-foreground: 210 29% 24%;
+    --popover: 200 17% 96%;
+    --popover-foreground: 210 29% 24%;
+    --primary: 207 70% 53%; /* #3498DB */
     --primary-foreground: 210 40% 98%;
-    --secondary: 47 9% 89%;
-    --secondary-foreground: 224 10% 10%;
-    --muted: 47 9% 89%;
-    --muted-foreground: 220 9% 45%;
-    --accent: 47 9% 85%;
-    --accent-foreground: 224 10% 10%;
-    --destructive: 0 84.2% 60.2%;
+    --secondary: 204 8% 90%;
+    --secondary-foreground: 210 29% 24%;
+    --muted: 204 8% 90%;
+    --muted-foreground: 210 9% 55%; /* #828C99 derived from 95A5A6 */
+    --accent: 204 8% 92%; /* lighter BDC3C7 */
+    --accent-foreground: 210 29% 24%;
+    --destructive: 5 81% 57%; /* #E74C3C */
     --destructive-foreground: 0 0% 98%;
-    --border: 47 9% 85%;
-    --input: 47 9% 89%;
-    --ring: 221.2 83.2% 53.3%;
+    --border: 204 8% 85%; /* #D4D8DA derived from BDC3C7 */
+    --input: 204 8% 88%; /* #DADDE0 derived from BDC3C7 */
+    --ring: 207 70% 53%;
     --radius: 0.75rem;
   }
  
