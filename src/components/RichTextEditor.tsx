@@ -17,14 +17,14 @@ const TiptapEditor = ({ value, onChange, placeholder }: { value: string; onChang
         heading: {
           levels: [1, 2, 3],
         },
-        horizontalRule: false, // We'll configure it separately
-      }),
-      Underline,
-      HorizontalRule.configure({
-        HTMLAttributes: {
-          class: 'my-4 border-border',
+        // The horizontal rule is part of the starter kit, so we configure it here
+        horizontalRule: {
+          HTMLAttributes: {
+            class: 'my-4 border-border',
+          },
         },
       }),
+      Underline,
     ],
     content: value,
     onUpdate: ({ editor }) => {
