@@ -4,6 +4,7 @@
 import { useEditor, EditorContent, FloatingMenu, BubbleMenu } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
+import HorizontalRule from '@tiptap/extension-horizontal-rule';
 import { Bold, Italic, Underline as UnderlineIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -16,8 +17,14 @@ const TiptapEditor = ({ value, onChange, placeholder }: { value: string; onChang
         heading: {
           levels: [1, 2, 3],
         },
+        horizontalRule: false, // We'll configure it separately
       }),
       Underline,
+      HorizontalRule.configure({
+        HTMLAttributes: {
+          class: 'my-4 border-border',
+        },
+      }),
     ],
     content: value,
     onUpdate: ({ editor }) => {
