@@ -76,7 +76,7 @@ export default function NotesPage() {
             >
               <CardHeader>
                 <CardTitle>{note.title}</CardTitle>
-                <CardDescription>
+                <CardDescription className="mt-1">
                   Last updated: {formatDate(note.updatedAt)}
                 </CardDescription>
               </CardHeader>
