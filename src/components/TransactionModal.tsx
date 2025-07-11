@@ -390,7 +390,7 @@ export function TransactionModal({
             </div>
           </div>
 
-          <Separator />
+          <Separator className="mt-4" />
           
           <DialogFooter className="p-6 pt-4">
             <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto">Cancel</Button>
