@@ -127,7 +127,7 @@ export default function DashboardPage() {
         <>
           <Card className="w-full text-center p-6">
               <p className="text-sm text-muted-foreground mb-1">Net Monthly Cashflow</p>
-              <p className={`text-4xl font-bold ${netMonthlyCashflow >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+              <p className={`text-4xl font-bold ${netMonthlyCashflow >= 0 ? 'text-primary' : 'text-destructive'}`}>
                 <AnimatedNumber value={netMonthlyCashflow} />
               </p>
           </Card>
@@ -139,7 +139,7 @@ export default function DashboardPage() {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-500">
+                <div className="text-2xl font-bold text-primary">
                   <AnimatedNumber value={allSummary.monthlyIncome} />
                 </div>
               </CardContent>
@@ -151,7 +151,7 @@ export default function DashboardPage() {
                 <TrendingDown className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-red-500">
+                <div className="text-2xl font-bold text-destructive">
                   <AnimatedNumber value={totalExpenseAndDebt} />
                 </div>
               </CardContent>
@@ -163,7 +163,7 @@ export default function DashboardPage() {
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-500">
+                <div className="text-2xl font-bold text-amber-600 dark:text-amber-500">
                   <AnimatedNumber value={allSummary.totalDebt} />
                 </div>
               </CardContent>
@@ -172,20 +172,19 @@ export default function DashboardPage() {
         
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 sm:gap-6">
             <Card className="relative overflow-hidden">
-                {hsbcBank && <div className="h-1 absolute top-0 left-0 right-0" style={{ backgroundColor: hsbcBank.color }} />}
                 <CardHeader>
                     <CardTitle className="text-base font-semibold">HSBC Overview</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 gap-4">
                     <div className="text-center">
                     <p className="text-sm text-muted-foreground">Weekly Net</p>
-                    <p className={`text-xl font-bold ${hsbcTotals.weeklyNet >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    <p className={`text-xl font-bold ${hsbcTotals.weeklyNet >= 0 ? 'text-primary' : 'text-destructive'}`}>
                         <AnimatedNumber value={hsbcTotals.weeklyNet} />
                     </p>
                     </div>
                     <div className="text-center">
                     <p className="text-sm text-muted-foreground">Monthly Net</p>
-                    <p className={`text-xl font-bold ${hsbcTotals.monthlyNet >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    <p className={`text-xl font-bold ${hsbcTotals.monthlyNet >= 0 ? 'text-primary' : 'text-destructive'}`}>
                         <AnimatedNumber value={hsbcTotals.monthlyNet} />
                     </p>
                     </div>
@@ -204,13 +203,13 @@ export default function DashboardPage() {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="text-center">
                             <p className="text-sm text-muted-foreground">Weekly Net</p>
-                            <p className={`text-xl font-bold ${santanderTotals.weeklyNet >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                            <p className={`text-xl font-bold ${santanderTotals.weeklyNet >= 0 ? 'text-primary' : 'text-destructive'}`}>
                             <AnimatedNumber value={santanderTotals.weeklyNet} />
                             </p>
                         </div>
                         <div className="text-center">
                             <p className="text-sm text-muted-foreground">Monthly Net</p>
-                            <p className={`text-xl font-bold ${santanderTotals.monthlyNet >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                            <p className={`text-xl font-bold ${santanderTotals.monthlyNet >= 0 ? 'text-primary' : 'text-destructive'}`}>
                             <AnimatedNumber value={santanderTotals.monthlyNet} />
                             </p>
                         </div>
