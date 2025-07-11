@@ -34,6 +34,12 @@ export default function NotesPage() {
     }
   };
 
+  // Basic function to strip HTML for plain text preview
+  const createSnippet = (htmlContent: string) => {
+    if (!htmlContent) return '';
+    return htmlContent.replace(/<[^>]*>?/gm, ' ');
+  };
+
   return (
     <div className="space-y-8">
       <div className="text-center">
@@ -75,7 +81,7 @@ export default function NotesPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-grow">
-                <p className="text-sm text-muted-foreground line-clamp-4">{note.content}</p>
+                <p className="text-sm text-muted-foreground line-clamp-4">{createSnippet(note.content)}</p>
               </CardContent>
               <CardFooter className="flex justify-end gap-2">
                 <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openNoteModal(note); }}>

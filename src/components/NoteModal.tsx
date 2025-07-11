@@ -4,8 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Note } from '@/lib/types';
+import TiptapEditor from './RichTextEditor';
 
 interface NoteModalProps {
   isOpen: boolean;
@@ -58,7 +58,7 @@ export function NoteModal({ isOpen, onClose, onSave, editingNote }: NoteModalPro
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-xl mx-auto bg-card border-border">
+      <DialogContent className="max-w-2xl mx-auto bg-card border-border">
         <DialogHeader>
           <DialogTitle className="text-foreground">
             {editingNote ? 'Edit Note' : 'Add New Note'}
@@ -81,12 +81,10 @@ export function NoteModal({ isOpen, onClose, onSave, editingNote }: NoteModalPro
           </div>
           <div className="space-y-2">
             <Label htmlFor="note-content" className="text-foreground">Content</Label>
-            <Textarea
-              id="note-content"
+            <TiptapEditor
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={setContent}
               placeholder="Write your note here..."
-              className="bg-input border-border text-foreground min-h-[200px]"
             />
           </div>
           <div className="flex gap-3 pt-4">

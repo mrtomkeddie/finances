@@ -41,7 +41,10 @@ export function NoteDetailModal({ isOpen, onClose, note, onEdit }: NoteDetailMod
         </DialogHeader>
 
         <ScrollArea className="flex-grow my-4 pr-4 custom-scrollbar">
-            <p className="text-base text-foreground whitespace-pre-wrap">{note.content}</p>
+            <div 
+              className="prose prose-sm sm:prose-base dark:prose-invert max-w-none" 
+              dangerouslySetInnerHTML={{ __html: note.content }} 
+            />
         </ScrollArea>
 
         <div className="flex justify-between items-center pt-4 border-t border-border">
