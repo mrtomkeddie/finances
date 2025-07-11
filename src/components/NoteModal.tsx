@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Note } from '@/lib/types';
 import TiptapEditor from './RichTextEditor';
+import { ScrollArea } from './ui/scroll-area';
 
 interface NoteModalProps {
   isOpen: boolean;
@@ -68,26 +69,30 @@ export function NoteModal({ isOpen, onClose, onSave, editingNote }: NoteModalPro
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <Label htmlFor="note-title" className="text-foreground">Title</Label>
-            <Input
-              id="note-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter a title for your note"
-              className="bg-input border-border text-foreground"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="note-content" className="text-foreground">Content</Label>
-            <TiptapEditor
-              value={content}
-              onChange={setContent}
-              placeholder="Write your note here..."
-            />
-          </div>
-          <div className="flex gap-3 pt-4">
+        <form onSubmit={handleSubmit}>
+          <ScrollArea className="h-[60vh] pr-6 custom-scrollbar">
+            <div className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="note-title" className="text-foreground">Title</Label>
+                <Input
+                  id="note-title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter a title for your note"
+                  className="bg-input border-border text-foreground"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="note-content" className="text-foreground">Content</Label>
+                <TiptapEditor
+                  value={content}
+                  onChange={setContent}
+                  placeholder="Write your note here..."
+                />
+              </div>
+            </div>
+          </ScrollArea>
+          <div className="flex gap-3 pt-4 border-t border-border mt-4">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
             <Button type="submit" className="flex-1">{editingNote ? 'Save Changes' : 'Add Note'}</Button>
           </div>

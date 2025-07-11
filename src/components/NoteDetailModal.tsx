@@ -32,7 +32,7 @@ export function NoteDetailModal({ isOpen, onClose, note, onEdit }: NoteDetailMod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg md:max-w-3xl bg-card border-border max-h-[80vh] flex flex-col">
+      <DialogContent className="max-w-lg md:max-w-3xl bg-card border-border">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-foreground">{note.title}</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
@@ -40,7 +40,7 @@ export function NoteDetailModal({ isOpen, onClose, note, onEdit }: NoteDetailMod
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-grow my-4 pr-4 custom-scrollbar">
+        <ScrollArea className="h-[60vh] my-4 pr-6 custom-scrollbar">
             <div 
               className="prose prose-sm sm:prose-base dark:prose-invert max-w-none" 
               dangerouslySetInnerHTML={{ __html: note.content }} 
