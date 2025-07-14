@@ -20,7 +20,6 @@ import { TransactionDetailModal } from '@/components/TransactionDetailModal';
 import { TransferEditModal } from '@/components/TransferEditModal';
 import { NoteModal } from '@/components/NoteModal';
 import { NoteDetailModal } from '@/components/NoteDetailModal';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { Note } from '@/lib/types';
 
 
@@ -94,7 +93,6 @@ function Header() {
           <Logo />
         </Link>
         <div className="flex items-center gap-2">
-          <ThemeToggle />
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon">

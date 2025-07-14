@@ -17,7 +17,6 @@ export const metadata: Metadata = {
     apple: '/icon.png',
   },
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#F8F8FF' },
     { media: '(prefers-color-scheme: dark)', color: '#111827' },
   ],
   viewport: {
@@ -37,8 +36,8 @@ export default function RootLayout({
       <body className={`${inter.variable} font-body antialiased`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
+          forcedTheme="dark"
           disableTransitionOnChange
         >
           <AuthProvider>
