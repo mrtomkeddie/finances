@@ -19,7 +19,7 @@
     --muted-foreground: 220 13% 45%;
     --accent: 180 100% 25%; /* Teal: #008080 */
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%; /* Red */
+    --destructive: 0 84.2% 60.2%; /* Brighter Red */
     --destructive-foreground: 0 0% 100%;
     --border: 220 13% 85%;
     --input: 220 13% 94%;
@@ -42,7 +42,7 @@
     --muted-foreground: 222 40% 65%;
     --accent: 222 47% 18%;
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 72.2% 50.6%; /* Brighter Red */
     --destructive-foreground: 0 0% 98%;
     --border: 222 47% 18%;
     --input: 222 47% 16%;
