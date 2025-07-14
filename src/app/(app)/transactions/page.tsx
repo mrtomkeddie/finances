@@ -9,9 +9,10 @@ import { useUI } from '@/context/UIContext';
 import { Transaction, TransactionFrequency } from '@/lib/types';
 import { calculateSummary, formatCurrency, calculateMonthlyAmount, calculateWeeksUntilPaidOff, calculateNetMonthlyDebtPayment } from '@/lib/financial';
 import { formatDate, formatNextDueDate, getNextDueDate } from '@/lib/dateUtils';
-import { ArrowDown, ArrowUp, CreditCard, Calendar, Banknote, SearchX, ChevronUp, ChevronDown, Check, ArrowUpDown, Loader2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, CreditCard, Calendar, Banknote, SearchX, ChevronUp, ChevronDown, Check, ArrowUpDown, Loader2, Search } from 'lucide-react';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -41,6 +42,7 @@ export default function TransactionsPage() {
     
     const [activeFilter, setActiveFilter] = useState<'all' | 'income' | 'expense' | 'debt'>('all');
     const [activeBankFilter, setActiveBankFilter] = useState<string>('all');
+    const [searchQuery, setSearchQuery] = useState('');
     const [isBankPopoverOpen, setBankPopoverOpen] = useState(false);
     
     const [sort, setSort] = useState<string>('dueDate_asc');
@@ -53,10 +55,15 @@ export default function TransactionsPage() {
     const getBankColor = (bankId: string) => banks.find(b => b.id === bankId)?.color || '#6366f1';
 
     const sortedTransactions = useMemo(() => {
+        const lowercasedQuery = searchQuery.toLowerCase();
+
         const filtered = transactions.filter(t => {
             const typeMatches = activeFilter === 'all' || t.type === activeFilter || (activeFilter === 'expense' && t.type === 'debt');
             const bankMatches = activeBankFilter === 'all' || t.bankId === activeBankFilter;
-            return typeMatches && bankMatches;
+            const searchMatches = searchQuery === '' ||
+                t.title.toLowerCase().includes(lowercasedQuery) ||
+                (t.description && t.description.toLowerCase().includes(lowercasedQuery));
+            return typeMatches && bankMatches && searchMatches;
         });
 
         const [sortColumn, sortDirection] = sort.split('_') as [SortColumn, SortDirection];
@@ -74,7 +81,7 @@ export default function TransactionsPage() {
             if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
             return 0;
         });
-    }, [transactions, activeFilter, activeBankFilter, sort, banks]);
+    }, [transactions, activeFilter, activeBankFilter, sort, searchQuery, banks]);
 
     const totalSummary = useMemo(() => {
         const filteredTxs = transactions.filter(t => 
@@ -140,10 +147,20 @@ export default function TransactionsPage() {
                     ))}
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="relative lg:col-span-1">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            type="search"
+                            placeholder="Search transactions..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10"
+                        />
+                    </div>
                      <Popover open={isBankPopoverOpen} onOpenChange={setBankPopoverOpen}>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" className="w-full sm:w-auto">
+                            <Button variant="outline" className="w-full justify-start text-left lg:col-span-1">
                                 <Banknote className="mr-2 h-4 w-4" />
                                 {activeBankFilter === 'all' ? 'All Banks' : getBankName(activeBankFilter)}
                             </Button>
@@ -166,7 +183,7 @@ export default function TransactionsPage() {
                     </Popover>
 
                     <Select value={sort} onValueChange={setSort}>
-                      <SelectTrigger>
+                      <SelectTrigger className="lg:col-span-1">
                         <div className="flex items-center gap-2">
                             <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
                             <SelectValue placeholder="Sort by..." />
@@ -188,7 +205,7 @@ export default function TransactionsPage() {
                     <div className="py-20 text-center">
                         <SearchX className="mx-auto h-12 w-12 text-muted-foreground" />
                         <h3 className="mt-4 text-lg font-semibold">No Transactions Found</h3>
-                        <p className="mt-1 text-sm text-muted-foreground">Try adjusting your filters.</p>
+                        <p className="mt-1 text-sm text-muted-foreground">Try adjusting your filters or search terms.</p>
                     </div>
                 ) : (
                     sortedTransactions.map(t => (
