@@ -31,9 +31,6 @@ function SideMenuContent() {
         <SheetContent className="flex h-full flex-col p-6">
             <SheetHeader className="text-left">
                 <SheetTitle>Menu</SheetTitle>
-                <SheetDescription>
-                  Navigate through your app and manage settings.
-                </SheetDescription>
             </SheetHeader>
             <div className="flex flex-1 flex-col justify-between py-4">
                 <div className="flex flex-col gap-2">
