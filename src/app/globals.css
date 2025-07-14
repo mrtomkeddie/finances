@@ -5,25 +5,25 @@
 
 @layer base {
   :root {
-    --background: 33 50% 96%; /* Cream: #FAF5EF */
-    --foreground: 210 29% 24%; /* Navy: #22303C */
-    --card: 211 29% 90%; /* Derived from Muted Sky */
-    --card-foreground: 210 29% 24%;
-    --popover: 33 50% 96%;
-    --popover-foreground: 210 29% 24%;
-    --primary: 40 44% 60%; /* Gold: #C8A96A */
-    --primary-foreground: 210 29% 15%; /* Darker Navy for text on gold */
-    --secondary: 211 29% 92%; /* Lighter Muted Sky */
-    --secondary-foreground: 210 29% 24%;
-    --muted: 211 29% 92%;
-    --muted-foreground: 0 0% 35%; /* Secondary Text: #5A5A5A */
-    --accent: 211 29% 94%; /* Even Lighter Muted Sky */
-    --accent-foreground: 210 29% 24%;
-    --destructive: 0 72% 51%; /* A tasteful red, kept for consistency */
-    --destructive-foreground: 0 0% 98%;
-    --border: 211 29% 85%;
-    --input: 211 29% 88%;
-    --ring: 40 44% 60%;
+    --background: 240 60% 99%; /* Ghost White: #F8F8FF */
+    --foreground: 220 13% 15%; /* Near Black */
+    --card: 240 60% 99%;
+    --card-foreground: 220 13% 15%;
+    --popover: 240 60% 99%;
+    --popover-foreground: 220 13% 15%;
+    --primary: 210 11% 51%; /* Slate Gray: #708090 */
+    --primary-foreground: 0 0% 100%; /* White */
+    --secondary: 220 13% 91%; /* Light Gray */
+    --secondary-foreground: 220 13% 15%;
+    --muted: 220 13% 91%;
+    --muted-foreground: 220 13% 45%;
+    --accent: 180 100% 25%; /* Teal: #008080 */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%; /* Red */
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 85%;
+    --input: 220 13% 94%;
+    --ring: 210 11% 51%;
     --radius: 0.75rem;
   }
  

@@ -4,6 +4,9 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/components/AuthProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
   title: 'Finances',
@@ -14,7 +17,7 @@ export const metadata: Metadata = {
     apple: '/icon.png',
   },
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f3f1ec' },
+    { media: '(prefers-color-scheme: light)', color: '#F8F8FF' },
     { media: '(prefers-color-scheme: dark)', color: '#111827' },
   ],
   viewport: {
@@ -31,12 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      </head>
-      <body className="font-body antialiased">
+      <body className={`${inter.variable} font-body antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
