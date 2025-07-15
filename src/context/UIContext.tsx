@@ -4,6 +4,12 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import type { Transaction, Note } from '@/lib/types';
 
+interface ConfirmationConfig {
+  title: string;
+  description: string;
+  onConfirm: () => void;
+}
+
 interface UIContextType {
   isBankManagementOpen: boolean;
   openBankManagement: () => void;
@@ -32,6 +38,11 @@ interface UIContextType {
   detailedNote: Note | null;
   openNoteDetailModal: (note: Note) => void;
   closeNoteDetailModal: () => void;
+
+  isConfirmationOpen: boolean;
+  confirmationConfig: ConfirmationConfig;
+  openConfirmationDialog: (config: ConfirmationConfig) => void;
+  closeConfirmationDialog: () => void;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
@@ -47,6 +58,12 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [isNoteDetailModalOpen, setIsNoteDetailModalOpen] = useState(false);
   const [detailedNote, setDetailedNote] = useState<Note | null>(null);
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [confirmationConfig, setConfirmationConfig] = useState<ConfirmationConfig>({
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
 
   const openBankManagement = () => setIsBankManagementOpen(true);
   const closeBankManagement = () => setIsBankManagementOpen(false);
@@ -92,6 +109,15 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
     setDetailedNote(null);
   };
 
+  const openConfirmationDialog = (config: ConfirmationConfig) => {
+    setConfirmationConfig(config);
+    setIsConfirmationOpen(true);
+  };
+
+  const closeConfirmationDialog = () => {
+    setIsConfirmationOpen(false);
+  };
+
   const value = {
     isBankManagementOpen,
     openBankManagement,
@@ -115,6 +141,10 @@ export const UIProvider = ({ children }: { children: ReactNode }) => {
     detailedNote,
     openNoteDetailModal,
     closeNoteDetailModal,
+    isConfirmationOpen,
+    confirmationConfig,
+    openConfirmationDialog,
+    closeConfirmationDialog,
   };
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>;

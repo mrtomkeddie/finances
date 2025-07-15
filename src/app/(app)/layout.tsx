@@ -21,6 +21,7 @@ import { TransferEditModal } from '@/components/TransferEditModal';
 import { NoteModal } from '@/components/NoteModal';
 import { NoteDetailModal } from '@/components/NoteDetailModal';
 import { Note } from '@/lib/types';
+import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 
 
 function SideMenuContent() {
@@ -141,6 +142,9 @@ function AppModals() {
     closeNoteDetailModal,
     openNoteModal,
     openTransactionModal,
+    confirmationConfig,
+    isConfirmationOpen,
+    closeConfirmationDialog,
   } = useUI();
 
   const handleSaveNote = (noteData: Omit<Note, 'id'> | Partial<Omit<Note, 'id'>>, noteId?: string) => {
@@ -202,6 +206,13 @@ function AppModals() {
           closeNoteDetailModal();
           openNoteModal(note);
         }}
+      />
+       <ConfirmationDialog
+        isOpen={isConfirmationOpen}
+        onClose={closeConfirmationDialog}
+        onConfirm={confirmationConfig.onConfirm}
+        title={confirmationConfig.title}
+        description={confirmationConfig.description}
       />
     </>
   );

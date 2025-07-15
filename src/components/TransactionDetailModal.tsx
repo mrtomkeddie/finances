@@ -8,6 +8,7 @@ import { Transaction, Bank } from '@/lib/types';
 import { formatCurrency, calculateMonthlyAmount, calculateNetMonthlyDebtPayment, calculateWeeksUntilPaidOff, formatInterestRate, calculateMonthlyInterest } from '@/lib/financial';
 import { formatDate } from '@/lib/dateUtils';
 import { Separator } from '@/components/ui/separator';
+import { useUI } from '@/context/UIContext';
 
 interface TransactionDetailModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export function TransactionDetailModal({
   onEdit,
   onDelete,
 }: TransactionDetailModalProps) {
+  const { openConfirmationDialog } = useUI();
   if (!transaction) return null;
 
   const bank = banks.find(b => b.id === transaction.bankId);
@@ -37,9 +39,11 @@ export function TransactionDetailModal({
   };
 
   const handleDelete = () => {
-    if (window.confirm(`Are you sure you want to delete "${transaction.title}"?`)) {
-      onDelete(transaction.id);
-    }
+    openConfirmationDialog({
+      title: 'Delete Transaction?',
+      description: `Are you sure you want to delete "${transaction.title}"? This action cannot be undone.`,
+      onConfirm: () => onDelete(transaction.id),
+    });
   };
 
   const getTypeColor = (type: string) => {

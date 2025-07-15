@@ -11,7 +11,7 @@ import { format, parseISO } from 'date-fns';
 
 export default function NotesPage() {
   const { notes, handleDeleteNote, loadNotes, isNotesLoading } = useData();
-  const { openNoteModal, openNoteDetailModal } = useUI();
+  const { openNoteModal, openNoteDetailModal, openConfirmationDialog } = useUI();
 
   useEffect(() => {
     loadNotes();
@@ -20,9 +20,11 @@ export default function NotesPage() {
   const sortedNotes = [...notes].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const handleDelete = (noteId: string, noteTitle: string) => {
-    if (window.confirm(`Are you sure you want to delete the note "${noteTitle}"?`)) {
-      handleDeleteNote(noteId);
-    }
+    openConfirmationDialog({
+      title: 'Delete Note?',
+      description: `Are you sure you want to delete the note "${noteTitle}"? This action cannot be undone.`,
+      onConfirm: () => handleDeleteNote(noteId),
+    });
   };
   
   const formatDate = (dateString: string) => {
