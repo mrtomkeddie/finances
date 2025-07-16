@@ -1,0 +1,123 @@
+
+'use client';
+
+import React, { useState, useEffect, useMemo } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { useData } from '@/context/DataContext';
+import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarDay } from '@/components/CalendarDay';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ForecastDayDetail } from '@/components/ForecastDayDetail';
+import { getTransactionsDueOnDate } from '@/lib/dateUtils';
+
+export default function CalendarPage() {
+  const { transactions, isTransactionsLoading, loadTransactions } = useData();
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  useEffect(() => {
+    loadTransactions();
+  }, [loadTransactions]);
+
+  const changeMonth = (amount: number) => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(newDate.getMonth() + amount);
+      return newDate;
+    });
+  };
+
+  const calendarGrid = useMemo(() => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+    
+    const daysInMonth = lastDayOfMonth.getDate();
+    const startDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday, 1 = Monday
+    const dayOffset = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1; // Adjust to Monday start
+
+    const grid = [];
+    
+    // Previous month's days
+    for (let i = 0; i < dayOffset; i++) {
+      const day = new Date(year, month, 0);
+      day.setDate(day.getDate() - i);
+      grid.unshift({ date: day, isCurrentMonth: false });
+    }
+
+    // Current month's days
+    for (let i = 1; i <= daysInMonth; i++) {
+      grid.push({ date: new Date(year, month, i), isCurrentMonth: true });
+    }
+
+    // Next month's days
+    const gridEndOffset = 42 - grid.length; // 6 rows * 7 days
+    for (let i = 1; i <= gridEndOffset; i++) {
+      grid.push({ date: new Date(year, month + 1, i), isCurrentMonth: false });
+    }
+
+    return grid;
+  }, [currentDate]);
+
+  if (isTransactionsLoading) {
+    return (
+      <div className="flex h-full items-center justify-center py-20">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading calendar data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  return (
+    <div className="space-y-6">
+        <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold tracking-tight">Financial Calendar</h1>
+            <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" onClick={() => changeMonth(-1)}>
+                    <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-lg font-semibold text-center w-40">
+                    {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                </span>
+                <Button variant="outline" size="icon" onClick={() => changeMonth(1)}>
+                    <ChevronRight className="h-4 w-4" />
+                </Button>
+            </div>
+        </div>
+
+      <Card>
+        <CardContent className="p-2 sm:p-4">
+            <div className="grid grid-cols-7 gap-1 text-center font-semibold text-muted-foreground text-sm mb-2">
+                {weekdays.map(day => <div key={day}>{day}</div>)}
+            </div>
+            <div className="grid grid-cols-7 grid-rows-6 gap-1">
+                {calendarGrid.map(({ date, isCurrentMonth }, index) => {
+                    const dueTransactions = getTransactionsDueOnDate(transactions, date);
+                    return (
+                        <Popover key={index}>
+                            <PopoverTrigger asChild disabled={dueTransactions.length === 0}>
+                                <CalendarDay
+                                    date={date}
+                                    transactions={dueTransactions}
+                                    isCurrentMonth={isCurrentMonth}
+                                />
+                            </PopoverTrigger>
+                            {dueTransactions.length > 0 && (
+                                <PopoverContent className="w-64" side="top" align="center">
+                                    <ForecastDayDetail transactions={dueTransactions} day={date} />
+                                </PopoverContent>
+                            )}
+                        </Popover>
+                    );
+                })}
+            </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

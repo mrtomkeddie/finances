@@ -4,7 +4,7 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, List, Loader2, LogOut, Menu, Plus, Notebook, Banknote } from 'lucide-react';
+import { LayoutDashboard, List, Loader2, LogOut, Menu, Plus, Notebook, Banknote, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -57,6 +57,13 @@ function SideMenuContent() {
                         <Link href="/transactions" passHref>
                             <Button variant="ghost" className="w-full justify-start text-base font-normal py-4">
                                 <List className="mr-2 h-4 w-4" /> Transactions
+                            </Button>
+                        </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                        <Link href="/calendar" passHref>
+                            <Button variant="ghost" className="w-full justify-start text-base font-normal py-4">
+                                <CalendarDays className="mr-2 h-4 w-4" /> Calendar
                             </Button>
                         </Link>
                     </SheetClose>
