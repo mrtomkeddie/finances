@@ -25,12 +25,11 @@ export function CalendarDay({ date, transactions, isCurrentMonth, disabled, clas
   return (
     <div
       className={cn(
-        'h-24 sm:h-32 p-2 rounded-lg border flex flex-col relative transition-colors',
+        'h-24 sm:h-32 p-2 rounded-lg border flex flex-col relative transition-colors cursor-pointer hover:bg-accent',
         isCurrentMonth ? 'bg-card' : 'bg-muted/20',
-        !disabled && 'cursor-pointer hover:bg-accent',
-        disabled && 'cursor-default opacity-50',
         dayIsToday ? 'border-primary/50 bg-accent' : 'border-border/50',
         !isCurrentMonth && 'text-muted-foreground',
+        disabled && 'opacity-50',
         className
       )}
       {...props}
