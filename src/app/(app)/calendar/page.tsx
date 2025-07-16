@@ -40,10 +40,10 @@ export default function CalendarPage() {
     const grid = [];
     
     // Previous month's days
-    for (let i = 0; i < dayOffset; i++) {
+    for (let i = dayOffset - 1; i >= 0; i--) {
       const day = new Date(year, month, 0);
       day.setDate(day.getDate() - i);
-      grid.unshift({ date: day, isCurrentMonth: false });
+      grid.push({ date: day, isCurrentMonth: false });
     }
 
     // Current month's days
@@ -98,16 +98,18 @@ export default function CalendarPage() {
             <div className="grid grid-cols-7 grid-rows-6 gap-1">
                 {calendarGrid.map(({ date, isCurrentMonth }, index) => {
                     const dueTransactions = getTransactionsDueOnDate(transactions, date);
+                    const isDisabled = dueTransactions.length === 0;
                     return (
                         <Popover key={index}>
-                            <PopoverTrigger asChild disabled={dueTransactions.length === 0}>
+                            <PopoverTrigger asChild disabled={isDisabled}>
                                 <CalendarDay
                                     date={date}
                                     transactions={dueTransactions}
                                     isCurrentMonth={isCurrentMonth}
+                                    disabled={isDisabled}
                                 />
                             </PopoverTrigger>
-                            {dueTransactions.length > 0 && (
+                            {!isDisabled && (
                                 <PopoverContent className="w-64" side="top" align="center">
                                     <ForecastDayDetail transactions={dueTransactions} day={date} />
                                 </PopoverContent>

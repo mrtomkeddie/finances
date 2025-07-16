@@ -8,13 +8,14 @@ import { calculateDayTotals, isToday } from '@/lib/dateUtils';
 import { cn } from '@/lib/utils';
 import { ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 
-interface CalendarDayProps {
+interface CalendarDayProps extends React.HTMLAttributes<HTMLDivElement> {
   date: Date;
   transactions: Transaction[];
   isCurrentMonth: boolean;
+  disabled?: boolean;
 }
 
-export function CalendarDay({ date, transactions, isCurrentMonth }: CalendarDayProps) {
+export function CalendarDay({ date, transactions, isCurrentMonth, disabled, className, ...props }: CalendarDayProps) {
   const totals = calculateDayTotals(transactions, date);
   const totalOut = totals.expenses + totals.debts;
   const hasActivity = totals.income > 0 || totalOut > 0;
@@ -26,10 +27,13 @@ export function CalendarDay({ date, transactions, isCurrentMonth }: CalendarDayP
       className={cn(
         'h-24 sm:h-32 p-2 rounded-lg border flex flex-col relative transition-colors',
         isCurrentMonth ? 'bg-card' : 'bg-muted/20',
-        hasActivity ? 'cursor-pointer hover:bg-accent' : 'cursor-default',
+        !disabled && 'cursor-pointer hover:bg-accent',
+        disabled && 'cursor-default opacity-50',
         dayIsToday ? 'border-primary/50 bg-accent' : 'border-border/50',
-        !isCurrentMonth && 'text-muted-foreground'
+        !isCurrentMonth && 'text-muted-foreground',
+        className
       )}
+      {...props}
     >
       <div
         className={cn(
