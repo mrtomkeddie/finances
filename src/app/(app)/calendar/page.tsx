@@ -98,7 +98,6 @@ export default function CalendarPage() {
             <div className="grid grid-cols-7 grid-rows-6 gap-1">
                 {calendarGrid.map(({ date, isCurrentMonth }, index) => {
                     const dueTransactions = getTransactionsDueOnDate(transactions, date);
-                    const hasTransactions = dueTransactions.length > 0;
                     return (
                         <Popover key={index}>
                             <PopoverTrigger asChild>
@@ -106,7 +105,6 @@ export default function CalendarPage() {
                                     date={date}
                                     transactions={dueTransactions}
                                     isCurrentMonth={isCurrentMonth}
-                                    disabled={!hasTransactions && !isCurrentMonth}
                                 />
                             </PopoverTrigger>
                             <PopoverContent className="w-64" side="top" align="center">

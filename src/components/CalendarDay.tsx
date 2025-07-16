@@ -12,10 +12,9 @@ interface CalendarDayProps extends React.HTMLAttributes<HTMLDivElement> {
   date: Date;
   transactions: Transaction[];
   isCurrentMonth: boolean;
-  disabled?: boolean;
 }
 
-export function CalendarDay({ date, transactions, isCurrentMonth, disabled, className, ...props }: CalendarDayProps) {
+export function CalendarDay({ date, transactions, isCurrentMonth, className, ...props }: CalendarDayProps) {
   const totals = calculateDayTotals(transactions, date);
   const totalOut = totals.expenses + totals.debts;
   const hasActivity = totals.income > 0 || totalOut > 0;
@@ -29,7 +28,6 @@ export function CalendarDay({ date, transactions, isCurrentMonth, disabled, clas
         isCurrentMonth ? 'bg-card' : 'bg-muted/20',
         dayIsToday ? 'border-primary/50 bg-accent' : 'border-border/50',
         !isCurrentMonth && 'text-muted-foreground',
-        disabled && 'opacity-50',
         className
       )}
       {...props}
