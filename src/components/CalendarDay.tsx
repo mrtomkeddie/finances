@@ -26,7 +26,7 @@ export function CalendarDay({ date, transactions, isCurrentMonth }: CalendarDayP
       className={cn(
         'h-24 sm:h-32 p-2 rounded-lg border flex flex-col relative transition-colors',
         isCurrentMonth ? 'bg-card' : 'bg-muted/20',
-        hasActivity ? 'cursor-pointer hover:bg-accent' : '',
+        hasActivity ? 'cursor-pointer hover:bg-accent' : 'cursor-default',
         dayIsToday ? 'border-primary/50 bg-accent' : 'border-border/50',
         !isCurrentMonth && 'text-muted-foreground'
       )}
