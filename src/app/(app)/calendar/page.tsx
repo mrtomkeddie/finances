@@ -3,17 +3,25 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useData } from '@/context/DataContext';
 import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CalendarDay } from '@/components/CalendarDay';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Popover, PopoverContent } from '@/components/ui/popover';
 import { ForecastDayDetail } from '@/components/ForecastDayDetail';
 import { getTransactionsDueOnDate } from '@/lib/dateUtils';
+import type { Transaction } from '@/lib/types';
+
+interface SelectedDay {
+  anchor: HTMLElement;
+  transactions: Transaction[];
+  date: Date;
+}
 
 export default function CalendarPage() {
   const { transactions, isTransactionsLoading, loadTransactions } = useData();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDay, setSelectedDay] = useState<SelectedDay | null>(null);
 
   useEffect(() => {
     loadTransactions();
@@ -27,6 +35,14 @@ export default function CalendarPage() {
     });
   };
 
+  const handleDayClick = (event: React.MouseEvent<HTMLDivElement>, date: Date, transactions: Transaction[]) => {
+    setSelectedDay({
+      anchor: event.currentTarget,
+      transactions: transactions,
+      date: date,
+    });
+  };
+
   const calendarGrid = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -34,25 +50,22 @@ export default function CalendarPage() {
     const lastDayOfMonth = new Date(year, month + 1, 0);
     
     const daysInMonth = lastDayOfMonth.getDate();
-    const startDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday, 1 = Monday
-    const dayOffset = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1; // Adjust to Monday start
+    const startDayOfWeek = firstDayOfMonth.getDay();
+    const dayOffset = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
 
     const grid = [];
     
-    // Previous month's days
     for (let i = dayOffset - 1; i >= 0; i--) {
       const day = new Date(year, month, 0);
       day.setDate(day.getDate() - i);
       grid.push({ date: day, isCurrentMonth: false });
     }
 
-    // Current month's days
     for (let i = 1; i <= daysInMonth; i++) {
       grid.push({ date: new Date(year, month, i), isCurrentMonth: true });
     }
 
-    // Next month's days
-    const gridEndOffset = 42 - grid.length; // 6 rows * 7 days
+    const gridEndOffset = 42 - grid.length;
     for (let i = 1; i <= gridEndOffset; i++) {
       grid.push({ date: new Date(year, month + 1, i), isCurrentMonth: false });
     }
@@ -99,23 +112,36 @@ export default function CalendarPage() {
                 {calendarGrid.map(({ date, isCurrentMonth }, index) => {
                     const dueTransactions = getTransactionsDueOnDate(transactions, date);
                     return (
-                        <Popover key={index}>
-                            <PopoverTrigger asChild>
-                                <CalendarDay
-                                    date={date}
-                                    transactions={dueTransactions}
-                                    isCurrentMonth={isCurrentMonth}
-                                />
-                            </PopoverTrigger>
-                            <PopoverContent className="w-64" side="top" align="center">
-                                <ForecastDayDetail transactions={dueTransactions} day={date} />
-                            </PopoverContent>
-                        </Popover>
+                        <CalendarDay
+                            key={index}
+                            date={date}
+                            transactions={dueTransactions}
+                            isCurrentMonth={isCurrentMonth}
+                            onClick={(e) => handleDayClick(e, date, dueTransactions)}
+                        />
                     );
                 })}
             </div>
         </CardContent>
       </Card>
+      
+      <Popover open={!!selectedDay} onOpenChange={(isOpen) => !isOpen && setSelectedDay(null)}>
+        <PopoverContent 
+            className="w-64" 
+            side="top" 
+            align="center"
+            style={{
+                position: 'absolute',
+                left: selectedDay?.anchor.offsetLeft,
+                top: selectedDay ? selectedDay.anchor.offsetTop - selectedDay.anchor.offsetHeight - 80 : 0,
+            }}
+            onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          {selectedDay && (
+            <ForecastDayDetail transactions={selectedDay.transactions} day={selectedDay.date} />
+          )}
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
