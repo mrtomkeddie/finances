@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useData } from '@/context/DataContext';
 import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CalendarDay } from '@/components/CalendarDay';
-import { Popover, PopoverContent } from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverAnchor } from '@/components/ui/popover';
 import { ForecastDayDetail } from '@/components/ForecastDayDetail';
 import { getTransactionsDueOnDate } from '@/lib/dateUtils';
 import type { Transaction } from '@/lib/types';
@@ -103,38 +103,42 @@ export default function CalendarPage() {
             </div>
         </div>
 
-      <Card>
-        <CardContent className="p-2 sm:p-4">
-            <div className="grid grid-cols-7 gap-1 text-center font-semibold text-muted-foreground text-sm mb-2">
-                {weekdays.map(day => <div key={day}>{day}</div>)}
-            </div>
-            <div className="grid grid-cols-7 grid-rows-6 gap-1">
-                {calendarGrid.map(({ date, isCurrentMonth }, index) => {
-                    const dueTransactions = getTransactionsDueOnDate(transactions, date);
-                    return (
-                        <CalendarDay
-                            key={index}
-                            date={date}
-                            transactions={dueTransactions}
-                            isCurrentMonth={isCurrentMonth}
-                            onClick={(e) => handleDayClick(e, date, dueTransactions)}
-                        />
-                    );
-                })}
-            </div>
-        </CardContent>
-      </Card>
-      
       <Popover open={!!selectedDay} onOpenChange={(isOpen) => !isOpen && setSelectedDay(null)}>
+        <Card>
+          <CardContent className="p-2 sm:p-4 relative">
+              <PopoverAnchor
+                style={{
+                  position: 'absolute',
+                  left: selectedDay?.anchor.offsetLeft,
+                  top: selectedDay ? selectedDay.anchor.offsetTop : 0,
+                  width: selectedDay?.anchor.offsetWidth,
+                  height: selectedDay?.anchor.offsetHeight,
+                }}
+              />
+              <div className="grid grid-cols-7 gap-1 text-center font-semibold text-muted-foreground text-sm mb-2">
+                  {weekdays.map(day => <div key={day}>{day}</div>)}
+              </div>
+              <div className="grid grid-cols-7 grid-rows-6 gap-1">
+                  {calendarGrid.map(({ date, isCurrentMonth }, index) => {
+                      const dueTransactions = getTransactionsDueOnDate(transactions, date);
+                      return (
+                          <CalendarDay
+                              key={index}
+                              date={date}
+                              transactions={dueTransactions}
+                              isCurrentMonth={isCurrentMonth}
+                              onClick={(e) => handleDayClick(e, date, dueTransactions)}
+                          />
+                      );
+                  })}
+              </div>
+          </CardContent>
+        </Card>
+        
         <PopoverContent 
             className="w-64" 
             side="top" 
             align="center"
-            style={{
-                position: 'absolute',
-                left: selectedDay?.anchor.offsetLeft,
-                top: selectedDay ? selectedDay.anchor.offsetTop - selectedDay.anchor.offsetHeight - 80 : 0,
-            }}
             onOpenAutoFocus={(e) => e.preventDefault()}
         >
           {selectedDay && (
