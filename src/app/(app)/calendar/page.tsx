@@ -98,7 +98,7 @@ export default function CalendarPage() {
                       const dueTransactions = getTransactionsDueOnDate(transactions, date);
                       return (
                         <Popover key={index}>
-                          <PopoverTrigger asChild>
+                          <PopoverTrigger>
                             <CalendarDay
                                 date={date}
                                 transactions={dueTransactions}
