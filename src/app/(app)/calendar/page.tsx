@@ -7,21 +7,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useData } from '@/context/DataContext';
 import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CalendarDay } from '@/components/CalendarDay';
-import { Popover, PopoverContent, PopoverAnchor } from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ForecastDayDetail } from '@/components/ForecastDayDetail';
 import { getTransactionsDueOnDate } from '@/lib/dateUtils';
 import type { Transaction } from '@/lib/types';
 
-interface SelectedDay {
-  anchor: HTMLElement;
-  transactions: Transaction[];
-  date: Date;
-}
-
 export default function CalendarPage() {
   const { transactions, isTransactionsLoading, loadTransactions } = useData();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDay, setSelectedDay] = useState<SelectedDay | null>(null);
 
   useEffect(() => {
     loadTransactions();
@@ -32,14 +25,6 @@ export default function CalendarPage() {
       const newDate = new Date(prev);
       newDate.setMonth(newDate.getMonth() + amount);
       return newDate;
-    });
-  };
-
-  const handleDayClick = (event: React.MouseEvent<HTMLDivElement>, date: Date, transactions: Transaction[]) => {
-    setSelectedDay({
-      anchor: event.currentTarget,
-      transactions: transactions,
-      date: date,
     });
   };
 
@@ -103,18 +88,8 @@ export default function CalendarPage() {
             </div>
         </div>
 
-      <Popover open={!!selectedDay} onOpenChange={(isOpen) => !isOpen && setSelectedDay(null)}>
         <Card>
-          <CardContent className="p-2 sm:p-4 relative">
-              <PopoverAnchor
-                style={{
-                  position: 'absolute',
-                  left: selectedDay?.anchor.offsetLeft,
-                  top: selectedDay ? selectedDay.anchor.offsetTop : 0,
-                  width: selectedDay?.anchor.offsetWidth,
-                  height: selectedDay?.anchor.offsetHeight,
-                }}
-              />
+          <CardContent className="p-2 sm:p-4">
               <div className="grid grid-cols-7 gap-1 text-center font-semibold text-muted-foreground text-sm mb-2">
                   {weekdays.map(day => <div key={day}>{day}</div>)}
               </div>
@@ -122,30 +97,28 @@ export default function CalendarPage() {
                   {calendarGrid.map(({ date, isCurrentMonth }, index) => {
                       const dueTransactions = getTransactionsDueOnDate(transactions, date);
                       return (
-                          <CalendarDay
-                              key={index}
-                              date={date}
-                              transactions={dueTransactions}
-                              isCurrentMonth={isCurrentMonth}
-                              onClick={(e) => handleDayClick(e, date, dueTransactions)}
-                          />
+                        <Popover key={index}>
+                          <PopoverTrigger asChild>
+                            <CalendarDay
+                                date={date}
+                                transactions={dueTransactions}
+                                isCurrentMonth={isCurrentMonth}
+                            />
+                          </PopoverTrigger>
+                          <PopoverContent 
+                            className="w-64" 
+                            side="top" 
+                            align="center"
+                            onOpenAutoFocus={(e) => e.preventDefault()}
+                          >
+                            <ForecastDayDetail transactions={dueTransactions} day={date} />
+                          </PopoverContent>
+                        </Popover>
                       );
                   })}
               </div>
           </CardContent>
         </Card>
-        
-        <PopoverContent 
-            className="w-64" 
-            side="top" 
-            align="center"
-            onOpenAutoFocus={(e) => e.preventDefault()}
-        >
-          {selectedDay && (
-            <ForecastDayDetail transactions={selectedDay.transactions} day={selectedDay.date} />
-          )}
-        </PopoverContent>
-      </Popover>
     </div>
   );
 }
