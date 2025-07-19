@@ -172,6 +172,7 @@ export default function DashboardPage() {
         
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 sm:gap-6">
             <Card className="relative overflow-hidden">
+                {hsbcBank && <div className="h-1 absolute top-0 left-0 right-0" style={{ backgroundColor: hsbcBank.color }} />}
                 <CardHeader>
                     <CardTitle className="text-base font-semibold">HSBC Overview</CardTitle>
                 </CardHeader>
