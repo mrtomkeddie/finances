@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Note } from '@/lib/types';
 import TiptapEditor from './RichTextEditor';
-import { ScrollArea } from './ui/scroll-area';
 
 interface NoteModalProps {
   isOpen: boolean;
@@ -58,8 +57,8 @@ export function NoteModal({ isOpen, onClose, onSave, editingNote }: NoteModalPro
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg md:max-w-3xl mx-auto bg-card border-border">
-        <DialogHeader>
+      <DialogContent className="max-w-lg md:max-w-3xl mx-auto bg-card border-border max-h-[90vh] flex flex-col p-0 sm:p-0">
+        <DialogHeader className="p-6 pb-2">
           <DialogTitle className="text-foreground">
             {editingNote ? 'Edit Note' : 'Add New Note'}
           </DialogTitle>
@@ -68,9 +67,8 @@ export function NoteModal({ isOpen, onClose, onSave, editingNote }: NoteModalPro
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <ScrollArea className="h-[60vh] pr-6 custom-scrollbar">
-            <div className="space-y-4 pt-4">
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-y-auto">
+          <div className="flex-1 px-6 py-2 space-y-4 overflow-y-auto custom-scrollbar">
               <div className="space-y-2">
                 <Label htmlFor="note-title" className="text-foreground">Title</Label>
                 <Input
@@ -89,11 +87,10 @@ export function NoteModal({ isOpen, onClose, onSave, editingNote }: NoteModalPro
                   placeholder="Write your note here..."
                 />
               </div>
-            </div>
-          </ScrollArea>
-          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t border-border mt-4">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1 sm:flex-none">Cancel</Button>
-            <Button type="submit" className="flex-1 sm:flex-none">{editingNote ? 'Save Changes' : 'Add Note'}</Button>
+          </div>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 p-6 pt-4 border-t border-border mt-auto">
+            <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto">Cancel</Button>
+            <Button type="submit" className="w-full sm:w-auto">{editingNote ? 'Save Changes' : 'Add Note'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
