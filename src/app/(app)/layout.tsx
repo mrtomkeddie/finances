@@ -23,12 +23,12 @@ import { NoteModal } from '@/components/NoteModal';
 import { NoteDetailModal } from '@/components/NoteDetailModal';
 import { Note } from '@/lib/types';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 
 function SideMenuContent() {
     const { signOutUser } = useAuth();
     const { openTransactionModal, openBankManagement } = useUI();
-    const { theme, setTheme } = useTheme();
     
     return (
         <SheetContent className="flex h-full flex-col p-6">
@@ -79,15 +79,6 @@ function SideMenuContent() {
                 </div>
                 <div>
                     <Separator className="my-2" />
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Theme</span>
-                        <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
-                            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                            <span className="sr-only">Toggle theme</span>
-                        </Button>
-                    </div>
-                    <Separator className="my-2" />
                     <SheetClose asChild>
                         <Button variant="ghost" onClick={signOutUser} className="w-full justify-start text-base text-muted-foreground hover:text-foreground py-4">
                         <LogOut className="mr-2 h-4 w-4" />
@@ -109,6 +100,7 @@ function Header() {
           <Logo />
         </Link>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon">
