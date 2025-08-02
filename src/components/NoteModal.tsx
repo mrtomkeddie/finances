@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -92,10 +91,10 @@ export function NoteModal({ isOpen, onClose, onSave, editingNote }: NoteModalPro
               </div>
             </div>
           </ScrollArea>
-          <div className="flex gap-3 pt-4 border-t border-border mt-4">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
-            <Button type="submit" className="flex-1">{editingNote ? 'Save Changes' : 'Add Note'}</Button>
-          </div>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t border-border mt-4">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1 sm:flex-none">Cancel</Button>
+            <Button type="submit" className="flex-1 sm:flex-none">{editingNote ? 'Save Changes' : 'Add Note'}</Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

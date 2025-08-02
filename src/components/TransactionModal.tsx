@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -392,7 +391,7 @@ export function TransactionModal({
 
           <Separator className="mt-4" />
           
-          <DialogFooter className="pt-4">
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto">Cancel</Button>
             <Button type="submit" className="w-full sm:w-auto">{editTransaction ? 'Update Transaction' : 'Add Transaction'}</Button>
           </DialogFooter>

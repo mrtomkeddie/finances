@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Note } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
@@ -47,12 +46,12 @@ export function NoteDetailModal({ isOpen, onClose, note, onEdit }: NoteDetailMod
             />
         </ScrollArea>
 
-        <div className="flex justify-between items-center pt-4 border-t border-border">
+        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t border-border">
             <Button variant="outline" onClick={handleEdit}>
                 <Edit className="mr-2 h-4 w-4" /> Edit Note
             </Button>
             <Button onClick={onClose}>Close</Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

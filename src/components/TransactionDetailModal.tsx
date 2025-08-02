@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Calendar, Percent, Banknote } from 'lucide-react';
@@ -160,15 +159,13 @@ export function TransactionDetailModal({
               </p>
             </div>
           )}
-
-          <Separator />
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-4">
-            <Button variant="outline" onClick={handleEdit} className="w-full gap-2"><Edit className="h-4 w-4" /> Edit</Button>
-            <Button variant="destructive" onClick={handleDelete} className="w-full gap-2"><Trash2 className="h-4 w-4" /> Delete</Button>
-            <Button onClick={onClose} className="w-full">Close</Button>
-          </div>
         </div>
+        <Separator className="my-4" />
+        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+          <Button variant="outline" onClick={handleEdit} className="gap-2 sm:flex-1 md:flex-none"><Edit className="h-4 w-4" /> Edit</Button>
+          <Button variant="destructive" onClick={handleDelete} className="gap-2 sm:flex-1 md:flex-none"><Trash2 className="h-4 w-4" /> Delete</Button>
+          <Button onClick={onClose} className="sm:flex-1 md:flex-none">Close</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

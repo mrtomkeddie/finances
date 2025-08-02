@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Dialog,
@@ -45,7 +44,7 @@ export function ConfirmationDialog({
         <DialogDescription className="py-4 text-sm text-muted-foreground">
           {description}
         </DialogDescription>
-        <DialogFooter>
+        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>

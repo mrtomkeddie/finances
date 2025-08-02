@@ -267,7 +267,7 @@ export function BankManagementModal({
           </div>
         </div>
         <Separator className="mt-4" />
-        <DialogFooter className="px-6 sm:px-0 pt-4 pb-6 sm:pb-0">
+        <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 px-6 sm:px-0 pt-4 pb-6 sm:pb-0">
             <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">Close</Button>
             <Button 
                 onClick={handleAddBank}

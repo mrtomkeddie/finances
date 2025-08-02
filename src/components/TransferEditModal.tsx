@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -67,23 +67,23 @@ export function TransferEditModal({ isOpen, onClose, currentAmount, onSave }: Tr
               </ul>
             </div>
           </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+          
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 text-base py-6 border-border text-foreground hover:bg-accent"
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              className="flex-1 text-base py-6 bg-primary text-primary-foreground hover:bg-primary/90"
+              className="w-full sm:w-auto"
             >
               Save Transfer Amount
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
