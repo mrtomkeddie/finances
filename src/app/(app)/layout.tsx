@@ -4,7 +4,7 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, List, Loader2, LogOut, Menu, Plus, Notebook, Banknote, CalendarDays } from 'lucide-react';
+import { LayoutDashboard, List, Loader2, LogOut, Menu, Plus, Notebook, Banknote, CalendarDays, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/Logo';
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -12,6 +12,7 @@ import { UIProvider, useUI } from '@/context/UIContext';
 import { Separator } from '@/components/ui/separator';
 import { DataProvider, useData } from '@/context/DataContext';
 import Link from 'next/link';
+import { useTheme } from 'next-themes';
 
 // Modals
 import { BankManagementModal } from '@/components/BankManagementModal';
@@ -27,6 +28,7 @@ import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 function SideMenuContent() {
     const { signOutUser } = useAuth();
     const { openTransactionModal, openBankManagement } = useUI();
+    const { theme, setTheme } = useTheme();
     
     return (
         <SheetContent className="flex h-full flex-col p-6">
@@ -76,6 +78,15 @@ function SideMenuContent() {
                     </SheetClose>
                 </div>
                 <div>
+                    <Separator className="my-2" />
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Theme</span>
+                        <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+                            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                            <span className="sr-only">Toggle theme</span>
+                        </Button>
+                    </div>
                     <Separator className="my-2" />
                     <SheetClose asChild>
                         <Button variant="ghost" onClick={signOutUser} className="w-full justify-start text-base text-muted-foreground hover:text-foreground py-4">
@@ -249,8 +260,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   React.useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
+    if (!loading && user) {
+      router.push('/dashboard');
     }
   }, [user, loading, router]);
 

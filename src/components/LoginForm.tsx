@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { Logo } from './Logo';
 
 export function LoginForm() {
   const { signInWithEmail, sendPasswordReset, error: authError } = useAuth();
@@ -53,12 +54,12 @@ export function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-900 text-white p-6">
+    <div className="flex min-h-screen items-center justify-center bg-background text-foreground p-6">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-            <img src="/white.png" alt="Finances App Logo" className="mx-auto h-auto w-40 mb-6" />
+            <Logo className="mx-auto h-auto w-40 mb-6" />
             <h1 className="text-3xl font-bold">Welcome Back</h1>
-            <p className="text-balance text-gray-400 mt-2">
+            <p className="text-balance text-muted-foreground mt-2">
               Sign in to access your financial hub.
             </p>
         </div>
@@ -67,14 +68,14 @@ export function LoginForm() {
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
                <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="m@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 bg-gray-800 border-gray-700 text-white"
+                  className="pl-10 bg-input border-border text-foreground"
                   required
                 />
               </div>
@@ -85,29 +86,29 @@ export function LoginForm() {
                 <button 
                   type="button" 
                   onClick={handlePasswordReset} 
-                  className="ml-auto inline-block text-sm text-gray-400 hover:text-white underline"
+                  className="ml-auto inline-block text-sm text-muted-foreground hover:text-foreground underline"
                 >
                   Forgot password?
                 </button>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
                   id="password" 
                   type="password" 
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 bg-gray-800 border-gray-700 text-white"
+                  className="pl-10 bg-input border-border text-foreground"
                   required 
                 />
               </div>
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/20 border border-red-500/30">
-                <AlertCircle className="h-4 w-4 text-red-400" />
-                <p className="text-sm text-red-400">{error}</p>
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
+                <AlertCircle className="h-4 w-4 text-destructive" />
+                <p className="text-sm text-destructive">{error}</p>
               </div>
             )}
 
@@ -117,7 +118,7 @@ export function LoginForm() {
               </div>
             )}
 
-            <Button type="submit" className="w-full bg-white text-gray-900 hover:bg-gray-200" disabled={isLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
         </form>
