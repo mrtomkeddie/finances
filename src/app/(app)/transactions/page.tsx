@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useData } from '@/context/DataContext';
 import { useUI } from '@/context/UIContext';
@@ -101,7 +101,12 @@ export default function TransactionsPage() {
             }
         }
         
-        return { income, expenses: outgoings };
+        return { 
+            income, 
+            expenses: outgoings,
+            totalDebt: summary.totalDebt,
+            monthlyDebt: summary.monthlyDebt,
+        };
     }, [transactions, activeBankFilter, banks, weeklyTransferAmount]);
 
     if (isInitialLoading || isTransactionsLoading) {
@@ -124,18 +129,45 @@ export default function TransactionsPage() {
 
     return (
         <div className="space-y-6">
-            <Card>
-                <CardContent className="grid grid-cols-2 gap-4 p-4 text-center">
-                    <div>
-                        <p className="text-sm text-muted-foreground">Monthly Income</p>
-                        <p className="text-lg font-bold text-green-500"><AnimatedNumber value={totalSummary.income} /></p>
-                    </div>
-                    <div>
-                        <p className="text-sm text-muted-foreground">Monthly Outgoings</p>
-                        <p className="text-lg font-bold text-red-500"><AnimatedNumber value={totalSummary.expenses} /></p>
-                    </div>
-                </CardContent>
-            </Card>
+            {activeFilter === 'debt' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Card>
+                        <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Debt Remaining</CardTitle>
+                            <CreditCard className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-amber-600 dark:text-amber-500">
+                                <AnimatedNumber value={totalSummary.totalDebt} />
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Monthly Debt Payments</CardTitle>
+                            <ArrowDown className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-red-500">
+                                <AnimatedNumber value={totalSummary.monthlyDebt} />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            ) : (
+                <Card>
+                    <CardContent className="grid grid-cols-2 gap-4 p-4 text-center">
+                        <div>
+                            <p className="text-sm text-muted-foreground">Monthly Income</p>
+                            <p className="text-lg font-bold text-green-500"><AnimatedNumber value={totalSummary.income} /></p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Monthly Outgoings</p>
+                            <p className="text-lg font-bold text-red-500"><AnimatedNumber value={totalSummary.expenses} /></p>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
