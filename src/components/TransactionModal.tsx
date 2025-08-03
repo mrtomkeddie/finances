@@ -13,6 +13,7 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { format, parse } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
+import { useToast } from '@/hooks/use-toast';
 
 interface TransactionModalProps {
   isOpen: boolean;
@@ -65,6 +66,7 @@ export function TransactionModal({
   const [formData, setFormData] = useState<FormData>(getInitialFormData());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (isOpen) {
@@ -82,44 +84,52 @@ export function TransactionModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    const showValidationError = (description: string) => {
+      toast({
+        variant: 'destructive',
+        title: 'Validation Error',
+        description: description,
+      });
+    };
+
     if (!formData.title.trim()) {
-      alert('Please enter a transaction title');
+      showValidationError('Please enter a transaction title.');
       return;
     }
     
     if (formData.amount < 0) {
-      alert('Please enter a valid amount (£0 or more)');
+      showValidationError('Please enter a valid amount (£0 or more).');
       return;
     }
 
     if (formData.type !== 'debt' && formData.amount <= 0) {
-      alert('Please enter an amount greater than £0');
+      showValidationError('Please enter an amount greater than £0.');
       return;
     }
 
     if (!formData.bankId) {
-      alert('Please select a bank');
+      showValidationError('Please select a bank account.');
       return;
     }
 
     if (formData.type === 'debt' && (!formData.remainingBalance || formData.remainingBalance <= 0)) {
-      alert('Please enter the remaining debt balance');
+      showValidationError('Please enter the remaining debt balance.');
       return;
     }
 
     if (formData.type === 'debt') {
       if (formData.interestType === 'monetary' && formData.monthlyInterest && formData.monthlyInterest < 0) {
-        alert('Monthly interest cannot be negative');
+        showValidationError('Monthly interest cannot be negative.');
         return;
       }
       
       if (formData.interestType === 'percentage') {
         if (!formData.interestRate || formData.interestRate < 0) {
-          alert('Please enter a valid interest rate (0% or higher)');
+          showValidationError('Please enter a valid interest rate (0% or higher).');
           return;
         }
         if (formData.interestRate > 100) {
-          alert('Interest rate seems unusually high. Please check the value.');
+          showValidationError('Interest rate seems unusually high. Please check the value.');
           return;
         }
       }
