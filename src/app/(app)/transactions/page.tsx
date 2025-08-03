@@ -130,30 +130,18 @@ export default function TransactionsPage() {
     return (
         <div className="space-y-6">
             {activeFilter === 'debt' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Card>
-                        <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Debt Remaining</CardTitle>
-                            <CreditCard className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-amber-600 dark:text-amber-500">
-                                <AnimatedNumber value={totalSummary.totalDebt} />
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Monthly Debt Payments</CardTitle>
-                            <ArrowDown className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-red-500">
-                                <AnimatedNumber value={totalSummary.monthlyDebt} />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                <Card>
+                    <CardContent className="grid grid-cols-2 gap-4 p-4 text-center">
+                        <div>
+                            <p className="text-sm text-muted-foreground">Total Debt Remaining</p>
+                            <p className="text-lg font-bold text-amber-600 dark:text-amber-500"><AnimatedNumber value={totalSummary.totalDebt} /></p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Monthly Debt Payments</p>
+                            <p className="text-lg font-bold text-red-500"><AnimatedNumber value={totalSummary.monthlyDebt} /></p>
+                        </div>
+                    </CardContent>
+                </Card>
             ) : (
                 <Card>
                     <CardContent className="grid grid-cols-2 gap-4 p-4 text-center">
