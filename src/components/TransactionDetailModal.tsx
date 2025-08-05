@@ -79,6 +79,7 @@ export function TransactionDetailModal({
   const actualMonthlyInterest = isDebt ? calculateMonthlyInterest(transaction) : 0;
   const netMonthlyPayment = isDebt ? calculateNetMonthlyDebtPayment(transaction) : 0;
   const weeksUntilPaidOff = isDebt ? calculateWeeksUntilPaidOff(transaction) : null;
+  const category = transaction.category || 'Uncategorized';
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -98,12 +99,10 @@ export function TransactionDetailModal({
             <Badge variant="outline" className={`${getFrequencyColor(transaction.frequency)} border capitalize`}>
               {transaction.frequency}
             </Badge>
-            {transaction.category && (
-                <Badge variant="outline" className={`${getCategoryColor(transaction.category)} border capitalize`}>
-                    <Tag className="mr-1.5 h-3 w-3" />
-                    {transaction.category}
-                </Badge>
-            )}
+            <Badge variant="outline" className={`${getCategoryColor(category)} border capitalize`}>
+                <Tag className="mr-1.5 h-3 w-3" />
+                {category}
+            </Badge>
           </div>
 
           <Separator />

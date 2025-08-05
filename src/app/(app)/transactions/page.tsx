@@ -64,9 +64,9 @@ export default function TransactionsPage() {
             const typeMatches = activeFilter === 'all' || t.type === activeFilter || (activeFilter === 'expense' && t.type === 'debt');
             const bankMatches = activeBankFilter === 'all' || t.bankId === activeBankFilter;
             
-            // Category filter only applies to expenses and debts
             const categoryApplies = t.type === 'expense' || t.type === 'debt';
-            const categoryMatches = !categoryApplies || activeCategoryFilter === 'all' || t.category === activeCategoryFilter;
+            const effectiveCategory = t.category || 'Uncategorized';
+            const categoryMatches = !categoryApplies || activeCategoryFilter === 'all' || effectiveCategory === activeCategoryFilter;
 
             const searchMatches = searchQuery === '' ||
                 t.title.toLowerCase().includes(lowercasedQuery) ||
