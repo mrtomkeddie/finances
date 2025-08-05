@@ -63,10 +63,15 @@ export default function TransactionsPage() {
         const filtered = transactions.filter(t => {
             const typeMatches = activeFilter === 'all' || t.type === activeFilter || (activeFilter === 'expense' && t.type === 'debt');
             const bankMatches = activeBankFilter === 'all' || t.bankId === activeBankFilter;
-            const categoryMatches = activeCategoryFilter === 'all' || t.category === activeCategoryFilter;
+            
+            // Category filter only applies to expenses and debts
+            const categoryApplies = t.type === 'expense' || t.type === 'debt';
+            const categoryMatches = !categoryApplies || activeCategoryFilter === 'all' || t.category === activeCategoryFilter;
+
             const searchMatches = searchQuery === '' ||
                 t.title.toLowerCase().includes(lowercasedQuery) ||
                 (t.description && t.description.toLowerCase().includes(lowercasedQuery));
+                
             return typeMatches && bankMatches && categoryMatches && searchMatches;
         });
 
@@ -130,6 +135,8 @@ export default function TransactionsPage() {
         if (type === 'debt') return <CreditCard className="h-5 w-5 text-orange-500" />;
         return <Banknote className="h-5 w-5 text-muted-foreground" />;
     };
+    
+    const isCategoryFilterActive = activeFilter === 'expense' || activeFilter === 'debt';
 
     return (
         <div className="space-y-6">
@@ -206,7 +213,11 @@ export default function TransactionsPage() {
                         </PopoverContent>
                     </Popover>
 
-                    <Select value={activeCategoryFilter} onValueChange={setActiveCategoryFilter}>
+                    <Select 
+                        value={isCategoryFilterActive ? activeCategoryFilter : 'all'} 
+                        onValueChange={setActiveCategoryFilter}
+                        disabled={!isCategoryFilterActive}
+                    >
                         <SelectTrigger className="lg:col-span-1">
                             <div className="flex items-center gap-2">
                                 <Tag className="h-4 w-4 text-muted-foreground" />
