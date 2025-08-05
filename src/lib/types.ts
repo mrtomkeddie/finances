@@ -4,6 +4,7 @@ export type TransactionFrequency = 'weekly' | 'bi-weekly' | '4-weekly' | 'monthl
 export type BankType = 'bank' | 'credit-card' | 'loan';
 export type InterestType = 'monetary' | 'percentage';
 export type RateFrequency = 'monthly' | 'annual';
+export type TransactionCategory = 'Work' | 'Education' | 'Bills/Debt' | 'Nice To Have' | 'Uncategorized';
 
 export interface Transaction {
   id: string;
@@ -11,7 +12,7 @@ export interface Transaction {
   amount: number;
   type: TransactionType;
   frequency: TransactionFrequency;
-  category: string;
+  category: TransactionCategory;
   date: string; // ISO string
   bankId: string;
   remainingBalance?: number | null;

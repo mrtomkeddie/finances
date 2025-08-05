@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useData } from '@/context/DataContext';
 import { useUI } from '@/context/UIContext';
-import { Transaction, TransactionFrequency } from '@/lib/types';
+import { Transaction, TransactionFrequency, TransactionCategory } from '@/lib/types';
 import { calculateSummary, formatCurrency, calculateMonthlyAmount, calculateWeeksUntilPaidOff, calculateNetMonthlyDebtPayment } from '@/lib/financial';
 import { formatDate, formatNextDueDate, getNextDueDate } from '@/lib/dateUtils';
-import { ArrowDown, ArrowUp, CreditCard, Calendar, Banknote, SearchX, ChevronUp, ChevronDown, Check, ArrowUpDown, Loader2, Search } from 'lucide-react';
+import { ArrowDown, ArrowUp, CreditCard, Calendar, Banknote, SearchX, ChevronUp, ChevronDown, Check, ArrowUpDown, Loader2, Search, Tag } from 'lucide-react';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +29,8 @@ const sortOptions: { value: string; label: string }[] = [
     { value: 'name_desc', label: 'Name (Z-A)' },
 ];
 
+const categories: TransactionCategory[] = ['Work', 'Education', 'Bills/Debt', 'Nice To Have', 'Uncategorized'];
+
 export default function TransactionsPage() {
     const { 
       transactions, 
@@ -42,6 +44,7 @@ export default function TransactionsPage() {
     
     const [activeFilter, setActiveFilter] = useState<'all' | 'income' | 'expense' | 'debt'>('all');
     const [activeBankFilter, setActiveBankFilter] = useState<string>('all');
+    const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [isBankPopoverOpen, setBankPopoverOpen] = useState(false);
     
@@ -60,10 +63,11 @@ export default function TransactionsPage() {
         const filtered = transactions.filter(t => {
             const typeMatches = activeFilter === 'all' || t.type === activeFilter || (activeFilter === 'expense' && t.type === 'debt');
             const bankMatches = activeBankFilter === 'all' || t.bankId === activeBankFilter;
+            const categoryMatches = activeCategoryFilter === 'all' || t.category === activeCategoryFilter;
             const searchMatches = searchQuery === '' ||
                 t.title.toLowerCase().includes(lowercasedQuery) ||
                 (t.description && t.description.toLowerCase().includes(lowercasedQuery));
-            return typeMatches && bankMatches && searchMatches;
+            return typeMatches && bankMatches && categoryMatches && searchMatches;
         });
 
         const [sortColumn, sortDirection] = sort.split('_') as [SortColumn, SortDirection];
@@ -81,7 +85,7 @@ export default function TransactionsPage() {
             if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
             return 0;
         });
-    }, [transactions, activeFilter, activeBankFilter, sort, searchQuery, banks]);
+    }, [transactions, activeFilter, activeBankFilter, activeCategoryFilter, sort, searchQuery, banks]);
 
     const totalSummary = useMemo(() => {
         const filteredTxs = transactions.filter(t => 
@@ -167,7 +171,7 @@ export default function TransactionsPage() {
                     ))}
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="relative lg:col-span-1">
                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
@@ -201,6 +205,21 @@ export default function TransactionsPage() {
                             </div>
                         </PopoverContent>
                     </Popover>
+
+                    <Select value={activeCategoryFilter} onValueChange={setActiveCategoryFilter}>
+                        <SelectTrigger className="lg:col-span-1">
+                            <div className="flex items-center gap-2">
+                                <Tag className="h-4 w-4 text-muted-foreground" />
+                                <SelectValue placeholder="Filter by category..." />
+                            </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Categories</SelectItem>
+                            {categories.map(cat => (
+                                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
 
                     <Select value={sort} onValueChange={setSort}>
                       <SelectTrigger className="lg:col-span-1">

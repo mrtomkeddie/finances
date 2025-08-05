@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Calendar, Percent, Banknote } from 'lucide-react';
+import { Edit, Trash2, Calendar, Percent, Banknote, Tag } from 'lucide-react';
 import { Transaction, Bank } from '@/lib/types';
 import { formatCurrency, calculateMonthlyAmount, calculateNetMonthlyDebtPayment, calculateWeeksUntilPaidOff, formatInterestRate, calculateMonthlyInterest } from '@/lib/financial';
 import { formatDate } from '@/lib/dateUtils';
@@ -64,6 +65,16 @@ export function TransactionDetailModal({
         default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
     }
   };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+        case 'Work': return 'bg-sky-500/10 text-sky-300 border-sky-500/20';
+        case 'Education': return 'bg-amber-500/10 text-amber-300 border-amber-500/20';
+        case 'Bills/Debt': return 'bg-rose-500/10 text-rose-300 border-rose-500/20';
+        case 'Nice To Have': return 'bg-lime-500/10 text-lime-300 border-lime-500/20';
+        default: return 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+    }
+  };
   
   const actualMonthlyInterest = isDebt ? calculateMonthlyInterest(transaction) : 0;
   const netMonthlyPayment = isDebt ? calculateNetMonthlyDebtPayment(transaction) : 0;
@@ -87,6 +98,12 @@ export function TransactionDetailModal({
             <Badge variant="outline" className={`${getFrequencyColor(transaction.frequency)} border capitalize`}>
               {transaction.frequency}
             </Badge>
+            {transaction.category && (
+                <Badge variant="outline" className={`${getCategoryColor(transaction.category)} border capitalize`}>
+                    <Tag className="mr-1.5 h-3 w-3" />
+                    {transaction.category}
+                </Badge>
+            )}
           </div>
 
           <Separator />

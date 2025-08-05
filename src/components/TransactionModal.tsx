@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Transaction, Bank, TransactionType, TransactionFrequency, InterestType, RateFrequency } from '@/lib/types';
+import { Transaction, Bank, TransactionType, TransactionFrequency, InterestType, RateFrequency, TransactionCategory } from '@/lib/types';
 import { calculateMonthlyInterest, formatCurrency, getInterestInputLabel } from '@/lib/financial';
 import { Calendar } from '@/components/ui/calendar';
 import { Calendar as CalendarIcon } from 'lucide-react';
@@ -37,6 +38,14 @@ const frequencies: { value: TransactionFrequency; label: string }[] = [
   { value: 'yearly', label: 'Yearly' },
 ];
 
+const categories: { value: TransactionCategory; label: string }[] = [
+    { value: 'Work', label: 'Work' },
+    { value: 'Education', label: 'Education' },
+    { value: 'Bills/Debt', label: 'Bills/Debt' },
+    { value: 'Nice To Have', label: 'Nice To Have' },
+    { value: 'Uncategorized', label: 'Uncategorized' },
+];
+
 type FormData = Omit<Transaction, 'id' | 'date'>;
 
 function getInitialFormData(): FormData {
@@ -45,7 +54,7 @@ function getInitialFormData(): FormData {
     amount: 0,
     type: 'income' as TransactionType,
     frequency: 'monthly' as TransactionFrequency,
-    category: '',
+    category: 'Uncategorized' as TransactionCategory,
     bankId: '',
     remainingBalance: null,
     monthlyInterest: null,
@@ -72,7 +81,11 @@ export function TransactionModal({
     if (isOpen) {
       if (editTransaction) {
         const { date, ...rest } = editTransaction;
-        setFormData(rest);
+        setFormData({
+            ...getInitialFormData(),
+            ...rest,
+            category: rest.category || 'Uncategorized'
+        });
         setSelectedDate(date ? parse(date, 'yyyy-MM-dd', new Date()) : new Date());
       } else {
         setFormData(getInitialFormData());
@@ -139,7 +152,7 @@ export function TransactionModal({
       ...formData,
       date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
       title: formData.title.trim(),
-      category: formData.type, // Use transaction type as category
+      category: formData.category || 'Uncategorized',
       remainingBalance: formData.type === 'debt' ? formData.remainingBalance : null,
       monthlyInterest: formData.type === 'debt' ? calculateMonthlyInterest({ ...formData, date: '' } as Transaction) : null,
       interestRate: formData.type === 'debt' ? formData.interestRate : null,
@@ -174,6 +187,18 @@ export function TransactionModal({
           </DialogHeader>
 
           <div className="grid grid-cols-1 gap-4 pt-2 pb-6 md:grid-cols-2 md:gap-x-6 md:gap-y-4">
+            {/* Title */}
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="title" className="text-foreground">Title</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="e.g. Monthly Salary, Weekly Groceries, etc."
+                className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+              />
+            </div>
+          
             {/* Type */}
             <div className="space-y-2">
               <Label htmlFor="type" className="text-foreground">Type</Label>
@@ -192,6 +217,26 @@ export function TransactionModal({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            
+            {/* Category */}
+            <div className="space-y-2">
+                <Label htmlFor="category" className="text-foreground">Category</Label>
+                <Select
+                    value={formData.category}
+                    onValueChange={(value: TransactionCategory) => setFormData({ ...formData, category: value })}
+                >
+                    <SelectTrigger className="bg-input border-border text-foreground">
+                        <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-border">
+                        {categories.map((cat) => (
+                            <SelectItem key={cat.value} value={cat.value} className="text-popover-foreground">
+                                {cat.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
 
             {/* Bank Selection */}
@@ -215,18 +260,6 @@ export function TransactionModal({
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            {/* Title */}
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="title" className="text-foreground">Title</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="e.g. Monthly Salary, Weekly Groceries, etc."
-                className="bg-input border-border text-foreground placeholder:text-muted-foreground"
-              />
             </div>
 
             {/* Amount */}
@@ -268,7 +301,7 @@ export function TransactionModal({
             </div>
             
             {/* Date */}
-            <div className="space-y-2 md:col-span-2">
+            <div className="space-y-2">
               <Label className="text-foreground">Date of First (or Next) Payment</Label>
               <Dialog open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <DialogTrigger asChild>
