@@ -83,7 +83,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setIsTransactionsLoading(true);
         setError(null);
         const firebaseTransactions = await getTransactions(user.uid);
-        setTransactions(firebaseTransactions.filter(t => t.type !== 'transfer'));
+        const categorizedTransactions = firebaseTransactions
+          .filter(t => t.type !== 'transfer')
+          .map(t => ({...t, category: t.category || 'Uncategorized'}));
+        setTransactions(categorizedTransactions);
         setAreTransactionsLoaded(true);
     } catch (err: any) {
         console.error('Error loading transactions from Firebase:', err);
@@ -181,7 +184,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     try {
       setError(null);
-      const createdTransaction = await addTransaction(user.uid, newTransaction);
+      const transactionWithCategory = {
+        ...newTransaction,
+        category: newTransaction.category || 'Uncategorized',
+      };
+      const createdTransaction = await addTransaction(user.uid, transactionWithCategory);
       setTransactions(prev => [...prev, createdTransaction]);
     } catch (err: any) {
       setError(`Failed to add transaction: ${err.message}`);
@@ -192,7 +199,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     try {
       setError(null);
-      const updated = await updateTransaction(user.uid, transactionId, updatedTransaction);
+      const transactionWithCategory = {
+        ...updatedTransaction,
+        category: updatedTransaction.category || 'Uncategorized',
+      };
+      const updated = await updateTransaction(user.uid, transactionId, transactionWithCategory);
       setTransactions(prev => prev.map(t => (t.id === transactionId ? updated : t)));
     } catch (err: any) {
       setError(`Failed to update transaction: ${err.message}`);
