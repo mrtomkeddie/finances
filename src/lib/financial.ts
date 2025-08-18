@@ -1,8 +1,6 @@
 
 import { Transaction, FinancialSummary, TransactionFrequency, Currency } from './types';
-
-// Hardcoded exchange rate
-const USD_TO_GBP_RATE = 0.8;
+import { getExchangeRate } from './currencyService';
 
 export function formatCurrency(amount: number, currency: Currency = 'GBP'): string {
   const options: Intl.NumberFormatOptions = {
@@ -16,9 +14,10 @@ export function formatCurrency(amount: number, currency: Currency = 'GBP'): stri
   return new Intl.NumberFormat(locale, options).format(amount);
 }
 
-export function convertToGbp(amount: number, currency: Currency): number {
+export async function convertToGbp(amount: number, currency: Currency): Promise<number> {
   if (currency === 'USD') {
-    return amount * USD_TO_GBP_RATE;
+    const rate = await getExchangeRate('USD', 'GBP');
+    return amount * rate;
   }
   return amount;
 }

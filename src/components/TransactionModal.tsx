@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Transaction, Bank, TransactionType, TransactionFrequency, InterestType, RateFrequency, TransactionCategory, Currency } from '@/lib/types';
 import { calculateMonthlyInterest, formatCurrency, getInterestInputLabel, convertToGbp } from '@/lib/financial';
 import { Calendar } from '@/components/ui/calendar';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Loader2 } from 'lucide-react';
 import { format, parse } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Separator } from './ui/separator';
@@ -82,6 +82,8 @@ export function TransactionModal({
   const [formData, setFormData] = useState<FormData>(getInitialFormData());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [convertedAmount, setConvertedAmount] = useState<number | null>(null);
+  const [isConverting, setIsConverting] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -100,10 +102,41 @@ export function TransactionModal({
         setFormData(getInitialFormData());
         setSelectedDate(new Date());
       }
+      setConvertedAmount(null);
+      setIsConverting(false);
     }
   }, [isOpen, editTransaction]);
+  
+  const handleCurrencyChange = useCallback(async (amount: number, currency: Currency) => {
+    if (currency === 'USD' && amount > 0) {
+      setIsConverting(true);
+      try {
+        const gbpValue = await convertToGbp(amount, currency);
+        setConvertedAmount(gbpValue);
+      } catch (error) {
+        console.error("Failed to fetch exchange rate", error);
+        toast({
+          variant: 'destructive',
+          title: 'Conversion Error',
+          description: 'Could not fetch the latest exchange rate. Please try again later.',
+        });
+        setConvertedAmount(null);
+      } finally {
+        setIsConverting(false);
+      }
+    } else {
+      setConvertedAmount(null);
+    }
+  }, [toast]);
+  
+  useEffect(() => {
+    const amount = formData.originalAmount || 0;
+    const currency = formData.currency || 'GBP';
+    handleCurrencyChange(amount, currency);
+  }, [formData.originalAmount, formData.currency, handleCurrencyChange]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const showValidationError = (description: string) => {
@@ -159,7 +192,14 @@ export function TransactionModal({
     }
     
     const currency = formData.currency || 'GBP';
-    const finalAmount = convertToGbp(originalAmount, currency);
+    const finalAmount = currency === 'USD' 
+      ? convertedAmount !== null ? convertedAmount : await convertToGbp(originalAmount, currency)
+      : originalAmount;
+
+    if (finalAmount === null) {
+      showValidationError('Could not convert currency. Please check your connection or try again.');
+      return;
+    }
 
     const transaction: Omit<Transaction, 'id'> = {
       ...formData,
@@ -183,13 +223,6 @@ export function TransactionModal({
 
   const isDebt = formData.type === 'debt';
   const isPercentageType = formData.interestType === 'percentage';
-  
-  const gbpAmount = convertToGbp(formData.originalAmount || 0, formData.currency || 'GBP');
-
-  const calculatedMonthlyInterest = isDebt ? calculateMonthlyInterest({ ...formData, amount: gbpAmount, date: '' } as Transaction) : 0;
-  const netPayment = isDebt && gbpAmount > 0 
-    ? Math.max(0, gbpAmount - calculatedMonthlyInterest)
-    : gbpAmount;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -289,10 +322,14 @@ export function TransactionModal({
                   </SelectContent>
                 </Select>
               </div>
-              {formData.currency === 'USD' && formData.originalAmount > 0 && (
-                <p className="text-xs text-muted-foreground pt-1">
-                  ~ {formatCurrency(gbpAmount)} after conversion.
-                </p>
+              {convertedAmount !== null && (
+                <div className="text-xs text-muted-foreground pt-1 flex items-center gap-2">
+                  {isConverting ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <span>~ {formatCurrency(convertedAmount)} after conversion.</span>
+                  )}
+                </div>
               )}
             </div>
 
