@@ -1,11 +1,28 @@
-import { Transaction, FinancialSummary, TransactionFrequency } from './types';
 
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-GB', {
+import { Transaction, FinancialSummary, TransactionFrequency, Currency } from './types';
+
+// Hardcoded exchange rate
+const USD_TO_GBP_RATE = 0.8;
+
+export function formatCurrency(amount: number, currency: Currency = 'GBP'): string {
+  const options: Intl.NumberFormatOptions = {
     style: 'currency',
-    currency: 'GBP',
-  }).format(amount);
+    currency,
+  };
+
+  // For USD, use en-US locale to get the correct symbol prefix
+  const locale = currency === 'USD' ? 'en-US' : 'en-GB';
+  
+  return new Intl.NumberFormat(locale, options).format(amount);
 }
+
+export function convertToGbp(amount: number, currency: Currency): number {
+  if (currency === 'USD') {
+    return amount * USD_TO_GBP_RATE;
+  }
+  return amount;
+}
+
 
 export function calculateMonthlyAmount(amount: number, frequency: TransactionFrequency): number {
   switch (frequency) {

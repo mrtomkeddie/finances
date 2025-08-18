@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Transaction, Bank, TransactionType, TransactionFrequency, InterestType, RateFrequency, TransactionCategory } from '@/lib/types';
-import { calculateMonthlyInterest, formatCurrency, getInterestInputLabel } from '@/lib/financial';
+import { Transaction, Bank, TransactionType, TransactionFrequency, InterestType, RateFrequency, TransactionCategory, Currency } from '@/lib/types';
+import { calculateMonthlyInterest, formatCurrency, getInterestInputLabel, convertToGbp } from '@/lib/financial';
 import { Calendar } from '@/components/ui/calendar';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { format, parse } from 'date-fns';
@@ -46,12 +46,19 @@ const categories: { value: TransactionCategory; label: string }[] = [
     { value: 'Uncategorized', label: 'Uncategorized' },
 ];
 
+const currencies: { value: Currency; label: string }[] = [
+  { value: 'GBP', label: 'GBP (£)' },
+  { value: 'USD', label: 'USD ($)' },
+];
+
 type FormData = Omit<Transaction, 'id' | 'date'>;
 
 function getInitialFormData(): FormData {
   return {
     title: '',
     amount: 0,
+    originalAmount: 0,
+    currency: 'GBP',
     type: 'income' as TransactionType,
     frequency: 'monthly' as TransactionFrequency,
     category: 'Uncategorized' as TransactionCategory,
@@ -84,6 +91,8 @@ export function TransactionModal({
         setFormData({
             ...getInitialFormData(),
             ...rest,
+            originalAmount: rest.originalAmount || rest.amount,
+            currency: rest.currency || 'GBP',
             category: rest.category || 'Uncategorized'
         });
         setSelectedDate(date ? parse(date, 'yyyy-MM-dd', new Date()) : new Date());
@@ -110,14 +119,15 @@ export function TransactionModal({
       return;
     }
     
-    if (formData.amount < 0) {
-      showValidationError('Please enter a valid amount (£0 or more).');
-      return;
+    const originalAmount = formData.originalAmount || 0;
+    if (originalAmount < 0) {
+        showValidationError('Please enter a valid amount (£0 or more).');
+        return;
     }
 
-    if (formData.type !== 'debt' && formData.amount <= 0) {
-      showValidationError('Please enter an amount greater than £0.');
-      return;
+    if (formData.type !== 'debt' && originalAmount <= 0) {
+        showValidationError('Please enter an amount greater than £0.');
+        return;
     }
 
     if (!formData.bankId) {
@@ -147,14 +157,20 @@ export function TransactionModal({
         }
       }
     }
+    
+    const currency = formData.currency || 'GBP';
+    const finalAmount = convertToGbp(originalAmount, currency);
 
     const transaction: Omit<Transaction, 'id'> = {
       ...formData,
+      amount: finalAmount,
+      originalAmount: originalAmount,
+      currency: currency,
       date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
       title: formData.title.trim(),
       category: formData.category || 'Uncategorized',
       remainingBalance: formData.type === 'debt' ? formData.remainingBalance : null,
-      monthlyInterest: formData.type === 'debt' ? calculateMonthlyInterest({ ...formData, date: '' } as Transaction) : null,
+      monthlyInterest: formData.type === 'debt' ? calculateMonthlyInterest({ ...formData, amount: finalAmount, date: '' } as Transaction) : null,
       interestRate: formData.type === 'debt' ? formData.interestRate : null,
       interestType: formData.type === 'debt' ? formData.interestType : null,
       rateFrequency: formData.type === 'debt' ? formData.rateFrequency : null,
@@ -167,11 +183,13 @@ export function TransactionModal({
 
   const isDebt = formData.type === 'debt';
   const isPercentageType = formData.interestType === 'percentage';
+  
+  const gbpAmount = convertToGbp(formData.originalAmount || 0, formData.currency || 'GBP');
 
-  const calculatedMonthlyInterest = isDebt ? calculateMonthlyInterest({ ...formData, date: '' } as Transaction) : 0;
-  const netPayment = isDebt && formData.amount > 0 
-    ? Math.max(0, formData.amount - calculatedMonthlyInterest)
-    : formData.amount;
+  const calculatedMonthlyInterest = isDebt ? calculateMonthlyInterest({ ...formData, amount: gbpAmount, date: '' } as Transaction) : 0;
+  const netPayment = isDebt && gbpAmount > 0 
+    ? Math.max(0, gbpAmount - calculatedMonthlyInterest)
+    : gbpAmount;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -238,6 +256,45 @@ export function TransactionModal({
                     </SelectContent>
                 </Select>
             </div>
+            
+            {/* Amount & Currency */}
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="amount" className="text-foreground">
+                {isDebt ? 'Payment Amount' : 'Amount'}
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.originalAmount || ''}
+                  onChange={(e) => setFormData({ ...formData, originalAmount: parseFloat(e.target.value) || 0 })}
+                  placeholder="0.00"
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+                />
+                <Select
+                  value={formData.currency}
+                  onValueChange={(value: Currency) => setFormData({ ...formData, currency: value })}
+                >
+                  <SelectTrigger className="w-[120px] bg-input border-border text-foreground">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border">
+                    {currencies.map((c) => (
+                      <SelectItem key={c.value} value={c.value} className="text-popover-foreground">
+                        {c.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {formData.currency === 'USD' && formData.originalAmount > 0 && (
+                <p className="text-xs text-muted-foreground pt-1">
+                  ~ {formatCurrency(gbpAmount)} after conversion.
+                </p>
+              )}
+            </div>
 
             {/* Bank Selection */}
             <div className="space-y-2">
@@ -261,25 +318,7 @@ export function TransactionModal({
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Amount */}
-            <div className="space-y-2">
-              <Label htmlFor="amount" className="text-foreground">
-                {isDebt ? 'Payment Amount (£)' : 'Amount (£)'}
-              </Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.amount || ''}
-                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-                placeholder={isDebt ? '0.00' : '0.00'}
-                className="bg-input border-border text-foreground placeholder:text-muted-foreground"
-              />
-              {isDebt && <p className="text-xs text-muted-foreground">Set to £0 if not making payments yet.</p>}
-            </div>
-
+            
             {/* Frequency */}
             <div className="space-y-2">
               <Label htmlFor="frequency" className="text-foreground">Frequency</Label>
@@ -301,7 +340,7 @@ export function TransactionModal({
             </div>
             
             {/* Date */}
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <Label className="text-foreground">Date of First (or Next) Payment</Label>
               <Dialog open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <DialogTrigger asChild>
@@ -336,7 +375,7 @@ export function TransactionModal({
                 <h4 className="font-medium text-foreground">Debt Details</h4>
                 {/* Remaining Balance */}
                 <div className="space-y-2">
-                  <Label htmlFor="remainingBalance" className="text-foreground">Remaining Debt Balance (£) *</Label>
+                  <Label htmlFor="remainingBalance" className="text-foreground">Remaining Debt Balance (in {formData.currency || 'GBP'})*</Label>
                   <Input
                     id="remainingBalance"
                     type="number"

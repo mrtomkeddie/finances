@@ -5,22 +5,27 @@ export type BankType = 'bank' | 'credit-card' | 'loan';
 export type InterestType = 'monetary' | 'percentage';
 export type RateFrequency = 'monthly' | 'annual';
 export type TransactionCategory = 'Work' | 'Education' | 'Bills/Debt' | 'Nice To Have' | 'Uncategorized';
+export type Currency = 'GBP' | 'USD';
 
 export interface Transaction {
   id: string;
   title: string;
-  amount: number;
+  amount: number; // Always in GBP
   type: TransactionType;
   frequency: TransactionFrequency;
   category: TransactionCategory;
   date: string; // ISO string
   bankId: string;
-  remainingBalance?: number | null;
-  monthlyInterest?: number | null; // Calculated or direct monetary amount
+  remainingBalance?: number | null; // In GBP
+  monthlyInterest?: number | null; // In GBP
   interestRate?: number | null; // Percentage rate (e.g., 2.5 for 2.5%)
   interestType?: InterestType | null; // 'monetary' or 'percentage'
   rateFrequency?: RateFrequency | null; // 'monthly' or 'annual' (for percentage rates)
   description?: string | null;
+  
+  // New currency fields
+  originalAmount?: number | null;
+  currency?: Currency | null;
 }
 
 export interface Bank {

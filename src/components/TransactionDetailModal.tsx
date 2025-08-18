@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Calendar, Percent, Banknote, Tag } from 'lucide-react';
-import { Transaction, Bank } from '@/lib/types';
+import { Transaction, Bank, Currency } from '@/lib/types';
 import { formatCurrency, calculateMonthlyAmount, calculateNetMonthlyDebtPayment, calculateWeeksUntilPaidOff, formatInterestRate, calculateMonthlyInterest } from '@/lib/financial';
 import { formatDate } from '@/lib/dateUtils';
 import { Separator } from '@/components/ui/separator';
@@ -80,6 +80,9 @@ export function TransactionDetailModal({
   const netMonthlyPayment = isDebt ? calculateNetMonthlyDebtPayment(transaction) : 0;
   const weeksUntilPaidOff = isDebt ? calculateWeeksUntilPaidOff(transaction) : null;
   const category = transaction.category || 'Uncategorized';
+  const currency = transaction.currency || 'GBP';
+  const originalAmount = transaction.originalAmount || transaction.amount;
+  const isForeignCurrency = currency !== 'GBP';
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -109,12 +112,19 @@ export function TransactionDetailModal({
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="flex-1 p-3 sm:p-4 rounded-lg bg-muted/30 border border-border/50">
-              <p className="text-xs sm:text-sm text-muted-foreground">{isDebt ? 'Payment' : 'Amount'}</p>
-              <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(transaction.amount)}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">{isDebt ? 'Payment Amount' : 'Amount'}</p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground">
+                    {formatCurrency(originalAmount, currency as Currency)}
+                </p>
+                {isForeignCurrency && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                        ~ {formatCurrency(transaction.amount, 'GBP')}
+                    </p>
+                )}
             </div>
             <div className="flex-1 p-3 sm:p-4 rounded-lg bg-muted/30 border border-border/50">
-              <p className="text-xs sm:text-sm text-muted-foreground">Monthly Equivalent</p>
-              <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(monthlyAmount)}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Monthly Equivalent (GBP)</p>
+              <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(monthlyAmount, 'GBP')}</p>
             </div>
           </div>
 
