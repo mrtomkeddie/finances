@@ -9,14 +9,19 @@ export function formatCurrency(amount: number, currency: Currency = 'GBP'): stri
   };
 
   // For USD, use en-US locale to get the correct symbol prefix
-  const locale = currency === 'USD' ? 'en-US' : 'en-GB';
+  let locale = 'en-GB';
+  if (currency === 'USD') locale = 'en-US';
+  if (currency === 'AUD') locale = 'en-AU';
   
   return new Intl.NumberFormat(locale, options).format(amount);
 }
 
 export async function convertToGbp(amount: number, currency: Currency): Promise<number> {
-  if (currency === 'USD') {
-    const rate = await getExchangeRate('USD', 'GBP');
+  if (currency === 'GBP') {
+    return amount;
+  }
+  if (currency === 'USD' || currency === 'AUD') {
+    const rate = await getExchangeRate(currency, 'GBP');
     return amount * rate;
   }
   return amount;

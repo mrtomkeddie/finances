@@ -49,6 +49,7 @@ const categories: { value: TransactionCategory; label: string }[] = [
 const currencies: { value: Currency; label: string }[] = [
   { value: 'GBP', label: 'GBP (£)' },
   { value: 'USD', label: 'USD ($)' },
+  { value: 'AUD', label: 'AUD (A$)' },
 ];
 
 type FormData = Omit<Transaction, 'id' | 'date'>;
@@ -108,7 +109,7 @@ export function TransactionModal({
   }, [isOpen, editTransaction]);
   
   const handleCurrencyChange = useCallback(async (amount: number, currency: Currency) => {
-    if (currency === 'USD' && amount > 0) {
+    if (currency !== 'GBP' && amount > 0) {
       setIsConverting(true);
       try {
         const gbpValue = await convertToGbp(amount, currency);
@@ -194,7 +195,7 @@ export function TransactionModal({
     const currency = formData.currency || 'GBP';
     let finalAmount = originalAmount;
     
-    if (currency === 'USD') {
+    if (currency !== 'GBP') {
         if (convertedAmount !== null) {
             finalAmount = convertedAmount;
         } else {
@@ -332,7 +333,7 @@ export function TransactionModal({
                   </SelectContent>
                 </Select>
               </div>
-              {formData.currency === 'USD' && (
+              {formData.currency !== 'GBP' && (
                 <div className="text-xs text-muted-foreground pt-1 flex items-center gap-2">
                   {isConverting ? (
                     <>

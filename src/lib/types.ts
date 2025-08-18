@@ -5,7 +5,7 @@ export type BankType = 'bank' | 'credit-card' | 'loan';
 export type InterestType = 'monetary' | 'percentage';
 export type RateFrequency = 'monthly' | 'annual';
 export type TransactionCategory = 'Work' | 'Education' | 'Bills/Debt' | 'Nice To Have' | 'Uncategorized';
-export type Currency = 'GBP' | 'USD';
+export type Currency = 'GBP' | 'USD' | 'AUD';
 
 export interface Transaction {
   id: string;
