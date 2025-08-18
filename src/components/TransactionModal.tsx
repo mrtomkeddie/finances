@@ -322,12 +322,17 @@ export function TransactionModal({
                   </SelectContent>
                 </Select>
               </div>
-              {convertedAmount !== null && (
+              {formData.currency === 'USD' && (
                 <div className="text-xs text-muted-foreground pt-1 flex items-center gap-2">
                   {isConverting ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
+                    <>
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <span>Converting to GBP...</span>
+                    </>
+                  ) : convertedAmount !== null ? (
                     <span>~ {formatCurrency(convertedAmount)} after conversion.</span>
+                  ) : (
+                    formData.originalAmount > 0 && <span>Fetching exchange rate...</span>
                   )}
                 </div>
               )}

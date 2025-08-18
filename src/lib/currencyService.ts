@@ -1,11 +1,11 @@
 
 import type { Currency } from './types';
 
-// Using a simple, no-auth API for demonstration purposes.
-const API_BASE = 'https://open.er-api.com/v6/latest/';
+// Using a service that requires an API key.
+const API_BASE = 'https://api.freecurrencyapi.com/v1/latest';
+const API_KEY = process.env.NEXT_PUBLIC_EXCHANGE_RATE_API_KEY;
 
-// In-memory cache to avoid repeated API calls for the same data within a short period.
-// The key is the 'from' currency (e.g., 'USD'), and the value is the fetched data.
+// In-memory cache to avoid repeated API calls.
 const currencyCache = new Map<Currency, { data: any; timestamp: number }>();
 const CACHE_DURATION_MS = 10 * 60 * 1000; // 10 minutes
 
@@ -16,27 +16,36 @@ const CACHE_DURATION_MS = 10 * 60 * 1000; // 10 minutes
  * @returns The exchange rate.
  */
 export async function getExchangeRate(from: Currency, to: Currency): Promise<number> {
+  if (!API_KEY) {
+    console.warn('API key for currency conversion is missing. Using fallback rate.');
+    // Fallback to a static rate if the API key is not provided.
+    if (from === 'USD' && to === 'GBP') {
+      return 0.8;
+    }
+    throw new Error('API key is not configured and no fallback exists for this currency pair.');
+  }
+
   const now = Date.now();
   const cached = currencyCache.get(from);
 
   if (cached && now - cached.timestamp < CACHE_DURATION_MS) {
-    return cached.data.rates[to];
+    return cached.data.data[to];
   }
 
   try {
-    const response = await fetch(`${API_BASE}${from}`);
+    const response = await fetch(`${API_BASE}?apikey=${API_KEY}&base_currency=${from}&currencies=${to}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch exchange rates: ${response.statusText}`);
     }
     const data = await response.json();
     
-    if (data.result === 'error') {
-        throw new Error(`API Error: ${data['error-type']}`);
+    if (data.errors) {
+        throw new Error(`API Error: ${JSON.stringify(data.errors)}`);
     }
 
     currencyCache.set(from, { data, timestamp: now });
 
-    const rate = data.rates[to];
+    const rate = data.data[to];
     if (!rate) {
       throw new Error(`Rate for currency "${to}" not found in API response.`);
     }
@@ -45,11 +54,9 @@ export async function getExchangeRate(from: Currency, to: Currency): Promise<num
   } catch (error) {
     console.error("Currency service error:", error);
     // As a fallback, if the API fails, return a static rate to avoid breaking the app.
-    // This makes the feature resilient.
     if (from === 'USD' && to === 'GBP') {
       return 0.8;
     }
-    // For other pairs, you might want a different fallback or to re-throw the error.
     throw error;
   }
 }
