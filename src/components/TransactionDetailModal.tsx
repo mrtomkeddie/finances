@@ -10,6 +10,7 @@ import { formatDate } from '@/lib/dateUtils';
 import { Separator } from '@/components/ui/separator';
 import { useUI } from '@/context/UIContext';
 import { cn } from '@/lib/utils';
+import { AnimatedNumber } from '@/components/AnimatedNumber';
 
 interface TransactionDetailModalProps {
     isOpen: boolean;
@@ -29,12 +30,35 @@ export function TransactionDetailModal({
   onDelete,
 }: TransactionDetailModalProps) {
   const { openConfirmationDialog } = useUI();
+  const [liveMonthlyAmount, setLiveMonthlyAmount] = useState<number | null>(null);
+  const [isFetchingRate, setIsFetchingRate] = useState(false);
   
+  useEffect(() => {
+    if (isOpen && transaction && transaction.currency !== 'GBP' && transaction.originalAmount) {
+      const fetchLiveRate = async () => {
+        setIsFetchingRate(true);
+        try {
+          const rate = await getLiveRate(transaction.currency as Currency, 'GBP');
+          const liveGbpAmount = transaction.originalAmount! * rate;
+          setLiveMonthlyAmount(calculateMonthlyAmount(liveGbpAmount, transaction.frequency));
+        } catch (error) {
+          console.error("Could not fetch live rate for modal", error);
+          setLiveMonthlyAmount(null); // Fallback to historical if live fails
+        } finally {
+          setIsFetchingRate(false);
+        }
+      };
+      fetchLiveRate();
+    } else {
+      setLiveMonthlyAmount(null);
+    }
+  }, [isOpen, transaction]);
+
   if (!transaction) return null;
 
   const bank = banks.find(b => b.id === transaction.bankId);
   const isDebt = transaction.type === 'debt';
-  const monthlyAmount = calculateMonthlyAmount(transaction.amount, transaction.frequency);
+  const historicalMonthlyAmount = calculateMonthlyAmount(transaction.amount, transaction.frequency);
 
   const handleEdit = () => {
     onEdit(transaction);
@@ -85,6 +109,7 @@ export function TransactionDetailModal({
   const currency = transaction.currency || 'GBP';
   const originalAmount = transaction.originalAmount || transaction.amount;
   const isForeignCurrency = currency !== 'GBP';
+  const displayMonthlyAmount = liveMonthlyAmount !== null ? liveMonthlyAmount : historicalMonthlyAmount;
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -125,8 +150,13 @@ export function TransactionDetailModal({
                 )}
             </div>
             <div className="flex-1 p-3 sm:p-4 rounded-lg bg-muted/30 border border-border/50">
-              <p className="text-xs sm:text-sm text-muted-foreground">Monthly Equivalent (GBP)</p>
-              <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(monthlyAmount, 'GBP')}</p>
+              <div className="flex justify-between items-center">
+                <p className="text-xs sm:text-sm text-muted-foreground">Monthly Equivalent (GBP)</p>
+                {isFetchingRate && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+              </div>
+              <p className="text-xl sm:text-2xl font-bold text-foreground">
+                <AnimatedNumber value={displayMonthlyAmount} />
+              </p>
             </div>
           </div>
 
