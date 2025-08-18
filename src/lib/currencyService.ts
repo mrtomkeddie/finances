@@ -7,7 +7,7 @@ const API_KEY = process.env.NEXT_PUBLIC_EXCHANGE_RATE_API_KEY;
 
 // In-memory cache to avoid repeated API calls.
 const currencyCache = new Map<Currency, { data: any; timestamp: number }>();
-const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_DURATION_MS = 60 * 60 * 1000; // 60 minutes
 
 /**
  * Fetches the latest exchange rate from a base currency.
@@ -71,3 +71,4 @@ export async function getExchangeRate(from: Currency, to: Currency): Promise<num
     throw error;
   }
 }
+
