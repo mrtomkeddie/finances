@@ -11,12 +11,6 @@ import { Separator } from '@/components/ui/separator';
 import { useUI } from '@/context/UIContext';
 import { cn } from '@/lib/utils';
 
-
-interface LiveRateState {
-    rate: number | null;
-    loading: boolean;
-}
-
 interface TransactionDetailModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -35,25 +29,7 @@ export function TransactionDetailModal({
   onDelete,
 }: TransactionDetailModalProps) {
   const { openConfirmationDialog } = useUI();
-  const [liveRate, setLiveRate] = useState<LiveRateState>({ rate: null, loading: false });
-
-  useEffect(() => {
-    const fetchLiveRate = async () => {
-        if (isOpen && transaction && transaction.currency !== 'GBP') {
-            setLiveRate({ rate: null, loading: true });
-            try {
-                const rate = await getLiveRate(transaction.currency as Currency, 'GBP');
-                setLiveRate({ rate, loading: false });
-            } catch (error) {
-                console.error("Could not fetch live rate", error);
-                setLiveRate({ rate: null, loading: false });
-            }
-        }
-    };
-    fetchLiveRate();
-  }, [isOpen, transaction]);
-
-
+  
   if (!transaction) return null;
 
   const bank = banks.find(b => b.id === transaction.bankId);
@@ -110,25 +86,6 @@ export function TransactionDetailModal({
   const originalAmount = transaction.originalAmount || transaction.amount;
   const isForeignCurrency = currency !== 'GBP';
   
-  const currentGbpValue = (liveRate.rate && transaction.originalAmount) ? transaction.originalAmount * liveRate.rate : null;
-  const historicalGbpValue = transaction.amount;
-  const valueDifference = currentGbpValue !== null ? currentGbpValue - historicalGbpValue : null;
-
-
-  const ValueChangeIndicator = () => {
-    if (valueDifference === null || Math.abs(valueDifference) < 0.01) return null;
-
-    const isUp = valueDifference > 0;
-    const isDown = valueDifference < 0;
-
-    return (
-      <span className={cn("text-xs font-semibold flex items-center gap-1", isUp ? 'text-green-400' : 'text-red-400')}>
-        {isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-        {formatCurrency(Math.abs(valueDifference))}
-      </span>
-    );
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md sm:max-w-2xl mx-auto bg-card border-border">
@@ -172,32 +129,6 @@ export function TransactionDetailModal({
               <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(monthlyAmount, 'GBP')}</p>
             </div>
           </div>
-          
-          {isForeignCurrency && (
-             <div className="p-3 sm:p-4 bg-muted/30 rounded-lg border border-border/50 space-y-2">
-                <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
-                    <ArrowRightLeft className="h-4 w-4" /> Currency Conversion
-                </h4>
-                <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Original Value:</span>
-                    <span className="font-mono text-foreground">{formatCurrency(transaction.amount, 'GBP')}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Current Value:</span>
-                    {liveRate.loading ? (
-                         <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                        <div className="flex items-center gap-2">
-                           {currentGbpValue !== null && (
-                                <span className="font-mono text-foreground">{formatCurrency(currentGbpValue, 'GBP')}</span>
-                           )}
-                           <ValueChangeIndicator />
-                        </div>
-                    )}
-                </div>
-             </div>
-          )}
-
 
           {isDebt && (
             <div className="space-y-3 p-3 sm:p-4 bg-muted/30 rounded-lg border border-border/50">
