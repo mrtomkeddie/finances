@@ -192,13 +192,23 @@ export function TransactionModal({
     }
     
     const currency = formData.currency || 'GBP';
-    const finalAmount = currency === 'USD' 
-      ? convertedAmount !== null ? convertedAmount : await convertToGbp(originalAmount, currency)
-      : originalAmount;
-
-    if (finalAmount === null) {
-      showValidationError('Could not convert currency. Please check your connection or try again.');
-      return;
+    let finalAmount = originalAmount;
+    
+    if (currency === 'USD') {
+        if (convertedAmount !== null) {
+            finalAmount = convertedAmount;
+        } else {
+            // Attempt a last-minute conversion if the background one failed or didn't run
+            setIsConverting(true);
+            try {
+                finalAmount = await convertToGbp(originalAmount, currency);
+            } catch (error) {
+                showValidationError('Could not convert currency. Please check your connection or try again.');
+                setIsConverting(false);
+                return;
+            }
+            setIsConverting(false);
+        }
     }
 
     const transaction: Omit<Transaction, 'id'> = {
@@ -517,7 +527,9 @@ export function TransactionModal({
           
           <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto">Cancel</Button>
-            <Button type="submit" className="w-full sm:w-auto">{editTransaction ? 'Update Transaction' : 'Add Transaction'}</Button>
+            <Button type="submit" className="w-full sm:w-auto" disabled={isConverting}>
+                {isConverting ? 'Converting...' : (editTransaction ? 'Update Transaction' : 'Add Transaction')}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
