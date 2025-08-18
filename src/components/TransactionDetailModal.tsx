@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Calendar, Percent, Banknote, Tag, TrendingUp, TrendingDown, ArrowRight, Loader2 } from 'lucide-react';
+import { Edit, Trash2, Calendar, Percent, Banknote, Tag, TrendingUp, TrendingDown, ArrowRight, Loader2, ArrowRightLeft } from 'lucide-react';
 import { Transaction, Bank, Currency } from '@/lib/types';
 import { formatCurrency, calculateMonthlyAmount, calculateNetMonthlyDebtPayment, calculateWeeksUntilPaidOff, formatInterestRate, calculateMonthlyInterest, getLiveRate } from '@/lib/financial';
 import { formatDate } from '@/lib/dateUtils';
@@ -15,6 +15,15 @@ import { cn } from '@/lib/utils';
 interface LiveRateState {
     rate: number | null;
     loading: boolean;
+}
+
+interface TransactionDetailModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    transaction: Transaction | null;
+    banks: Bank[];
+    onEdit: (t: Transaction) => void;
+    onDelete: (id: string) => void;
 }
 
 export function TransactionDetailModal({
@@ -100,19 +109,22 @@ export function TransactionDetailModal({
   const currency = transaction.currency || 'GBP';
   const originalAmount = transaction.originalAmount || transaction.amount;
   const isForeignCurrency = currency !== 'GBP';
+  
+  const currentGbpValue = (liveRate.rate && transaction.originalAmount) ? transaction.originalAmount * liveRate.rate : null;
+  const historicalGbpValue = transaction.amount;
+  const valueDifference = currentGbpValue !== null ? currentGbpValue - historicalGbpValue : null;
 
-  const RateChangeIndicator = () => {
-    if (!liveRate.rate || !transaction.exchangeRate) return null;
-    const difference = liveRate.rate - transaction.exchangeRate;
-    const isUp = difference > 0;
-    const isDown = difference < 0;
 
-    if (!isUp && !isDown) return null;
+  const ValueChangeIndicator = () => {
+    if (valueDifference === null || Math.abs(valueDifference) < 0.01) return null;
+
+    const isUp = valueDifference > 0;
+    const isDown = valueDifference < 0;
 
     return (
       <span className={cn("text-xs font-semibold flex items-center gap-1", isUp ? 'text-green-400' : 'text-red-400')}>
         {isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-        {difference.toFixed(4)}
+        {formatCurrency(Math.abs(valueDifference))}
       </span>
     );
   }
@@ -151,7 +163,7 @@ export function TransactionDetailModal({
                 </p>
                 {isForeignCurrency && (
                     <p className="text-xs text-muted-foreground mt-1">
-                        Converted to {formatCurrency(transaction.amount, 'GBP')}
+                        Recorded as {formatCurrency(transaction.amount, 'GBP')}
                     </p>
                 )}
             </div>
@@ -163,19 +175,23 @@ export function TransactionDetailModal({
           
           {isForeignCurrency && (
              <div className="p-3 sm:p-4 bg-muted/30 rounded-lg border border-border/50 space-y-2">
-                <h4 className="font-semibold text-sm text-foreground">Currency Conversion</h4>
+                <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+                    <ArrowRightLeft className="h-4 w-4" /> Currency Conversion
+                </h4>
                 <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Original Rate:</span>
-                    <span className="font-mono text-foreground">1 {currency} = {transaction.exchangeRate?.toFixed(4) || 'N/A'} GBP</span>
+                    <span className="text-muted-foreground">Original Value:</span>
+                    <span className="font-mono text-foreground">{formatCurrency(transaction.amount, 'GBP')}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Current Rate:</span>
+                    <span className="text-muted-foreground">Current Value:</span>
                     {liveRate.loading ? (
                          <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                         <div className="flex items-center gap-2">
-                           <RateChangeIndicator />
-                           <span className="font-mono text-foreground">1 {currency} = {liveRate.rate?.toFixed(4) || 'N/A'} GBP</span>
+                           {currentGbpValue !== null && (
+                                <span className="font-mono text-foreground">{formatCurrency(currentGbpValue, 'GBP')}</span>
+                           )}
+                           <ValueChangeIndicator />
                         </div>
                     )}
                 </div>
