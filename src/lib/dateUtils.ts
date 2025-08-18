@@ -1,5 +1,6 @@
 
-import { Transaction } from './types';
+import { Transaction, Currency } from './types';
+import { getLiveRate } from './financial';
 
 export function formatDate(dateString: string | Date): string {
   const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
@@ -186,7 +187,7 @@ export function isTransactionDueOnDate(transaction: Transaction, targetDate: Dat
   }
   
   // Calculate days difference
-  const daysDiff = Math.floor((target.getTime() - originalDate.getTime()) / (1000 * 60 * 60 * 24));
+  const daysDiff = Math.round((target.getTime() - originalDate.getTime()) / (1000 * 60 * 60 * 24));
   
   switch (transaction.frequency) {
     case 'weekly':
@@ -199,24 +200,18 @@ export function isTransactionDueOnDate(transaction: Transaction, targetDate: Dat
       return daysDiff % 28 === 0;
       
     case 'monthly':
-      // Check if it's the same day of month, or last day if original was last day
       const originalDay = originalDate.getDate();
       const targetDay = target.getDate();
-      const targetMonth = target.getMonth();
-      const targetYear = target.getFullYear();
       
-      // Get last day of target month
-      const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
-      const lastDayOfOriginalMonth = new Date(originalDate.getFullYear(), originalDate.getMonth() + 1, 0).getDate();
-      
-      // If original was last day of month, check if target is last day of its month
-      if (originalDay === lastDayOfOriginalMonth) {
-        return targetDay === lastDayOfTargetMonth;
+      if (originalDay > targetDay) return false;
+
+      let tempDate = new Date(originalDate);
+      while(tempDate < target) {
+        tempDate.setMonth(tempDate.getMonth() + 1);
+        if(tempDate.getTime() === target.getTime()) return true;
       }
-      
-      // Otherwise check if it's the same day of month (or last day if month is shorter)
-      return targetDay === Math.min(originalDay, lastDayOfTargetMonth);
-      
+      return tempDate.getTime() === target.getTime();
+
     case 'yearly':
       // Same month and day each year
       return target.getMonth() === originalDate.getMonth() && 
@@ -248,26 +243,43 @@ export function getTransactionsByTypeOnDate(transactions: Transaction[], targetD
 }
 
 // Calculate total income and expenses for a specific date
-export function calculateDayTotals(transactions: Transaction[], targetDate: Date): {
-  income: number;
-  expenses: number;
-  debts: number;
-} {
+export async function calculateDayTotals(
+  transactions: Transaction[], 
+  targetDate: Date
+): Promise<{ income: number; expenses: number; debts: number; }> {
   const dueTransactions = getTransactionsDueOnDate(transactions, targetDate);
   
   let income = 0;
   let expenses = 0;
   let debts = 0;
-  
-  dueTransactions.forEach(transaction => {
-    if (transaction.type === 'income') {
-      income += transaction.amount;
-    } else if (transaction.type === 'expense') {
-      expenses += transaction.amount;
-    } else if (transaction.type === 'debt' && transaction.amount > 0) {
-      debts += transaction.amount;
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const isFutureDate = targetDate > today;
+
+  for (const transaction of dueTransactions) {
+    let amount = transaction.amount;
+
+    // If it's a future date and a foreign currency, use the live rate
+    if (isFutureDate && transaction.currency !== 'GBP' && transaction.originalAmount) {
+      try {
+        const liveRate = await getLiveRate(transaction.currency as Currency, 'GBP');
+        amount = transaction.originalAmount * liveRate;
+      } catch (error) {
+        console.error("Could not fetch live rate for forecast, using stored amount", error);
+        // fallback to stored amount
+        amount = transaction.amount;
+      }
     }
-  });
+
+    if (transaction.type === 'income') {
+      income += amount;
+    } else if (transaction.type === 'expense') {
+      expenses += amount;
+    } else if (transaction.type === 'debt' && amount > 0) {
+      debts += amount;
+    }
+  }
   
   return { income, expenses, debts };
 }

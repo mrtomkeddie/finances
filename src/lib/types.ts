@@ -26,6 +26,7 @@ export interface Transaction {
   // New currency fields
   originalAmount?: number | null;
   currency?: Currency | null;
+  exchangeRate?: number | null; // The exchange rate at the time of creation
 }
 
 export interface Bank {

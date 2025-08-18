@@ -1,22 +1,20 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Calendar, Percent, Banknote, Tag } from 'lucide-react';
+import { Edit, Trash2, Calendar, Percent, Banknote, Tag, TrendingUp, TrendingDown, ArrowRight, Loader2 } from 'lucide-react';
 import { Transaction, Bank, Currency } from '@/lib/types';
-import { formatCurrency, calculateMonthlyAmount, calculateNetMonthlyDebtPayment, calculateWeeksUntilPaidOff, formatInterestRate, calculateMonthlyInterest } from '@/lib/financial';
+import { formatCurrency, calculateMonthlyAmount, calculateNetMonthlyDebtPayment, calculateWeeksUntilPaidOff, formatInterestRate, calculateMonthlyInterest, getLiveRate } from '@/lib/financial';
 import { formatDate } from '@/lib/dateUtils';
 import { Separator } from '@/components/ui/separator';
 import { useUI } from '@/context/UIContext';
+import { cn } from '@/lib/utils';
 
-interface TransactionDetailModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  transaction: Transaction | null;
-  banks: Bank[];
-  onEdit: (transaction: Transaction) => void;
-  onDelete: (transactionId: string) => void;
+
+interface LiveRateState {
+    rate: number | null;
+    loading: boolean;
 }
 
 export function TransactionDetailModal({
@@ -28,6 +26,25 @@ export function TransactionDetailModal({
   onDelete,
 }: TransactionDetailModalProps) {
   const { openConfirmationDialog } = useUI();
+  const [liveRate, setLiveRate] = useState<LiveRateState>({ rate: null, loading: false });
+
+  useEffect(() => {
+    const fetchLiveRate = async () => {
+        if (isOpen && transaction && transaction.currency !== 'GBP') {
+            setLiveRate({ rate: null, loading: true });
+            try {
+                const rate = await getLiveRate(transaction.currency as Currency, 'GBP');
+                setLiveRate({ rate, loading: false });
+            } catch (error) {
+                console.error("Could not fetch live rate", error);
+                setLiveRate({ rate: null, loading: false });
+            }
+        }
+    };
+    fetchLiveRate();
+  }, [isOpen, transaction]);
+
+
   if (!transaction) return null;
 
   const bank = banks.find(b => b.id === transaction.bankId);
@@ -84,6 +101,22 @@ export function TransactionDetailModal({
   const originalAmount = transaction.originalAmount || transaction.amount;
   const isForeignCurrency = currency !== 'GBP';
 
+  const RateChangeIndicator = () => {
+    if (!liveRate.rate || !transaction.exchangeRate) return null;
+    const difference = liveRate.rate - transaction.exchangeRate;
+    const isUp = difference > 0;
+    const isDown = difference < 0;
+
+    if (!isUp && !isDown) return null;
+
+    return (
+      <span className={cn("text-xs font-semibold flex items-center gap-1", isUp ? 'text-green-400' : 'text-red-400')}>
+        {isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+        {difference.toFixed(4)}
+      </span>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md sm:max-w-2xl mx-auto bg-card border-border">
@@ -118,7 +151,7 @@ export function TransactionDetailModal({
                 </p>
                 {isForeignCurrency && (
                     <p className="text-xs text-muted-foreground mt-1">
-                        ~ {formatCurrency(transaction.amount, 'GBP')}
+                        Converted to {formatCurrency(transaction.amount, 'GBP')}
                     </p>
                 )}
             </div>
@@ -127,6 +160,28 @@ export function TransactionDetailModal({
               <p className="text-xl sm:text-2xl font-bold text-foreground">{formatCurrency(monthlyAmount, 'GBP')}</p>
             </div>
           </div>
+          
+          {isForeignCurrency && (
+             <div className="p-3 sm:p-4 bg-muted/30 rounded-lg border border-border/50 space-y-2">
+                <h4 className="font-semibold text-sm text-foreground">Currency Conversion</h4>
+                <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Original Rate:</span>
+                    <span className="font-mono text-foreground">1 {currency} = {transaction.exchangeRate?.toFixed(4) || 'N/A'} GBP</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Current Rate:</span>
+                    {liveRate.loading ? (
+                         <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                        <div className="flex items-center gap-2">
+                           <RateChangeIndicator />
+                           <span className="font-mono text-foreground">1 {currency} = {liveRate.rate?.toFixed(4) || 'N/A'} GBP</span>
+                        </div>
+                    )}
+                </div>
+             </div>
+          )}
+
 
           {isDebt && (
             <div className="space-y-3 p-3 sm:p-4 bg-muted/30 rounded-lg border border-border/50">

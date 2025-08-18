@@ -1,12 +1,12 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Transaction } from '@/lib/types';
 import { formatCurrency } from '@/lib/financial';
 import { calculateDayTotals, isToday } from '@/lib/dateUtils';
 import { cn } from '@/lib/utils';
-import { ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, Loader2 } from 'lucide-react';
 
 interface CalendarDayProps extends React.HTMLAttributes<HTMLDivElement> {
   date: Date;
@@ -15,7 +15,19 @@ interface CalendarDayProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function CalendarDay({ date, transactions, isCurrentMonth, className, ...props }: CalendarDayProps) {
-  const totals = calculateDayTotals(transactions, date);
+  const [totals, setTotals] = useState({ income: 0, expenses: 0, debts: 0 });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const getTotals = async () => {
+      setIsLoading(true);
+      const calculatedTotals = await calculateDayTotals(transactions, date);
+      setTotals(calculatedTotals);
+      setIsLoading(false);
+    };
+    getTotals();
+  }, [date, transactions]);
+  
   const totalOut = totals.expenses + totals.debts;
   const hasActivity = totals.income > 0 || totalOut > 0;
 
@@ -41,7 +53,11 @@ export function CalendarDay({ date, transactions, isCurrentMonth, className, ...
         {date.getDate()}
       </div>
       
-      {hasActivity && (
+      {isLoading ? (
+        <div className="flex-grow flex items-center justify-center">
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        </div>
+      ) : hasActivity && (
         <div className="flex-grow flex flex-col justify-end mt-1 space-y-1 text-xs">
           {totals.income > 0 && (
             <div className="flex items-center gap-1 text-green-500 bg-green-500/10 p-1 rounded-md text-[10px] sm:text-xs">

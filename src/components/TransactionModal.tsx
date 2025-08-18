@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Transaction, Bank, TransactionType, TransactionFrequency, InterestType, RateFrequency, TransactionCategory, Currency } from '@/lib/types';
-import { calculateMonthlyInterest, formatCurrency, getInterestInputLabel, convertToGbp } from '@/lib/financial';
+import { calculateMonthlyInterest, formatCurrency, getInterestInputLabel, convertToGbp, getLiveRate } from '@/lib/financial';
 import { Calendar } from '@/components/ui/calendar';
 import { Calendar as CalendarIcon, Loader2 } from 'lucide-react';
 import { format, parse } from 'date-fns';
@@ -70,6 +70,7 @@ function getInitialFormData(): FormData {
     interestType: 'monetary' as InterestType,
     rateFrequency: 'monthly' as RateFrequency,
     description: '',
+    exchangeRate: null,
   };
 }
 
@@ -194,22 +195,19 @@ export function TransactionModal({
     
     const currency = formData.currency || 'GBP';
     let finalAmount = originalAmount;
+    let exchangeRate = null;
     
     if (currency !== 'GBP') {
-        if (convertedAmount !== null) {
-            finalAmount = convertedAmount;
-        } else {
-            // Attempt a last-minute conversion if the background one failed or didn't run
-            setIsConverting(true);
-            try {
-                finalAmount = await convertToGbp(originalAmount, currency);
-            } catch (error) {
-                showValidationError('Could not convert currency. Please check your connection or try again.');
-                setIsConverting(false);
-                return;
-            }
+        setIsConverting(true);
+        try {
+            exchangeRate = await getLiveRate(currency, 'GBP');
+            finalAmount = originalAmount * exchangeRate;
+        } catch (error) {
+            showValidationError('Could not convert currency. Please check your connection or try again.');
             setIsConverting(false);
+            return;
         }
+        setIsConverting(false);
     }
 
     const transaction: Omit<Transaction, 'id'> = {
@@ -217,6 +215,7 @@ export function TransactionModal({
       amount: finalAmount,
       originalAmount: originalAmount,
       currency: currency,
+      exchangeRate: exchangeRate,
       date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
       title: formData.title.trim(),
       category: formData.category || 'Uncategorized',

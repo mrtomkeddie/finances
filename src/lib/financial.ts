@@ -16,12 +16,16 @@ export function formatCurrency(amount: number, currency: Currency = 'GBP'): stri
   return new Intl.NumberFormat(locale, options).format(amount);
 }
 
+export async function getLiveRate(from: Currency, to: Currency): Promise<number> {
+    return getExchangeRate(from, to);
+}
+
 export async function convertToGbp(amount: number, currency: Currency): Promise<number> {
   if (currency === 'GBP') {
     return amount;
   }
   if (currency === 'USD' || currency === 'AUD') {
-    const rate = await getExchangeRate(currency, 'GBP');
+    const rate = await getLiveRate(currency, 'GBP');
     return amount * rate;
   }
   return amount;
