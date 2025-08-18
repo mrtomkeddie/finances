@@ -7,7 +7,7 @@ const API_KEY = process.env.NEXT_PUBLIC_EXCHANGE_RATE_API_KEY;
 
 // In-memory cache to avoid repeated API calls.
 const currencyCache = new Map<Currency, { data: any; timestamp: number }>();
-const CACHE_DURATION_MS = 10 * 60 * 1000; // 10 minutes
+const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
  * Fetches the latest exchange rate from a base currency.
@@ -34,11 +34,12 @@ export async function getExchangeRate(from: Currency, to: Currency): Promise<num
   const cached = currencyCache.get(from);
 
   if (cached && now - cached.timestamp < CACHE_DURATION_MS) {
-    return cached.data.data[to];
+    const rate = cached.data.data[to];
+    if (rate) return rate;
   }
 
   try {
-    const response = await fetch(`${API_BASE}?apikey=${API_KEY}&base_currency=${from}&currencies=${to}`);
+    const response = await fetch(`${API_BASE}?apikey=${API_KEY}&base_currency=${from}&currencies=${to},USD,AUD`);
     if (!response.ok) {
       throw new Error(`Failed to fetch exchange rates: ${response.statusText}`);
     }
