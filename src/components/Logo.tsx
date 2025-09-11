@@ -4,14 +4,19 @@
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
+import React, { useState, useEffect } from 'react';
 
 export function Logo({ className }: { className?: string }) {
   const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const getLogoSrc = () => {
-    // On the server, resolvedTheme is undefined, so we can't know the theme.
-    // We'll return a transparent placeholder to avoid hydration errors.
-    if (typeof window === 'undefined') {
+    if (!mounted || !resolvedTheme) {
+      // Return a transparent placeholder to prevent hydration mismatch
       return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
     }
     return resolvedTheme === 'dark' ? '/white.png' : '/dark.png';
@@ -19,13 +24,13 @@ export function Logo({ className }: { className?: string }) {
 
   return (
     <Image
-      key={getLogoSrc()} // Re-renders the image when the source changes
+      key={getLogoSrc()} // Use key to force re-render when src changes
       src={getLogoSrc()}
       alt="Finance Port Logo"
       width={150}
       height={40}
-      className={className}
-      priority // Ensures the logo loads quickly, especially on the login page
+      className={cn(className, !mounted && 'opacity-0')} // Hide until mounted to prevent flash
+      priority
     />
   );
 }
