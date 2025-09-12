@@ -39,6 +39,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+      </head>
       <body className={`${poppins.variable} font-body antialiased`}>
         <ThemeProvider
           attribute="class"

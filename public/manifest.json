@@ -1,6 +1,8 @@
+
 {
   "name": "Finances",
   "short_name": "Finances",
+  "description": "Your personal finance companion.",
   "icons": [
     {
       "src": "/icon.png",
@@ -17,8 +19,7 @@
   ],
   "theme_color": "#111827",
   "background_color": "#111827",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/login",
   "display": "standalone",
-  "orientation": "portrait"
+  "scope": "/"
 }
