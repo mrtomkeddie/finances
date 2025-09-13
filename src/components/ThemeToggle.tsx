@@ -9,16 +9,9 @@ import { Button } from "@/components/ui/button"
 
 export function ThemeToggle() {
   const { setTheme, theme } = useTheme()
-  const [mounted, setMounted] = React.useState(false)
 
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    // Render a placeholder or nothing on the server and initial client render
-    return <Button variant="ghost" size="icon" disabled className="h-5 w-5" />
-  }
+  // The parent component `Header` now ensures this only renders on the client.
+  // The internal mount check is no longer needed.
 
   return (
     <Button

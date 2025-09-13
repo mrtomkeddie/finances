@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { LayoutDashboard, List, Loader2, LogOut, Menu, Plus, Notebook, Banknote, CalendarDays, Sun, Moon } from 'lucide-react';
@@ -93,6 +93,12 @@ function SideMenuContent() {
 
 
 function Header() {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   return (
     <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-lg">
       <div className="mx-auto flex h-20 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -100,16 +106,25 @@ function Header() {
           <Logo />
         </Link>
         <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Open menu</span>
-              </Button>
-            </SheetTrigger>
-            <SideMenuContent />
-          </Sheet>
+          {isMounted ? (
+            <>
+              <ThemeToggle />
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Open menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SideMenuContent />
+              </Sheet>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" size="icon" disabled className="h-10 w-10" />
+              <Button variant="outline" size="icon" disabled className="h-10 w-10" />
+            </>
+          )}
         </div>
       </div>
     </header>

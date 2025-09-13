@@ -8,28 +8,26 @@ import React, { useState, useEffect } from 'react';
 
 export function Logo({ className }: { className?: string }) {
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setIsMounted(true);
   }, []);
 
-  const getLogoSrc = () => {
-    if (!mounted || !resolvedTheme) {
-      // Return a transparent placeholder to prevent hydration mismatch
-      return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-    }
-    return resolvedTheme === 'dark' ? '/white.png' : '/dark.png';
-  };
+  if (!isMounted) {
+    // Render a placeholder or an empty div to avoid hydration mismatch
+    return <div className={cn('h-10 w-[150px]', className)} />;
+  }
+
+  const src = resolvedTheme === 'dark' ? '/white.png' : '/dark.png';
 
   return (
     <Image
-      key={getLogoSrc()} // Use key to force re-render when src changes
-      src={getLogoSrc()}
+      src={src}
       alt="Finance Port Logo"
       width={150}
       height={40}
-      className={cn(className, !mounted && 'opacity-0')} // Hide until mounted to prevent flash
+      className={cn(className)}
       priority
     />
   );
