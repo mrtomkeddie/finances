@@ -3,20 +3,20 @@
 
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore, getFirestore } from 'firebase/firestore';
 import {
-  collection,
-  doc,
-  addDoc,
-  getDocs,
-  getDoc,
-  updateDoc,
-  deleteDoc,
-  writeBatch,
-  query,
-  onSnapshot,
-  Unsubscribe,
-  setDoc,
+    collection,
+    doc,
+    addDoc,
+    getDocs,
+    getDoc,
+    updateDoc,
+    deleteDoc,
+    writeBatch,
+    query,
+    onSnapshot,
+    Unsubscribe,
+    setDoc,
 } from 'firebase/firestore';
 import type { Transaction, Bank, Goal, UserProfile, Note } from './types';
 
@@ -30,7 +30,16 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+let app: FirebaseApp;
+if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+    // Initialize Firestore with long-polling fallback for Vercel/PWA compatibility
+    initializeFirestore(app, {
+        experimentalAutoDetectLongPolling: true,
+    });
+} else {
+    app = getApp();
+}
 const auth = getAuth(app);
 const db = getFirestore(app);
 
@@ -39,56 +48,56 @@ const docToObj = (d: any) => ({ id: d.id, ...d.data() });
 
 // Bank Operations
 export const getBanks = async (userId: string): Promise<Bank[]> => {
-  const q = query(collection(db, `users/${userId}/banks`));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(docToObj) as Bank[];
+    const q = query(collection(db, `users/${userId}/banks`));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(docToObj) as Bank[];
 };
 
 export const addBank = async (userId: string, bank: Omit<Bank, 'id'>): Promise<Bank> => {
-  const docRef = await addDoc(collection(db, `users/${userId}/banks`), bank);
-  return { id: docRef.id, ...bank };
+    const docRef = await addDoc(collection(db, `users/${userId}/banks`), bank);
+    return { id: docRef.id, ...bank };
 };
 
 export const updateBank = async (userId: string, bankId: string, updates: Partial<Bank>): Promise<Bank> => {
-  const docRef = doc(db, `users/${userId}/banks`, bankId);
-  await updateDoc(docRef, updates);
-  const updatedDoc = await getDoc(docRef);
-  return docToObj(updatedDoc) as Bank;
+    const docRef = doc(db, `users/${userId}/banks`, bankId);
+    await updateDoc(docRef, updates);
+    const updatedDoc = await getDoc(docRef);
+    return docToObj(updatedDoc) as Bank;
 };
 
 export const deleteBank = (userId: string, bankId: string) => {
-  return deleteDoc(doc(db, `users/${userId}/banks`, bankId));
+    return deleteDoc(doc(db, `users/${userId}/banks`, bankId));
 };
 
 
 // Transaction Operations
 export const getTransactions = async (userId: string): Promise<Transaction[]> => {
-  const q = query(collection(db, `users/${userId}/transactions`));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(docToObj) as Transaction[];
+    const q = query(collection(db, `users/${userId}/transactions`));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(docToObj) as Transaction[];
 };
 
 export const addTransaction = async (userId: string, transaction: Omit<Transaction, 'id'>): Promise<Transaction> => {
     const docRef = await addDoc(collection(db, `users/${userId}/transactions`), transaction);
     return { id: docRef.id, ...transaction };
 };
-  
+
 export const updateTransaction = async (userId: string, transactionId: string, updates: Omit<Transaction, 'id'>): Promise<Transaction> => {
     const docRef = doc(db, `users/${userId}/transactions`, transactionId);
     await updateDoc(docRef, updates);
     const updatedDoc = await getDoc(docRef);
     return docToObj(updatedDoc) as Transaction;
 };
-  
+
 export const deleteTransaction = (userId: string, transactionId: string) => {
     return deleteDoc(doc(db, `users/${userId}/transactions`, transactionId));
 };
 
 // Note Operations
 export const getNotes = async (userId: string): Promise<Note[]> => {
-  const q = query(collection(db, `users/${userId}/notes`));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(docToObj) as Note[];
+    const q = query(collection(db, `users/${userId}/notes`));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(docToObj) as Note[];
 };
 
 export const addNote = async (userId: string, note: Omit<Note, 'id'>): Promise<Note> => {
@@ -153,7 +162,7 @@ export const clearAllUserData = async (userId: string) => {
         const snapshot = await getDocs(collection(db, `users/${userId}/${col}`));
         snapshot.docs.forEach((d) => batch.delete(d.ref));
     }
-    
+
     // Also delete the profile
     const profileDoc = doc(db, `users/${userId}/profile`, 'main');
     batch.delete(profileDoc);
