@@ -1,15 +1,15 @@
 
-import type {Metadata, Viewport} from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from '@/components/AuthProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Poppins } from 'next/font/google';
 
-const poppins = Poppins({ 
-  subsets: ['latin'], 
+const poppins = Poppins({
+  subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
-  variable: '--font-poppins' 
+  variable: '--font-poppins'
 });
 
 export const metadata: Metadata = {
@@ -19,6 +19,11 @@ export const metadata: Metadata = {
   icons: {
     icon: '/icon.png',
     apple: '/icon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Finances',
   },
 };
 
@@ -30,6 +35,8 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({
@@ -41,6 +48,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Finances" />
+        <link rel="apple-touch-icon" href="/icon.png" />
       </head>
       <body className={`${poppins.variable} font-body antialiased`}>
         <ThemeProvider
