@@ -33,9 +33,9 @@ const firebaseConfig = {
 let app: FirebaseApp;
 if (!getApps().length) {
     app = initializeApp(firebaseConfig);
-    // Initialize Firestore with long-polling fallback for Vercel/PWA compatibility
+    // Initialize Firestore with forced long-polling to prevent WebSocket Drops on Vercel
     initializeFirestore(app, {
-        experimentalAutoDetectLongPolling: true,
+        experimentalForceLongPolling: true,
     });
 } else {
     app = getApp();
