@@ -7,6 +7,26 @@ const withPWA = require('next-pwa')({
   fallbacks: {
     document: '/offline',
   },
+  buildExcludes: [/middleware-manifest\.json$/],
+  runtimeCaching: [
+    {
+      // Exclude Firebase and Google API requests from SW caching
+      urlPattern: /^https:\/\/(firestore|identitytoolkit|securetoken|www\.googleapis|firebase|apis\.google)\.googleapis\.com\/.*/i,
+      handler: 'NetworkOnly',
+    },
+    {
+      urlPattern: /^https:\/\/.*\.firebaseio\.com\/.*/i,
+      handler: 'NetworkOnly',
+    },
+    {
+      urlPattern: /^https:\/\/.*\.firebaseapp\.com\/.*/i,
+      handler: 'NetworkOnly',
+    },
+    {
+      urlPattern: /^https:\/\/.*\.firebasestorage\.app\/.*/i,
+      handler: 'NetworkOnly',
+    },
+  ],
 });
 
 const nextConfig = {
