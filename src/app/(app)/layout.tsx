@@ -112,43 +112,7 @@ function DesktopSidebar() {
 }
 
 
-function MobileNav() {
-  const pathname = usePathname();
 
-  const mobileNavItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/transactions', label: 'Transactions', icon: List },
-    { href: '/calendar', label: 'Calendar', icon: CalendarDays },
-    { href: '/notes', label: 'Notes', icon: Notebook },
-    { href: '/settings', label: 'Settings', icon: Settings },
-  ];
-
-  return (
-    <div className="fixed bottom-0 left-0 right-0 z-20 border-t bg-background/95 backdrop-blur lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      <nav className="flex h-16 items-center justify-around">
-        {mobileNavItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'relative flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors px-2 py-1',
-                isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              {isActive && (
-                <span className="absolute -top-1 left-1/2 -translate-x-1/2 h-0.5 w-6 rounded-full bg-primary" />
-              )}
-              <item.icon className="h-5 w-5" />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-    </div>
-  );
-}
 
 
 function MobileSheetMenu() {
@@ -397,16 +361,13 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
             {/* Mobile header */}
             <Header />
 
-            <main className="flex flex-1 flex-col pb-20 lg:pb-0 min-w-0 w-full">
+            <main className="flex flex-1 flex-col min-w-0 w-full">
               <div className="mx-auto w-full max-w-screen-lg flex-1 px-4 pt-4 pb-8 sm:px-6 sm:pt-6">
                 <ErrorBoundary>
                   {children}
                 </ErrorBoundary>
               </div>
             </main>
-
-            {/* Mobile bottom nav */}
-            <MobileNav />
           </div>
 
           <AppModals />
