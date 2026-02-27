@@ -1,10 +1,16 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { useData } from '@/context/DataContext';
+import { useAuth } from '@/hooks/useAuth';
+import { useUI } from '@/context/UIContext';
+import { Save, Trash2, ChevronDown, ChevronUp, User, Wallet, AlertTriangle, BookOpen } from 'lucide-react';
 
 const documentationText = `
 ## Finance Port: System Documentation
@@ -95,30 +101,166 @@ The application revolves around a few key data structures:
 `;
 
 export default function SettingsPage() {
+  const { weeklyTransferAmount, handleSaveTransferAmount, handleClearAllData } = useData();
+  const { user } = useAuth();
+  const { openConfirmationDialog } = useUI();
+
+  const [transferAmount, setTransferAmount] = useState(String(weeklyTransferAmount || 0));
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showDocs, setShowDocs] = useState(false);
+
+  useEffect(() => {
+    setTransferAmount(String(weeklyTransferAmount || 0));
+  }, [weeklyTransferAmount]);
+
+  const handleSaveTransfer = async () => {
+    setIsSaving(true);
+    try {
+      await handleSaveTransferAmount(Number(transferAmount) || 0);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000);
+    } catch (error) {
+      console.error('Failed to save:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleClearData = () => {
+    openConfirmationDialog({
+      title: 'Clear All Data?',
+      description: 'This will permanently delete ALL your banks, transactions, notes, and profile data. This action cannot be undone.',
+      onConfirm: handleClearAllData,
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
       </div>
 
+      {/* Profile */}
       <Card>
         <CardHeader>
-          <CardTitle>System Documentation</CardTitle>
+          <div className="flex items-center gap-2">
+            <User className="h-5 w-5 text-muted-foreground" />
+            <CardTitle className="text-base">Profile</CardTitle>
+          </div>
+          <CardDescription>Your account information.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Email</Label>
+            <Input
+              readOnly
+              value={user?.email || ''}
+              className="bg-muted cursor-not-allowed"
+            />
+            <p className="text-xs text-muted-foreground">
+              Managed by Firebase Authentication.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Financial Preferences */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Wallet className="h-5 w-5 text-muted-foreground" />
+            <CardTitle className="text-base">Financial Preferences</CardTitle>
+          </div>
           <CardDescription>
-            A detailed technical overview of the application, its functions, and data structures. Use this for reference or for rebuilding the app.
+            Configure how your dashboard calculations work.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="transfer-amount">Weekly Transfer Amount (£)</Label>
+            <div className="flex gap-2">
+              <Input
+                id="transfer-amount"
+                type="number"
+                min="0"
+                step="1"
+                value={transferAmount}
+                onChange={(e) => setTransferAmount(e.target.value)}
+                placeholder="0"
+                className="max-w-[200px]"
+              />
+              <Button
+                onClick={handleSaveTransfer}
+                disabled={isSaving}
+                variant={saveSuccess ? 'default' : 'outline'}
+                className="gap-2"
+              >
+                <Save className="h-4 w-4" />
+                {saveSuccess ? 'Saved!' : 'Save'}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              This amount is subtracted from HSBC and added to Santander in your dashboard overview.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Danger Zone */}
+      <Card className="border-destructive/30">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            <CardTitle className="text-base text-destructive">Danger Zone</CardTitle>
+          </div>
+          <CardDescription>
+            Irreversible actions. Please be certain.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            <Label htmlFor="documentation">App Overview</Label>
-            <Textarea
-              id="documentation"
-              readOnly
-              value={documentationText}
-              className="h-[500px] font-mono text-xs custom-scrollbar"
-            />
-          </div>
+          <Button
+            variant="destructive"
+            onClick={handleClearData}
+            className="gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            Clear All Data
+          </Button>
+          <p className="text-xs text-muted-foreground mt-2">
+            Permanently deletes all banks, transactions, notes, and profile data.
+          </p>
         </CardContent>
+      </Card>
+
+      {/* Documentation (collapsible) */}
+      <Card>
+        <CardHeader
+          className="cursor-pointer"
+          onClick={() => setShowDocs(!showDocs)}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-base">System Documentation</CardTitle>
+            </div>
+            {showDocs ? (
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            )}
+          </div>
+          <CardDescription>
+            Technical overview of the application and its data structures.
+          </CardDescription>
+        </CardHeader>
+        {showDocs && (
+          <CardContent>
+            <div className="rounded-md bg-muted p-4 overflow-y-auto max-h-[500px] custom-scrollbar">
+              <pre className="text-xs font-mono whitespace-pre-wrap">{documentationText}</pre>
+            </div>
+          </CardContent>
+        )}
       </Card>
     </div>
   );

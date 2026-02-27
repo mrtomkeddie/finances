@@ -2,8 +2,8 @@
 'use client';
 import { Transaction, Bank } from './types';
 
-const BASE_ID = 'appGr7teCGX1HtXQ7';
-const API_TOKEN = 'patyWbrKiNVQumdCP.bda7401339e52ce3baeed0a3c8014a585e8e90b73280c48e303c9bb5c8a163df';
+const BASE_ID = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID || '';
+const API_TOKEN = process.env.NEXT_PUBLIC_AIRTABLE_API_TOKEN || '';
 
 const AIRTABLE_API_BASE = 'https://api.airtable.com/v0';
 
