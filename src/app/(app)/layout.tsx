@@ -310,7 +310,13 @@ function AppModals() {
       <TransactionModal
         isOpen={isTransactionModalOpen}
         onClose={closeTransactionModal}
-        onAddTransaction={editingTransaction ? handleUpdateTransaction : handleAddTransaction}
+        onAddTransaction={(transaction, id) => {
+          if (editingTransaction && id) {
+            return handleUpdateTransaction(transaction, id);
+          } else {
+            return handleAddTransaction(transaction);
+          }
+        }}
         banks={banks}
         editTransaction={editingTransaction}
       />
@@ -387,11 +393,11 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
           <DesktopSidebar />
 
           {/* Main content area */}
-          <div className="flex flex-1 flex-col lg:pl-64">
+          <div className="flex flex-1 flex-col lg:pl-64 min-w-0 w-full">
             {/* Mobile header */}
             <Header />
 
-            <main className="flex flex-1 flex-col pb-20 lg:pb-0">
+            <main className="flex flex-1 flex-col pb-20 lg:pb-0 min-w-0 w-full">
               <div className="mx-auto w-full max-w-screen-lg flex-1 px-4 pt-4 pb-8 sm:px-6 sm:pt-6">
                 <ErrorBoundary>
                   {children}
