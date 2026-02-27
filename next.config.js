@@ -1,6 +1,4 @@
 /** @type {import('next').NextConfig} */
-const defaultRuntimeCaching = require('next-pwa/cache');
-
 const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,
@@ -13,25 +11,7 @@ const withPWA = require('next-pwa')({
     /^\/api\//,
   ],
   buildExcludes: [/middleware-manifest\.json$/],
-  runtimeCaching: [
-    {
-      urlPattern: /^https:\/\/.*\.googleapis\.com\/.*/i,
-      handler: 'NetworkOnly',
-    },
-    {
-      urlPattern: /^https:\/\/.*\.firebaseio\.com\/.*/i,
-      handler: 'NetworkOnly',
-    },
-    {
-      urlPattern: /^https:\/\/.*\.firebaseapp\.com\/.*/i,
-      handler: 'NetworkOnly',
-    },
-    {
-      urlPattern: /^https:\/\/.*\.firebasestorage\.app\/.*/i,
-      handler: 'NetworkOnly',
-    },
-    ...defaultRuntimeCaching,
-  ],
+  runtimeCaching: require('./pwa-cache'),
 });
 
 const nextConfig = {
