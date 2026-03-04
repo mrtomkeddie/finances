@@ -9,7 +9,6 @@ import { useData } from '@/context/DataContext';
 import { calculateSummary, calculateMonthlyAmount, formatCurrency } from '@/lib/financial';
 import { AnimatedNumber } from '@/components/AnimatedNumber';
 import { WeeklyForecast } from '@/components/WeeklyForecast';
-import { SpendingChart } from '@/components/SpendingChart';
 import { useUI } from '@/context/UIContext';
 import { Separator } from '@/components/ui/separator';
 
@@ -228,8 +227,6 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
-
-          <SpendingChart transactions={transactions} />
 
           <WeeklyForecast transactions={transactions} />
         </>

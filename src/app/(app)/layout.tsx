@@ -26,6 +26,7 @@ import { NoteDetailModal } from '@/components/NoteDetailModal';
 import { Note } from '@/lib/types';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { AIChatbot } from '@/components/AIChatbot';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -371,6 +372,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
           </div>
 
           <AppModals />
+          <AIChatbot />
         </div>
       </DataProvider>
     </UIProvider>
